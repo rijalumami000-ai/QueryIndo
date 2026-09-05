@@ -13,14 +13,14 @@ export class CompanyModal {
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
               <div>
                 <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.15em; display: block; margin-bottom: 0.25rem;">Corporate Profile</span>
-                <h2 style="font-weight: 800; font-size: 1.6rem; color: var(--text-primary); font-family: var(--font-main);">Tentang Kami — ByteIndonesia</h2>
+                <h2 style="font-weight: 800; font-size: 1.6rem; color: var(--text-primary); font-family: var(--font-main);">Tentang Kami — QUERYINDO</h2>
               </div>
               ${closeButtonHTML}
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 1.75rem; font-size: 0.95rem; line-height: 1.7; color: var(--text-primary);">
               <p style="font-size: 1.1rem; color: var(--text-secondary); border-left: 3px solid var(--accent-cyan); padding-left: 1rem; font-weight: 500;">
-                ByteIndonesia merupakan portal berita teknologi dan informasi digital nasional di bawah naungan PT Byte Media Nusantara. Kami menyajikan jurnalisme teknologi yang kredibel, akurat, dan berwawasan luas.
+                QUERYINDO merupakan portal berita teknologi dan informasi digital nasional di bawah naungan PT Query Media Nusantara. Kami menyajikan jurnalisme teknologi yang kredibel, akurat, dan berwawasan luas.
               </p>
               
               <div>
@@ -70,7 +70,7 @@ export class CompanyModal {
             
             <div style="display: flex; flex-direction: column; gap: 1.75rem; font-size: 0.95rem; line-height: 1.7; color: var(--text-primary);">
               <p style="color: var(--text-secondary);">
-                Setiap konten, infografis, dan ulasan yang disajikan oleh ByteIndonesia wajib menaati <strong>Kode Etik Jurnalistik Dewan Pers</strong> serta undang-undang yang berlaku di Republik Indonesia.
+                Setiap konten, infografis, dan ulasan yang disajikan oleh QUERYINDO wajib menaati <strong>Kode Etik Jurnalistik Dewan Pers</strong> serta undang-undang yang berlaku di Republik Indonesia.
               </p>
 
               <div>
@@ -94,7 +94,7 @@ export class CompanyModal {
               <div>
                 <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Pengaduan Resmi</h3>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Kritik, saran, maupun hak jawab atas pemberitaan dapat dikirimkan langsung ke divisi kepatuhan redaksi kami melalui surel resmi: <code style="color: var(--accent-cyan); font-weight: bold;">ombudsman@byteindonesia.id</code>.
+                  Kritik, saran, maupun hak jawab atas pemberitaan dapat dikirimkan langsung ke divisi kepatuhan redaksi kami melalui surel resmi: <code style="color: var(--accent-cyan); font-weight: bold;">ombudsman@queryindo.id</code>.
                 </p>
               </div>
             </div>
@@ -126,7 +126,7 @@ export class CompanyModal {
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Bertanggung jawab melakukan investigasi mendalam isu keamanan siber nasional, audit infrastruktur digital negara, dan kebijakan telekomunikasi.</p>
                   </div>
-                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@byteindonesia.id')">Daftar Sekarang</button>
+                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.id')">Daftar Sekarang</button>
                 </div>
 
                 <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
@@ -137,7 +137,7 @@ export class CompanyModal {
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Melakukan evaluasi berkala terhadap model AI lokal, kinerja superkomputer nasional, dan implementasi teknologi ramah lingkungan di IKN.</p>
                   </div>
-                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@byteindonesia.id')">Daftar Sekarang</button>
+                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.id')">Daftar Sekarang</button>
                 </div>
               </div>
             </div>
@@ -157,7 +157,7 @@ export class CompanyModal {
             
             <div style="display: flex; flex-direction: column; gap: 1.75rem; font-size: 0.95rem; line-height: 1.7;">
               <p style="color: var(--text-secondary);">
-                ByteIndonesia merupakan mitra strategis untuk memperluas jangkauan promosi merek Anda ke audiens terarah di segmen pengambil keputusan, eksekutif teknologi, akademisi, dan profesional IT Indonesia.
+                QUERYINDO merupakan mitra strategis untuk memperluas jangkauan promosi merek Anda ke audiens terarah di segmen pengambil keputusan, eksekutif teknologi, akademisi, dan profesional IT Indonesia.
               </p>
 
               <div>
@@ -181,7 +181,7 @@ export class CompanyModal {
               <div>
                 <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Kontak Kemitraan Bisnis</h3>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">partnership@byteindonesia.id</code>.
+                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">partnership@queryindo.id</code>.
                 </p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export class CompanyModal {
                 <h4 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-top: 0.5rem; margin-bottom: 0.25rem;">Kantor Pusat Redaksi Jakarta</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
                   Gedung Cyber 2 Tower, Lt. 18, Kav. X-5 No. 13, Jl. H.R. Rasuna Said, Kuningan, Jakarta Selatan 12950<br />
-                  Email Utama: <code style="color:var(--accent-cyan);">redaksi@byteindonesia.id</code><br />
+                  Email Utama: <code style="color:var(--accent-cyan);">redaksi@queryindo.id</code><br />
                   Telepon Hubungan Media: (021) 555-8900
                 </p>
               </div>
@@ -234,7 +234,7 @@ export class CompanyModal {
             
             <div style="display: flex; flex-direction: column; gap: 1.5rem; font-size: 0.95rem; line-height: 1.7; overflow-y: auto; max-height: 60vh;">
               <p style="color: var(--text-secondary);">
-                Kebijakan Privasi ini tunduk sepenuhnya pada <strong>Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)</strong> Republik Indonesia. Kami berkomitmen melindungi data pribadi pengguna platform ByteIndonesia.
+                Kebijakan Privasi ini tunduk sepenuhnya pada <strong>Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)</strong> Republik Indonesia. Kami berkomitmen melindungi data pribadi pengguna platform QUERYINDO.
               </p>
 
               <div>
@@ -274,27 +274,27 @@ export class CompanyModal {
             
             <div style="display: flex; flex-direction: column; gap: 1.5rem; font-size: 0.95rem; line-height: 1.7; overflow-y: auto; max-height: 60vh;">
               <p style="color: var(--text-secondary);">
-                Dengan mengakses dan membaca informasi di platform media teknologi ByteIndonesia, Anda menyatakan setuju dan tunduk pada syarat dan ketentuan di bawah ini.
+                Dengan mengakses dan membaca informasi di platform media teknologi QUERYINDO, Anda menyatakan setuju dan tunduk pada syarat dan ketentuan di bawah ini.
               </p>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">1. Hak Kekayaan Intelektual</h3>
                 <p style="color: var(--text-secondary);">
-                  Seluruh artikel, teks naskah berita, infografis data perbandingan, dan tata letak visual di situs ini dilindungi Hak Cipta. Pengutipan materi wajib menyertakan kredit tulisan "Sumber: ByteIndonesia" dan tautan balik aktif (backlink).
+                  Seluruh artikel, teks naskah berita, infografis data perbandingan, dan tata letak visual di situs ini dilindungi Hak Cipta. Pengutipan materi wajib menyertakan kredit tulisan "Sumber: QUERYINDO" dan tautan balik aktif (backlink).
                 </p>
               </div>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">2. Penggunaan yang Diperbolehkan</h3>
                 <p style="color: var(--text-secondary);">
-                  Pengguna dilarang menggunakan data, API, atau konten ByteIndonesia untuk tujuan komersial sepihak tanpa izin tertulis, atau menggunakan skrip otomatis (scraping) yang membebani kinerja server.
+                  Pengguna dilarang menggunakan data, API, atau konten QUERYINDO untuk tujuan komersial sepihak tanpa izin tertulis, atau menggunakan skrip otomatis (scraping) yang membebani kinerja server.
                 </p>
               </div>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">3. Batasan Tanggung Jawab</h3>
                 <p style="color: var(--text-secondary);">
-                  Materi berita bersifat informatif dan edukatif. ByteIndonesia tidak bertanggung jawab atas keputusan investasi, pembelian perangkat keras, atau konsekuensi keputusan bisnis yang diambil berdasarkan ulasan produk atau artikel kami.
+                  Materi berita bersifat informatif dan edukatif. QUERYINDO tidak bertanggung jawab atas keputusan investasi, pembelian perangkat keras, atau konsekuensi keputusan bisnis yang diambil berdasarkan ulasan produk atau artikel kami.
                 </p>
               </div>
             </div>
@@ -314,20 +314,20 @@ export class CompanyModal {
             
             <div style="display: flex; flex-direction: column; gap: 1.5rem; font-size: 0.95rem; line-height: 1.7; overflow-y: auto; max-height: 60vh;">
               <p style="color: var(--text-secondary);">
-                Dengan menggunakan platform ByteIndonesia, Anda memahami dan menyetujui seluruh ketentuan penafian hukum di bawah ini:
+                Dengan menggunakan platform QUERYINDO, Anda memahami dan menyetujui seluruh ketentuan penafian hukum di bawah ini:
               </p>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">1. Akurasi & Sifat Informasi</h3>
                 <p style="color: var(--text-secondary);">
-                  Seluruh informasi, data spesifikasi gadget, hasil benchmark, dan infografis yang disajikan di portal ini bersifat umum dan bertujuan untuk edukasi. Meskipun kami berusaha menjaga kemutakhiran data, ByteIndonesia tidak memberikan jaminan mutlak atas keakuratan, kelengkapan, atau keandalan instan dari konten tersebut.
+                  Seluruh informasi, data spesifikasi gadget, hasil benchmark, dan infografis yang disajikan di portal ini bersifat umum dan bertujuan untuk edukasi. Meskipun kami berusaha menjaga kemutakhiran data, QUERYINDO tidak memberikan jaminan mutlak atas keakuratan, kelengkapan, atau keandalan instan dari konten tersebut.
                 </p>
               </div>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">2. Pihak Ketiga & Link Luar</h3>
                 <p style="color: var(--text-secondary);">
-                  Portal kami mungkin memuat tautan menuju situs web eksternal yang dikelola pihak ketiga. ByteIndonesia tidak memiliki kendali penuh dan tidak bertanggung jawab atas kebijakan privasi, isi, atau transaksi yang terjadi di platform eksternal tersebut.
+                  Portal kami mungkin memuat tautan menuju situs web eksternal yang dikelola pihak ketiga. QUERYINDO tidak memiliki kendali penuh dan tidak bertanggung jawab atas kebijakan privasi, isi, atau transaksi yang terjadi di platform eksternal tersebut.
                 </p>
               </div>
 
@@ -360,14 +360,14 @@ export class CompanyModal {
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">1. Verifikasi dan Keberimbangan Berita</h3>
                 <p style="color: var(--text-secondary);">
-                  Setiap berita di ByteIndonesia harus melalui proses verifikasi yang ketat. Berita yang dapat merugikan pihak lain memerlukan konfirmasi (keberimbangan) pada berita yang sama atau pada berita pembaruan berikutnya guna menjaga keadilan informasi.
+                  Setiap berita di QUERYINDO harus melalui proses verifikasi yang ketat. Berita yang dapat merugikan pihak lain memerlukan konfirmasi (keberimbangan) pada berita yang sama atau pada berita pembaruan berikutnya guna menjaga keadilan informasi.
                 </p>
               </div>
 
               <div>
                 <h3 style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.5rem;">2. Konten Buatan Pengguna (User Generated Content)</h3>
                 <p style="color: var(--text-secondary);">
-                  Kolom komentar dan diskusi pembaca disediakan sebagai sarana interaksi warga digital. ByteIndonesia tidak bertanggung jawab atas isi komentar pengguna, namun kami berhak memoderasi, menyunting, atau menghapus komentar yang mengandung unsur SARA, fitnah, pornografi, atau provokasi kekerasan.
+                  Kolom komentar dan diskusi pembaca disediakan sebagai sarana interaksi warga digital. QUERYINDO tidak bertanggung jawab atas isi komentar pengguna, namun kami berhak memoderasi, menyunting, atau menghapus komentar yang mengandung unsur SARA, fitnah, pornografi, atau provokasi kekerasan.
                 </p>
               </div>
 

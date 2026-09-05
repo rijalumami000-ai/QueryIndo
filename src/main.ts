@@ -12,6 +12,11 @@ import { ByteShorts } from './components/ByteShorts';
 import { Toast } from './utils/toast';
 import { TranslationService, UI_TRANSLATIONS } from './utils/translationService';
 import { TextToSpeechService } from './utils/textToSpeech';
+import { ReaderComments } from './components/ReaderComments';
+import { FocusMode } from './components/FocusMode';
+import { SeoService } from './utils/seoService';
+import { ShareModal } from './components/ShareModal';
+import { AdBanner } from './components/AdBanner';
 import Lenis from 'lenis';
 
 // English Names for Categories
@@ -47,6 +52,84 @@ const preferences: UserPreferences = {
 function t(key: keyof typeof UI_TRANSLATIONS['id']): string {
   return TranslationService.getLabel(key, preferences.language);
 }
+
+// Reading History System
+export interface ReadingHistoryItem {
+  articleId: string;
+  title: string;
+  category: string;
+  imageUrl: string;
+  readTimeMinutes: number;
+  readAt: string;
+}
+
+function addReadingHistory(article: Article) {
+  try {
+    let history: ReadingHistoryItem[] = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
+    history = history.filter(h => h.articleId !== article.id);
+    history.unshift({
+      articleId: article.id,
+      title: article.title,
+      category: article.category,
+      imageUrl: article.imageUrl,
+      readTimeMinutes: article.readTimeMinutes,
+      readAt: new Date().toISOString()
+    });
+    if (history.length > 40) history = history.slice(0, 40);
+    localStorage.setItem('byte_reading_history', JSON.stringify(history));
+  } catch (e) {
+    console.warn('Failed to save reading history', e);
+  }
+}
+
+// Multi-Reactions System
+type ReactionType = 'insight' | 'fire' | 'bullish' | 'critical';
+interface ArticleReactions {
+  insight: number;
+  fire: number;
+  bullish: number;
+  critical: number;
+}
+
+function getArticleReactions(articleId: string): ArticleReactions {
+  try {
+    const saved = localStorage.getItem(`byte_reactions_${articleId}`);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  const seed = articleId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return {
+    insight: 18 + (seed % 15),
+    fire: 24 + (seed % 20),
+    bullish: 12 + (seed % 10),
+    critical: 6 + (seed % 8)
+  };
+}
+
+function getUserReaction(articleId: string): ReactionType | null {
+  return (localStorage.getItem(`byte_user_reaction_${articleId}`) as ReactionType) || null;
+}
+
+function toggleUserReaction(articleId: string, reaction: ReactionType): { reactions: ArticleReactions; active: ReactionType | null } {
+  const reactions = getArticleReactions(articleId);
+  const current = getUserReaction(articleId);
+  
+  if (current === reaction) {
+    reactions[reaction] = Math.max(0, reactions[reaction] - 1);
+    localStorage.removeItem(`byte_user_reaction_${articleId}`);
+    localStorage.setItem(`byte_reactions_${articleId}`, JSON.stringify(reactions));
+    return { reactions, active: null };
+  }
+
+  if (current) {
+    reactions[current] = Math.max(0, reactions[current] - 1);
+  }
+
+  reactions[reaction] = (reactions[reaction] || 0) + 1;
+  localStorage.setItem(`byte_user_reaction_${articleId}`, reaction);
+  localStorage.setItem(`byte_reactions_${articleId}`, JSON.stringify(reactions));
+  return { reactions, active: reaction };
+}
+
 
 // DOM Elements
 const appElement = document.documentElement;
@@ -171,10 +254,45 @@ async function init() {
   renderByteShorts();
 
   setupEventListeners();
+  setupPWAInstallPrompt();
   handleHashRouting();
   setupCookieConsent();
   updateFooterLabels();
   updateFilterLabels();
+  SeoService.setHomeSEO();
+}
+
+// PWA Installation Prompt Handler
+function setupPWAInstallPrompt() {
+  let deferredPrompt: any = null;
+  const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (pwaInstallBtn) {
+      pwaInstallBtn.style.display = 'inline-flex';
+    }
+  });
+
+  pwaInstallBtn?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        Toast.show(preferences.language === 'en' ? 'Thank you for installing QUERYINDO App!' : 'Terima kasih telah memasang aplikasi QUERYINDO!');
+      }
+      deferredPrompt = null;
+      pwaInstallBtn.style.display = 'none';
+    } else {
+      Toast.show(preferences.language === 'en' ? 'App can be added via browser "Add to Home screen" menu.' : 'Gunakan menu browser "Tambahkan ke Layar Utama" untuk memasang aplikasi.');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
 }
 
 // Client-Side Hash Router (#admin, #article/art-001, #category/ai, #page/tentang-kami)
@@ -550,6 +668,13 @@ function renderFeed() {
       : `Menampilkan ${filtered.length} artikel`;
   }
 
+  // Render Leaderboard Sponsor Ad Banner
+  const leaderboardAdContainer = document.getElementById('leaderboard-ad-container');
+  if (leaderboardAdContainer) {
+    leaderboardAdContainer.innerHTML = AdBanner.renderLeaderboardHTML();
+    AdBanner.bindAdEvents(leaderboardAdContainer);
+  }
+
   if (filtered.length === 0) {
     articlesGrid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
@@ -617,8 +742,16 @@ function openArticleReader(articleId: string) {
   const article = ARTICLES.find(a => a.id === articleId || a.slug === articleId);
   if (!article || !readerModal || !modalReaderContent) return;
 
+  // Record into Reading History
+  addReadingHistory(article);
+
+  // Dynamic SEO Meta Tags & Schema.org JSON-LD NewsArticle
+  SeoService.setArticleSEO(article);
+
   const isLiked = preferences.likedArticleIds.includes(article.id);
   const isBookmarked = preferences.savedArticleIds.includes(article.id);
+  const reactions = getArticleReactions(article.id);
+  const userReaction = getUserReaction(article.id);
 
   // Apply Auto Tech Glossary Highlights
   const highlightedContent = TechGlossary.highlightTermsInHTML(article.content);
@@ -672,7 +805,7 @@ function openArticleReader(articleId: string) {
       </ul>
     </div>
 
-    <!-- Audio Player & Text Size Toolbar -->
+    <!-- Audio Player, Focus Mode & Text Size Toolbar -->
     <div style="background:var(--bg-tertiary); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
       <div style="display:flex; align-items:center; gap:0.75rem;">
         <button id="btn-audio-play" style="width:2.4rem; height:2.4rem; border-radius:50%; background:var(--accent-cyan); color:#000; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all 0.2s ease;" title="Play / Pause Audio">
@@ -682,13 +815,34 @@ function openArticleReader(articleId: string) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
         </button>
         <div>
-          <div style="font-weight:700; font-size:0.85rem;">${t('audioNarrativeHeader')}</div>
+          <div style="font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
+            <span>${t('audioNarrativeHeader')}</span>
+            <div class="audio-visualizer-wave" id="audio-visualizer-wave">
+              <span class="audio-bar"></span>
+              <span class="audio-bar"></span>
+              <span class="audio-bar"></span>
+              <span class="audio-bar"></span>
+            </div>
+          </div>
           <div style="font-size:0.75rem; color:var(--text-muted);" id="audio-status-text">${t('audioNarrativeSub')}</div>
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:1rem;">
+      <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap;">
+        <!-- Audio Speed Control -->
+        <div class="audio-speed-pills">
+          <button class="btn-audio-speed active" data-speed="1.0">1.0x</button>
+          <button class="btn-audio-speed" data-speed="1.25">1.25x</button>
+          <button class="btn-audio-speed" data-speed="1.5">1.5x</button>
+        </div>
+
         <span style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);" id="audio-timer-text">00:00 / ${initialDurationStr}</span>
+
+        <!-- Zen Focus Mode Button -->
+        <button id="btn-reader-focus-mode" style="padding: 0.35rem 0.85rem; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); color: #60a5fa; font-weight: 600; font-size: 0.775rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; transition: all 0.2s ease;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          <span>${preferences.language === 'en' ? 'Focus Mode' : 'Mode Fokus'}</span>
+        </button>
         
         <!-- Text Size Control Toggle -->
         <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);">
@@ -709,9 +863,15 @@ function openArticleReader(articleId: string) {
       ${highlightedContent}
     </div>
 
+    <!-- Dynamic In-Article Sponsor Ad Placement -->
+    ${AdBanner.renderInArticleHTML()}
+
     ${article.revisionHistory && article.revisionHistory.length > 0 ? `
-      <div style="margin: 1.5rem 0; padding: 1rem; background: var(--bg-tertiary); border-left: 3px solid var(--accent-cyan); border-radius: 4px; font-size: 0.8rem; color: var(--text-secondary);">
-        <strong style="color: var(--accent-cyan); display: block; margin-bottom: 0.4rem;">📝 ${preferences.language === 'en' ? 'Editorial Revision History' : 'Catatan Revisi & Update Redaksi'}</strong>
+      <div style="margin: 1.5rem 0; padding: 1rem; background: var(--bg-tertiary); border-left: 3px solid var(--accent-primary); border-radius: 4px; font-size: 0.8rem; color: var(--text-secondary);">
+        <strong style="color: var(--accent-cyan); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.4rem;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>${preferences.language === 'en' ? 'Editorial Revision History' : 'Catatan Revisi & Pemutakhiran Redaksi'}</span>
+        </strong>
         ${article.revisionHistory.map(rev => `
           <div style="margin-top:0.25rem;">
             <span style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.75rem;">[${rev.date}]</span> ${rev.note}
@@ -720,6 +880,28 @@ function openArticleReader(articleId: string) {
       </div>
     ` : ''}
 
+    <!-- Interactive Multi-Reactions Bar -->
+    <div class="reader-reactions-bar">
+      <span class="reactions-label">${preferences.language === 'en' ? 'Article Reactions:' : 'Respon Pembaca:'}</span>
+      <button class="btn-reaction-pill ${userReaction === 'insight' ? 'active' : ''}" data-reaction="insight">
+        💡 <span>${preferences.language === 'en' ? 'Insightful' : 'Wawasan Baru'}</span>
+        <span class="reaction-count-chip" id="reaction-count-insight">${reactions.insight}</span>
+      </button>
+      <button class="btn-reaction-pill ${userReaction === 'fire' ? 'active' : ''}" data-reaction="fire">
+        🔥 <span>${preferences.language === 'en' ? 'Hot Story' : 'Topik Hangat'}</span>
+        <span class="reaction-count-chip" id="reaction-count-fire">${reactions.fire}</span>
+      </button>
+      <button class="btn-reaction-pill ${userReaction === 'bullish' ? 'active' : ''}" data-reaction="bullish">
+        🚀 <span>${preferences.language === 'en' ? 'Bullish Tech' : 'Optimis Tech'}</span>
+        <span class="reaction-count-chip" id="reaction-count-bullish">${reactions.bullish}</span>
+      </button>
+      <button class="btn-reaction-pill ${userReaction === 'critical' ? 'active' : ''}" data-reaction="critical">
+        🧠 <span>${preferences.language === 'en' ? 'Critical' : 'Kritis'}</span>
+        <span class="reaction-count-chip" id="reaction-count-critical">${reactions.critical}</span>
+      </button>
+    </div>
+
+    <!-- Action Bar (Likes, Bookmarks, Share) -->
     <div class="reader-action-bar">
       <div style="display:flex; gap:0.75rem;">
         <button class="btn-action ${isLiked ? 'liked' : ''}" id="btn-like-article">
@@ -751,24 +933,8 @@ function openArticleReader(articleId: string) {
       </div>
     </div>
 
-    <!-- Comments Section -->
-    <div class="comments-section">
-      <h3 class="comments-title">${t('commentsTitle')} (4 ${preferences.language === 'en' ? 'Comments' : 'Komentar'})</h3>
-      <div class="comment-input-wrap">
-        <textarea class="comment-textarea" id="comment-input-text" placeholder="${t('commentPlaceholder')}"></textarea>
-        <button class="btn-submit-comment" id="btn-submit-comment-trigger">${t('commentSubmit')}</button>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        <div style="background:var(--bg-tertiary); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-            <strong style="font-size:0.875rem;">Irvan Kurniawan</strong>
-            <span style="font-size:0.75rem; color:var(--text-muted);">2 jam lalu</span>
-          </div>
-          <p style="font-size:0.875rem; color:var(--text-secondary);">Inovasi infrastruktur AI seperti ini memang sangat dibutuhkan agar startup lokal tidak tergantung penuh pada server cloud luar negeri.</p>
-        </div>
-      </div>
-    </div>
+    <!-- Reader Comments V2 Section -->
+    ${ReaderComments.renderCommentsSectionHTML(article.id, preferences.language)}
   `;
 
   readerModal.classList.add('open');
@@ -808,7 +974,6 @@ function openArticleReader(articleId: string) {
     const titleEl = document.getElementById('reader-article-title');
     const subtitleEl = document.getElementById('reader-article-subtitle');
     const summaryListEl = document.getElementById('reader-ai-summary-list');
-    // Show shimmer loading indicator
     if (summaryListEl) summaryListEl.style.opacity = '0.5';
     TranslationService.translateArticle(article, 'en').then(translated => {
       if (titleEl) titleEl.textContent = translated.title;
@@ -825,8 +990,18 @@ function openArticleReader(articleId: string) {
 
 // Setup Reader Internal Controls
 function setupReaderControls(article: Article) {
-  const sizeBtns = document.querySelectorAll('.font-size-toggle .btn-size');
+  if (!modalReaderContent) return;
 
+  // Bind ReaderComments events
+  ReaderComments.bindCommentEvents(modalReaderContent, article.id, preferences.language);
+
+  // Focus Mode Trigger
+  document.getElementById('btn-reader-focus-mode')?.addEventListener('click', () => {
+    FocusMode.open(article, preferences.language);
+  });
+
+  // Font Size Buttons
+  const sizeBtns = document.querySelectorAll('.font-size-toggle .btn-size');
   sizeBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -840,6 +1015,27 @@ function setupReaderControls(article: Article) {
       const wrapper = document.getElementById('article-content-wrapper');
       if (wrapper) {
         wrapper.className = `article-rich-content size-${size}`;
+      }
+    });
+  });
+
+  // Multi-Reactions Handler
+  modalReaderContent.querySelectorAll('.btn-reaction-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const reaction = btn.getAttribute('data-reaction') as ReactionType;
+      if (reaction) {
+        const result = toggleUserReaction(article.id, reaction);
+        
+        modalReaderContent?.querySelectorAll('.btn-reaction-pill').forEach(b => {
+          const rType = b.getAttribute('data-reaction') as ReactionType;
+          b.classList.toggle('active', result.active === rType);
+          const counter = b.querySelector('.reaction-count-chip');
+          if (counter) counter.textContent = String(result.reactions[rType]);
+        });
+
+        if (result.active === reaction) {
+          Toast.show(preferences.language === 'en' ? 'Reaction recorded! Thank you for your feedback.' : 'Respon Anda tercatat! Terima kasih.');
+        }
       }
     });
   });
@@ -874,32 +1070,30 @@ function setupReaderControls(article: Article) {
     });
   }
 
-  // Share Button Handler
+  // Share Button Handler (Multi-Channel Web Share + Modal)
   const shareBtn = document.getElementById('btn-share-article');
   if (shareBtn) {
     shareBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(window.location.href);
-      Toast.show(preferences.language === 'en' ? 'Article link copied to clipboard!' : 'Tautan artikel disalin ke clipboard!');
+      ShareModal.shareArticle(article, preferences.language);
     });
   }
 
-  // Submit Comment Handler
-  const commentBtn = document.getElementById('btn-submit-comment-trigger');
-  const commentArea = document.getElementById('comment-input-text') as HTMLTextAreaElement;
-  if (commentBtn && commentArea) {
-    commentBtn.addEventListener('click', () => {
-      if (commentArea.value.trim()) {
-        commentArea.value = '';
-        Toast.show(preferences.language === 'en' ? 'Your comment has been submitted and is pending editorial moderation.' : 'Komentar Anda telah terkirim dan menanti moderasi redaksi.');
-      }
+  // Audio Playback Speed Buttons
+  modalReaderContent.querySelectorAll('.btn-audio-speed').forEach(btn => {
+    btn.addEventListener('click', () => {
+      modalReaderContent?.querySelectorAll('.btn-audio-speed').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const speed = parseFloat(btn.getAttribute('data-speed') || '1.0');
+      TextToSpeechService.setSpeed(speed);
     });
-  }
+  });
 
   // Real Web Speech Synthesis Text-to-Speech Handler
   const audioBtn = document.getElementById('btn-audio-play');
   const audioStopBtn = document.getElementById('btn-audio-stop');
   const audioStatusText = document.getElementById('audio-status-text');
   const audioTimerText = document.getElementById('audio-timer-text');
+  const waveVisualizer = document.getElementById('audio-visualizer-wave');
 
   // Stop any previous speech instance when opening new article
   TextToSpeechService.stop();
@@ -916,19 +1110,22 @@ function setupReaderControls(article: Article) {
           if (state === 'playing') {
             audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
             (audioBtn as HTMLElement).style.background = 'var(--accent-emerald)';
-            audioStatusText.innerHTML = `<span style="display:inline-flex; align-items:center;">${t('audioPlaying')}<span class="audio-equalizer"><span class="equalizer-bar"></span><span class="equalizer-bar"></span><span class="equalizer-bar"></span><span class="equalizer-bar"></span></span></span>`;
+            audioStatusText.textContent = t('audioPlaying');
             audioTimerText.textContent = `${curStr} / ${durStr}`;
+            waveVisualizer?.classList.add('playing');
           } else if (state === 'paused') {
             audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
             (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
             audioStatusText.textContent = t('audioPaused');
             audioTimerText.textContent = `${curStr} / ${durStr}`;
+            waveVisualizer?.classList.remove('playing');
           } else {
             // stopped
             audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
             (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
             audioStatusText.textContent = t('audioNarrativeSub');
             audioTimerText.textContent = `00:00 / ${durStr}`;
+            waveVisualizer?.classList.remove('playing');
           }
         });
       }
@@ -936,7 +1133,12 @@ function setupReaderControls(article: Article) {
 
     audioStopBtn?.addEventListener('click', () => {
       TextToSpeechService.stop();
+      waveVisualizer?.classList.remove('playing');
     });
+  }
+
+  if (modalReaderContent) {
+    AdBanner.bindAdEvents(modalReaderContent);
   }
 }
 
@@ -953,44 +1155,133 @@ function toggleBookmark(articleId: string) {
   renderFeed();
 }
 
-// Render Bookmarks Drawer Modal
-function renderBookmarksModal() {
-  if (!bookmarksListContainer) return;
+(window as any).openArticleReaderFromOutside = (articleId: string) => {
+  if (bookmarksModal) bookmarksModal.classList.remove('open');
+  window.location.hash = `article/${articleId}`;
+  openArticleReader(articleId);
+};
 
-  const savedArticles = ARTICLES.filter(a => preferences.savedArticleIds.includes(a.id));
+(window as any).removeBookmarkFromOutside = (articleId: string) => {
+  toggleBookmark(articleId);
+  renderBookmarksModal();
+};
 
+let activeSavedTab: 'bookmarks' | 'history' = 'bookmarks';
+
+function renderBookmarksListHTML(savedArticles: Article[]): string {
   if (savedArticles.length === 0) {
-    bookmarksListContainer.innerHTML = `
-      <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+    return `
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
         <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
         </div>
         <div>
           <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.35rem 0;">${preferences.language === 'en' ? 'No Bookmarked Articles' : 'Belum Ada Artikel Tersimpan'}</h4>
-          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 260px;">${preferences.language === 'en' ? 'Save interesting tech stories to read offline anytime.' : 'Simpan artikel berita menarik untuk dibaca kapan saja.'}</p>
+          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 260px;">${preferences.language === 'en' ? 'Save interesting tech stories to read anytime.' : 'Simpan artikel berita menarik untuk dibaca kapan saja.'}</p>
         </div>
         <button id="btn-explore-bookmarks" style="padding: 0.5rem 1.25rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.8rem; border-radius: var(--radius-full); border: none; cursor: pointer;">
           ${preferences.language === 'en' ? 'Explore Trending Stories →' : 'Eksplor Berita Terbaru →'}
         </button>
       </div>
     `;
-
-    bookmarksListContainer.querySelector('#btn-explore-bookmarks')?.addEventListener('click', () => {
-      if (bookmarksModal) bookmarksModal.classList.remove('open');
-      document.getElementById('news-feed-heading')?.scrollIntoView({ behavior: 'smooth' });
-    });
-  } else {
-    bookmarksListContainer.innerHTML = savedArticles.map(art => `
-      <div style="display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-color); align-items: center;">
-        <img src="${art.imageUrl}" alt="${art.title}" style="width: 70px; height: 50px; border-radius: 8px; object-fit: cover;" />
-        <div style="flex: 1;">
-          <h4 style="font-size: 0.875rem; font-weight: 700; cursor: pointer;" onclick="window.openArticleReaderFromOutside('${art.id}')">${art.title}</h4>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">${art.category} • ${art.readTimeMinutes}m ${preferences.language === 'en' ? 'read' : 'baca'}</span>
-        </div>
-        <button style="color: var(--accent-rose); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: none;" onclick="window.removeBookmarkFromOutside('${art.id}')">${preferences.language === 'en' ? 'Remove' : 'Hapus'}</button>
-      </div>
-    `).join('');
   }
+
+  return savedArticles.map(art => `
+    <div style="display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-color); align-items: center;">
+      <img src="${art.imageUrl}" alt="${art.title}" style="width: 70px; height: 50px; border-radius: 8px; object-fit: cover;" />
+      <div style="flex: 1;">
+        <h4 style="font-size: 0.875rem; font-weight: 700; cursor: pointer; color: var(--text-primary);" onclick="window.openArticleReaderFromOutside('${art.id}')">${art.title}</h4>
+        <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${art.category.toUpperCase()} • ${art.readTimeMinutes}m ${preferences.language === 'en' ? 'read' : 'baca'}</span>
+      </div>
+      <button style="color: var(--accent-rose); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: none;" onclick="window.removeBookmarkFromOutside('${art.id}')">${preferences.language === 'en' ? 'Remove' : 'Hapus'}</button>
+    </div>
+  `).join('');
+}
+
+function renderHistoryListHTML(readingHistory: ReadingHistoryItem[]): string {
+  if (readingHistory.length === 0) {
+    return `
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.35rem 0;">${preferences.language === 'en' ? 'No Reading History' : 'Belum Ada Riwayat Baca'}</h4>
+          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 260px;">${preferences.language === 'en' ? 'Articles you open will automatically appear here.' : 'Artikel yang Anda buka akan tercatat otomatis di sini.'}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+      <span style="font-size: 0.775rem; color: var(--text-muted); font-family: var(--font-mono);">${readingHistory.length} ${preferences.language === 'en' ? 'articles read' : 'artikel dibaca'}</span>
+      <button id="btn-clear-history" style="font-size: 0.75rem; color: var(--accent-rose); background: none; border: none; cursor: pointer; font-weight: 700;">
+        🗑️ ${preferences.language === 'en' ? 'Clear History' : 'Bersihkan Riwayat'}
+      </button>
+    </div>
+    ${readingHistory.map(item => `
+      <div class="history-item-card" onclick="window.openArticleReaderFromOutside('${item.articleId}')">
+        <div style="flex: 1;">
+          <div class="history-item-title">${item.title}</div>
+          <div class="history-item-meta">
+            <span>${item.category.toUpperCase()}</span>
+            <span>•</span>
+            <span>${new Date(item.readAt).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        </div>
+        <img src="${item.imageUrl}" alt="${item.title}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;" />
+      </div>
+    `).join('')}
+  `;
+}
+
+// Render Bookmarks Drawer Modal
+function renderBookmarksModal() {
+  if (!bookmarksListContainer) return;
+
+  const savedArticles = ARTICLES.filter(a => preferences.savedArticleIds.includes(a.id));
+  const readingHistory: ReadingHistoryItem[] = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
+
+  bookmarksListContainer.innerHTML = `
+    <!-- Tab Switcher -->
+    <div class="saved-modal-tabs" style="margin: -1.5rem -1.5rem 1.25rem -1.5rem;">
+      <button class="saved-tab-btn ${activeSavedTab === 'bookmarks' ? 'active' : ''}" id="tab-btn-bookmarks">
+        📌 ${preferences.language === 'en' ? 'Saved Articles' : 'Disimpan'} (${savedArticles.length})
+      </button>
+      <button class="saved-tab-btn ${activeSavedTab === 'history' ? 'active' : ''}" id="tab-btn-history">
+        ⏱️ ${preferences.language === 'en' ? 'Reading History' : 'Riwayat Baca'} (${readingHistory.length})
+      </button>
+    </div>
+
+    <div id="saved-tab-content">
+      ${activeSavedTab === 'bookmarks' ? renderBookmarksListHTML(savedArticles) : renderHistoryListHTML(readingHistory)}
+    </div>
+  `;
+
+  // Bind Tab Switchers
+  bookmarksListContainer.querySelector('#tab-btn-bookmarks')?.addEventListener('click', () => {
+    activeSavedTab = 'bookmarks';
+    renderBookmarksModal();
+  });
+
+  bookmarksListContainer.querySelector('#tab-btn-history')?.addEventListener('click', () => {
+    activeSavedTab = 'history';
+    renderBookmarksModal();
+  });
+
+  // Bind Clear History
+  bookmarksListContainer.querySelector('#btn-clear-history')?.addEventListener('click', () => {
+    localStorage.removeItem('byte_reading_history');
+    Toast.show(preferences.language === 'en' ? 'Reading history cleared.' : 'Riwayat baca berhasil dibersihkan.');
+    renderBookmarksModal();
+  });
+
+  // Bind Explore button
+  bookmarksListContainer.querySelector('#btn-explore-bookmarks')?.addEventListener('click', () => {
+    if (bookmarksModal) bookmarksModal.classList.remove('open');
+    document.getElementById('news-feed-heading')?.scrollIntoView({ behavior: 'smooth' });
+  });
 
   if (bookmarksModal) bookmarksModal.classList.add('open');
 }
@@ -1097,7 +1388,7 @@ function setupEventListeners() {
 
 
   // Footer links now use hash routes (#page/xxx) — no manual event listeners needed
-  document.getElementById('link-sitemap')?.addEventListener('click', (e) => { e.preventDefault(); Toast.show(preferences.language === 'en' ? 'ByteIndonesia Sitemap 2026.' : 'Peta Situs ByteIndonesia 2026.'); });
+  document.getElementById('link-sitemap')?.addEventListener('click', (e) => { e.preventDefault(); Toast.show(preferences.language === 'en' ? 'QUERYINDO Sitemap 2026.' : 'Peta Situs QUERYINDO 2026.'); });
 
   // Glossary & Specs Buttons
   glossaryBtn?.addEventListener('click', openGlossaryModal);
@@ -1440,7 +1731,7 @@ function renderPollWidget() {
   if (!pollWidgetContainer) return;
   pollWidgetContainer.innerHTML = ReaderPoll.renderHTML(preferences.language);
   ReaderPoll.bindEvents(pollWidgetContainer, () => {
-    Toast.show(preferences.language === 'en' ? 'Thank you for participating in ByteIndonesia editorial poll!' : 'Terima kasih telah berpartisipasi dalam jajak pendapat ByteIndonesia!');
+    Toast.show(preferences.language === 'en' ? 'Thank you for participating in QUERYINDO editorial poll!' : 'Terima kasih telah berpartisipasi dalam jajak pendapat QUERYINDO!');
     renderPollWidget();
   });
 }

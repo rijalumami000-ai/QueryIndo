@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ByteIndonesia — Portal Berita Teknologi Terdepan & Terupdate</title>
+  <title>QUERYINDO — Portal Berita Teknologi Terdepan & Terupdate</title>
   
   <!-- SEO Meta Tags -->
   <meta name="description" content="Portal berita skala nasional khusus menyajikan informasi terkini tentang Artificial Intelligence, Gadget, Keamanan Siber, Kebijakan Digital RI, dan Tren Startup." />
-  <meta name="keywords" content="Berita Teknologi, AI Indonesia, Review HP, Keamanan Siber, IKN Tech, Startup Indonesia, ByteIndonesia" />
-  <meta name="author" content="Redaksi ByteIndonesia" />
+  <meta name="keywords" content="Berita Teknologi, AI Indonesia, Review HP, Keamanan Siber, IKN Tech, Startup Indonesia, QUERYINDO" />
+  <meta name="author" content="Redaksi QUERYINDO" />
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://byteindonesia.id/" />
-  <meta property="og:title" content="ByteIndonesia — Portal Berita Teknologi Terdepan & Terupdate" />
+  <meta property="og:url" content="https://queryindo.id/" />
+  <meta property="og:title" content="QUERYINDO — Portal Berita Teknologi Terdepan & Terupdate" />
   <meta property="og:description" content="Informasi terupdate dan penting soal teknologi, perkembangan digital, AI, dan inovasi nasional." />
   <meta property="og:image" content="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80" />
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="ByteIndonesia — News Tech Portal" />
+  <meta name="twitter:title" content="QUERYINDO — News Tech Portal" />
   <meta name="twitter:description" content="Informasi terupdate teknologi, AI, & transformasi digital Indonesia." />
   
   <!-- Schema.org NewsArticle JSON-LD -->
@@ -27,18 +27,20 @@
     {
       "@context": "https://schema.org",
       "@type": "NewsMediaOrganization",
-      "name": "ByteIndonesia",
-      "url": "https://byteindonesia.id/",
-      "logo": "https://byteindonesia.id/assets/logo.png",
+      "name": "QUERYINDO",
+      "url": "https://queryindo.id/",
+      "logo": "https://queryindo.id/assets/logo.png",
       "sameAs": [
-        "https://twitter.com/byteindonesia",
-        "https://instagram.com/byteindonesia"
+        "https://twitter.com/queryindo",
+        "https://instagram.com/queryindo"
       ]
     }
   </script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/logo.png" />
   <link rel="manifest" href="/manifest.json" />
-  <link rel="alternate" type="application/rss+xml" title="ByteIndonesia RSS Feed" href="http://localhost:8080/rss.xml" />
+  <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="http://localhost:8080/rss.xml" />
   <meta name="theme-color" content="#0d0e12" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <script>
@@ -79,8 +81,8 @@
     <header class="navbar">
       <div class="container navbar-content">
         <a href="#" class="brand-logo" id="logo-btn">
-          <img src="/logo.png" class="brand-logo-img" alt="ByteIndonesia Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
-          <span class="logo-text">ByteIndonesia</span>
+          <img src="/logo.png" class="brand-logo-img" alt="QUERYINDO Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
+          <span class="logo-text">QUERYINDO</span>
           <span class="logo-tag">MEDIA TECH</span>
         </a>
 
@@ -98,13 +100,17 @@
 
         <!-- Action Buttons -->
         <div class="nav-actions">
-          <button id="glossary-btn" class="btn-action" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; background: var(--bg-tertiary);" title="Pustaka Glosarium Tekno">
+          <button id="pwa-install-btn" class="btn-action" style="display:none; padding: 0.42rem 0.85rem; font-size: 0.78rem; background: rgba(37, 99, 235, 0.08); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); font-weight: 600;" title="Pasang Aplikasi QUERYINDO di Perangkat Anda">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Pasang App</span>
+          </button>
+          <button id="glossary-btn" class="btn-action" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; color: var(--text-secondary);" title="Pustaka Glosarium Tekno">
             Glosarium
           </button>
-          <button id="specs-btn" class="btn-action" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; background: var(--bg-tertiary);" title="Bandingkan Spesifikasi">
+          <button id="specs-btn" class="btn-action" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; color: var(--text-secondary);" title="Bandingkan Spesifikasi">
             Bandingkan Spek
           </button>
-          <button id="admin-cms-btn" class="btn-action" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; background: var(--bg-tertiary);" title="Masuk Dasbor Redaksi CMS">
+          <button id="admin-cms-btn" class="btn-action" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); font-weight: 600; color: #60a5fa;" title="Masuk Dasbor Redaksi CMS">
             CMS Redaksi
           </button>
           <button id="theme-toggle" class="btn-icon" title="Ubah Mode Gelap/Terang" aria-label="Toggle Theme">
@@ -203,6 +209,9 @@
 
       <!-- Main Articles Feed Grid -->
       <section class="section-feed">
+        <!-- Dynamic Leaderboard Ad Banner -->
+        <div id="leaderboard-ad-container"></div>
+
         <div class="section-header">
           <h2 class="section-title" id="feed-title">Berita Terbaru</h2>
           <span id="results-count" style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">
@@ -241,8 +250,8 @@
         <div class="footer-grid">
           <div class="footer-col-brand">
             <a href="#" class="brand-logo" style="margin-bottom: 0.25rem;">
-              <img src="/logo.png" class="brand-logo-img" alt="ByteIndonesia Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
-              <span class="logo-text" style="font-weight: 900; color: inherit;">ByteIndonesia</span>
+              <img src="/logo.png" class="brand-logo-img" alt="QUERYINDO Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
+              <span class="logo-text" style="font-weight: 900; color: inherit;">QUERYINDO</span>
             </a>
             <p class="footer-desc" style="color: #555; line-height: 1.5; font-size: 0.85rem; max-width: 260px;">
               Jurnalisme teknologi independen nasional yang menyajikan kejelasan informasi di tengah pesatnya era transformasi digital.
@@ -274,7 +283,7 @@
             <div style="color: #555; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; line-height: 1.5;">
               <p>Wisma Nugra Santana Jl Jend Sudirman Kav 7-8 Jakarta Pusat</p>
               <p>+62 812-7093-9344</p>
-              <p>redaksi@byteindonesia.id</p>
+              <p>redaksi@queryindo.id</p>
             </div>
           </div>
 
@@ -297,7 +306,7 @@
         </div>
 
         <div class="footer-bottom" style="border-top: 1px solid rgba(0,0,0,0.06); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #777;">
-          <p>© 2026 ByteIndonesia, All Rights Reserved. Design By ByteIndonesia</p>
+          <p>© 2026 QUERYINDO, All Rights Reserved. Design By QUERYINDO</p>
           <div style="display:flex; gap:1.25rem;">
             <a href="#" id="link-privacy" style="color: #666; text-decoration: none;">Privasi</a>
             <a href="#" id="link-terms" style="color: #666; text-decoration: none;">Syarat & Ketentuan</a>

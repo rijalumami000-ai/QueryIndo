@@ -50,7 +50,7 @@ func ConnectDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("✅ Terhubung ke Database PostgreSQL ByteIndonesia!")
+	log.Println("✅ Terhubung ke Database PostgreSQL QUERYINDO!")
 
 	// Auto Migrate Schemas
 	err = db.AutoMigrate(

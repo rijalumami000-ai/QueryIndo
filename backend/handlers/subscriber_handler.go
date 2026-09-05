@@ -35,7 +35,7 @@ func SubscribeNewsletter(c *fiber.Ctx) error {
 		if err := db.Where("email = ?", email).First(&existing).Error; err == nil {
 			return c.Status(200).JSON(fiber.Map{
 				"status":  "success",
-				"message": "Email Anda sudah terdaftar dalam langganan newsletter ByteIndonesia!",
+				"message": "Email Anda sudah terdaftar dalam langganan newsletter QUERYINDO!",
 			})
 		}
 
@@ -48,6 +48,6 @@ func SubscribeNewsletter(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{
 		"status":  "success",
-		"message": "Terima kasih! Alamat email Anda berhasil terdaftar di newsletter ByteIndonesia.",
+		"message": "Terima kasih! Alamat email Anda berhasil terdaftar di newsletter QUERYINDO.",
 	})
 }

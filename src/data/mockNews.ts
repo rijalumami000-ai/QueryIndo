@@ -145,7 +145,7 @@ export const ARTICLES: Article[] = [
       'Seluruh infrastruktur ditenagai 100% energi terbarukan dari Pembangkit Listrik Tenaga Surya (PLTS) IKN.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA & IKN, ByteIndonesia</strong> — Langkah besar menuju kedaulatan digital nasional resmi terwujud hari ini. Kementerian Komunikasi dan Informatika bersama Badan Riset dan Inovasi Nasional (BRIN) meresmikan beroperasinya <strong>Pusat Data Nasional (PDN) berteknologi Superkomputer AI</strong> pertama di Ibu Kota Nusantara (IKN).</p>
+      <p class="lead"><strong>JAKARTA & IKN, QUERYINDO</strong> — Langkah besar menuju kedaulatan digital nasional resmi terwujud hari ini. Kementerian Komunikasi dan Informatika bersama Badan Riset dan Inovasi Nasional (BRIN) meresmikan beroperasinya <strong>Pusat Data Nasional (PDN) berteknologi Superkomputer AI</strong> pertama di Ibu Kota Nusantara (IKN).</p>
 
       <p>Superkomputer yang dinamai <em>"Ganesha-1"</em> ini mengusung arsitektur akselerator AI generasi terbaru dengan daya komputasi mencapai <strong>100 Petaflops</strong>. Fasilitas ini dirancang khusus untuk memproses volume data raksasa lintas kementerian, riset keanekaragaman hayati, hingga pelatihan Large Language Model (LLM) berbahasa daerah di Indonesia.</p>
 
@@ -191,7 +191,7 @@ export const ARTICLES: Article[] = [
       'Uji coba sukses dilakukan di kepulauan Natuna dan pedalaman Papua.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA, ByteIndonesia</strong> — Masalah area tanpa sinyal (blankspot) di kawasan 3T (Tertinggal, Terdepan, dan Terluar) Indonesia kini menemukan titik terang. Asosiasi Penyelenggara Telekomunikasi Seluruh Indonesia (ATSI) mengumumkan kesepakatan roaming nasional integrasi satelit LEO (Low Earth Orbit).</p>
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Masalah area tanpa sinyal (blankspot) di kawasan 3T (Tertinggal, Terdepan, dan Terluar) Indonesia kini menemukan titik terang. Asosiasi Penyelenggara Telekomunikasi Seluruh Indonesia (ATSI) mengumumkan kesepakatan roaming nasional integrasi satelit LEO (Low Earth Orbit).</p>
 
       <p>Dengan teknologi <em>Direct-to-Cell</em>, ponsel pintar 4G/5G milik masyarakat secara otomatis dapat terhubung ke jaringan satelit ketika berada jauh dari jangkauan pemancar BTS darat.</p>
 
@@ -228,7 +228,7 @@ export const ARTICLES: Article[] = [
       'Pengembang model AI besar wajib menyetorkan laporan audit keamanan bias sebelum merilis produk ke publik.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA, ByteIndonesia</strong> — Indonesia resmi menjadi negara pionir di Asia Tenggara yang memiliki Undang-Undang komprehensif mengatur etik dan operasional Kecerdasan Buatan. Sidang Paripurna DPR RI hari ini menyepakati pengesahan <em>RUU Kedaulatan Kecerdasan Buatan</em>.</p>
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Indonesia resmi menjadi negara pionir di Asia Tenggara yang memiliki Undang-Undang komprehensif mengatur etik dan operasional Kecerdasan Buatan. Sidang Paripurna DPR RI hari ini menyepakati pengesahan <em>RUU Kedaulatan Kecerdasan Buatan</em>.</p>
 
       <p>Undang-Undang ini berfokus pada tiga pilar utama: perlindungan privasi publik, kewajiban transparansi model generative AI, serta jaminan perlindungan bagi para pencipta konten orisinal dari penyedotan data tanpa izin (data scraping).</p>
 
@@ -251,7 +251,7 @@ export const ARTICLES: Article[] = [
     publishedAt: '2026-07-31T14:20:00Z',
     readTimeMinutes: 7,
     imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80',
-    imageCaption: 'Pengujian benchmark chipset mobile di laboratorium ByteIndonesia.',
+    imageCaption: 'Pengujian benchmark chipset mobile di laboratorium QUERYINDO.',
     isFeatured: false,
     isTrending: false,
     isBreaking: false,
@@ -263,7 +263,7 @@ export const ARTICLES: Article[] = [
       'Fitur terfavorit: Terjemahan bahasa lisan langsung dua arah tanpa koneksi internet.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA, ByteIndonesia</strong> — Pengujian berkala Lab Gadget ByteIndonesia kembali kedatangan salah satu produk paling ditunggu tahun ini: Smartphone berbekal SoC Qualcomm Snapdragon 8 Gen 5.</p>
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Pengujian berkala Lab Gadget QUERYINDO kembali kedatangan salah satu produk paling ditunggu tahun ini: Smartphone berbekal SoC Qualcomm Snapdragon 8 Gen 5.</p>
 
       <p>Chipset ini tidak hanya menjanjikan angka benchmark sintetis melambung tinggi, namun membawa lompatan nyata pada pemrosesan kecerdasan buatan langsung di perangkat (on-device AI) tanpa menguras baterai.</p>
     `
@@ -295,7 +295,7 @@ export const ARTICLES: Article[] = [
       'Tidak ada kasus kebocoran bank besar sejauh ini berkat penghentian darurat protokol enkripsi.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA, ByteIndonesia</strong> — Badan Siber dan Sandi Negara (BSSN) mengimbau seluruh divisi IT perusahaan publik, instansi perbankan, dan penyedia rantai pasok logistik di Indonesia untuk meningkatkan kewaspadaan tingkat tinggi.</p>
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Badan Siber dan Sandi Negara (BSSN) mengimbau seluruh divisi IT perusahaan publik, instansi perbankan, dan penyedia rantai pasok logistik di Indonesia untuk meningkatkan kewaspadaan tingkat tinggi.</p>
 
       <p>Laporan intelijen ancaman siber terbaru menunjukkan munculnya varian ransomware AI yang mampu melakukan eksploitasi celah keamanan secara mandiri dan cepat.</p>
     `
@@ -327,7 +327,7 @@ export const ARTICLES: Article[] = [
       'Pabrik komersial pertama akan dibangun di Karawang pada kuartal akhir tahun ini.'
     ],
     content: `
-      <p class="lead"><strong>BANDUNG, ByteIndonesia</strong> — Industri teknologi bersih Indonesia kembali mengukir prestasi berkelas dunia. Startup asal Bandung, NusaVolt, mengumumkan penerimaan pendanaan Seri A senilai US$ 15 Juta (sekitar Rp 245 Miliar).</p>
+      <p class="lead"><strong>BANDUNG, QUERYINDO</strong> — Industri teknologi bersih Indonesia kembali mengukir prestasi berkelas dunia. Startup asal Bandung, NusaVolt, mengumumkan penerimaan pendanaan Seri A senilai US$ 15 Juta (sekitar Rp 245 Miliar).</p>
 
       <p>NusaVolt berhasil mengkomersialisasi Baterai Natrium-Ion (Sodium-Ion) dengan menggunakan turunan ekstrak garam industri lokal sebagai pengganti litium dan kobalt yang langka.</p>
     `
@@ -359,7 +359,7 @@ export const ARTICLES: Article[] = [
       'Perusahaan teknologi papan atas RI beralih ke stack ini demi efisiensi biaya infrastruktur cloud.'
     ],
     content: `
-      <p class="lead"><strong>JAKARTA, ByteIndonesia</strong> — Dalam dunia rekayasa perangkat lunak yang terus berevolusi pesat, efisiensi waktu eksekusi dan kecepatan pengembangan (*developer velocity*) adalah kunci utama keunggulan kompetitif.</p>
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Dalam dunia rekayasa perangkat lunak yang terus berevolusi pesat, efisiensi waktu eksekusi dan kecepatan pengembangan (*developer velocity*) adalah kunci utama keunggulan kompetitif.</p>
 
       <p>Tahun ini, sinergi antara <strong>TypeScript</strong> di sisi antarmuka pengguna dan <strong>Go (Golang)</strong> di sisi layanan data backend mengukuhkan posisinya sebagai arsitektur pilihan utama para Tech Lead di Indonesia.</p>
     `

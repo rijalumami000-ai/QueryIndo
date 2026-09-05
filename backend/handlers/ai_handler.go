@@ -57,7 +57,7 @@ func stripHTML(html string) string {
 	return spaceRe.ReplaceAllString(plain, " ")
 }
 
-// ChatAI handles live RAG AI query on ByteIndonesia database with real backend Gemini integration
+// ChatAI handles live RAG AI query on QUERYINDO database with real backend Gemini integration
 func ChatAI(c *fiber.Ctx) error {
 	var req ChatRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -81,16 +81,16 @@ func ChatAI(c *fiber.Ctx) error {
 		// Build RAG context block
 		var contextBuilder strings.Builder
 		if len(articles) > 0 {
-			contextBuilder.WriteString("Berikut adalah beberapa artikel berita dari database ByteIndonesia yang sangat relevan:\n\n")
+			contextBuilder.WriteString("Berikut adalah beberapa artikel berita dari database QUERYINDO yang sangat relevan:\n\n")
 			for _, art := range articles {
 				contextBuilder.WriteString(fmt.Sprintf("--- \nJudul: %s\nSubtitle: %s\nIsi Ringkas: %s\nSlug: %s\n---\n\n", art.Title, art.Subtitle, stripHTML(art.Content), art.Slug))
 			}
 		}
 
 		// Prompt construction telling Gemini to cite articles using standard format: [Title](#article/slug)
-		prompt := "Kamu adalah ByteAI Assistant, jurnalis AI dari media teknologi ByteIndonesia. Jawablah pertanyaan pembaca secara informatif, terpercaya, dan ringkas.\n"
+		prompt := "Kamu adalah QueryAI Assistant, jurnalis AI dari media teknologi QUERYINDO. Jawablah pertanyaan pembaca secara informatif, terpercaya, dan ringkas.\n"
 		if contextBuilder.Len() > 0 {
-			prompt += "Kamu harus memprioritaskan dan menggunakan data dari database artikel ByteIndonesia di bawah ini untuk menjawab. Jika informasi tidak ada di artikel, kamu boleh menjawab menggunakan pengetahuan umummu, tetapi prioritaskan data dari artikel.\n"
+			prompt += "Kamu harus memprioritaskan dan menggunakan data dari database artikel QUERYINDO di bawah ini untuk menjawab. Jika informasi tidak ada di artikel, kamu boleh menjawab menggunakan pengetahuan umummu, tetapi prioritaskan data dari artikel.\n"
 			prompt += "Kewajiban Penting: Jika kamu merujuk atau mengutip artikel berita di bawah, kamu wajib menyertakan link rujukan ke halaman artikel tersebut dengan format markdown persis seperti ini: [Judul Artikel](#article/slug-artikel) agar pembaca dapat membacanya langsung.\n\n"
 			prompt += "DATABASE ARTIKEL:\n" + contextBuilder.String()
 		} else {
@@ -132,7 +132,7 @@ func ChatAI(c *fiber.Ctx) error {
 	var reply string
 	if len(articles) > 0 {
 		art := articles[0]
-		reply = "Berdasarkan rilis berita resmi **ByteIndonesia**:\n\n**[" + art.Title + "](#article/" + art.Slug + ")**\n\n" + art.Subtitle + "\n\nRedaksi mengonfirmasi bahwa perkembangan ini terus dipantau secara langsung oleh tim jurnalis kami."
+		reply = "Berdasarkan rilis berita resmi **QUERYINDO**:\n\n**[" + art.Title + "](#article/" + art.Slug + ")**\n\n" + art.Subtitle + "\n\nRedaksi mengonfirmasi bahwa perkembangan ini terus dipantau secara langsung oleh tim jurnalis kami."
 	} else {
 		if strings.Contains(userMsg, "ikn") || strings.Contains(userMsg, "superkomputer") {
 			reply = "Superkomputer AI **Ganesha-1** berkapasitas 100 Petaflops di Pusat Data Nasional (PDN) IKN kini telah aktif sepenuhnya untuk riset LLM Bahasa Indonesia."
@@ -141,7 +141,7 @@ func ChatAI(c *fiber.Ctx) error {
 		} else if strings.Contains(userMsg, "starlink") || strings.Contains(userMsg, "satelit") {
 			reply = "Layanan roaming satelit orbit rendah (LEO) Direct-to-Cell dirancang untuk menghubungkan smartphone standar di pelosok Indonesia tanpa stasiun bumi tambahan."
 		} else {
-			reply = "Pertanyaan Anda mengenai \"" + req.Message + "\" telah diterima. Asisten ByteAI merekomendasikan untuk menelusuri kategori AI atau Kebijakan Digital di portal utama kami."
+			reply = "Pertanyaan Anda mengenai \"" + req.Message + "\" telah diterima. Asisten QueryAI merekomendasikan untuk menelusuri kategori AI atau Kebijakan Digital di portal utama kami."
 		}
 	}
 

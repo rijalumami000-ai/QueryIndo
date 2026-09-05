@@ -1,7 +1,9 @@
 import type { Article, TechIndexItem } from '../types/news';
 import { ARTICLES, TECH_INDEXES } from '../data/mockNews';
+import { AuthService } from './authService';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_HEALTH_URL = import.meta.env.VITE_API_HEALTH_URL || (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/v1\/?$/, '/health') : '/health');
 
 export class ApiService {
   public static isBackendAvailable = false;
@@ -9,7 +11,7 @@ export class ApiService {
   // Check Backend Server Health
   public static async checkBackendHealth(): Promise<boolean> {
     try {
-      const res = await fetch('http://localhost:8080/health', { method: 'GET', signal: AbortSignal.timeout(2000) });
+      const res = await fetch(API_HEALTH_URL, { method: 'GET', signal: AbortSignal.timeout(2000) });
       if (res.ok) {
         this.isBackendAvailable = true;
         return true;
@@ -60,13 +62,25 @@ export class ApiService {
     return TECH_INDEXES;
   }
 
-  // Create Article via Go Backend
+  // Helper to build headers with JWT Authorization if available
+  private static getAuthHeaders(): HeadersInit {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    const token = AuthService.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  // Create Article via Go Backend (Protected Endpoint)
   public static async createArticle(article: Article): Promise<boolean> {
     if (this.isBackendAvailable) {
       try {
         const res = await fetch(`${API_BASE_URL}/articles`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders(),
           body: JSON.stringify(article)
         });
         return res.ok;
@@ -77,7 +91,40 @@ export class ApiService {
     return false;
   }
 
-  // Ask ByteAI Assistant (RAG Chatbot)
+  // Update Article via Go Backend (Protected Endpoint)
+  public static async updateArticle(id: string, article: Partial<Article>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(article)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to update article on Go Backend', err);
+      }
+    }
+    return false;
+  }
+
+  // Delete Article via Go Backend (Protected Endpoint)
+  public static async deleteArticle(id: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to delete article on Go Backend', err);
+      }
+    }
+    return false;
+  }
+
+  // Ask ByteAI Assistant (RAG Chatbot with Rate Limiting)
   public static async askByteAI(message: string): Promise<string> {
     if (this.isBackendAvailable) {
       try {
@@ -91,6 +138,8 @@ export class ApiService {
           if (json.success && json.reply) {
             return json.reply;
           }
+        } else if (res.status === 429) {
+          return 'Mohon tunggu sebentar, permintaan AI sedang dibatasi untuk menjaga performa server.';
         }
       } catch (err) {
         console.warn('Backend ByteAI chat API failed, falling back to local fallback.', err);

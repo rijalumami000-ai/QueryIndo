@@ -66,7 +66,7 @@ function jobCard(title: string, type: string, location: string, desc: string): s
       ${location}
     </div>
     <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.55; margin:0 0 1rem 0;">${desc}</p>
-    <a href="mailto:karir@byteindonesia.id?subject=Lamaran: ${title}" style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan); text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">Lamar Posisi Ini →</a>
+    <a href="mailto:karir@queryindo.id?subject=Lamaran: ${title}" style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan); text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">Lamar Posisi Ini →</a>
   </div>`;
 }
 
@@ -82,7 +82,7 @@ function renderTentangKami(): string {
       <!-- Hero Quote -->
       <div style="background:var(--bg-tertiary); padding:2rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); position:relative;">
         <p style="font-size:1.05rem; color:var(--text-secondary); line-height:1.75; border-left:3px solid var(--accent-cyan); padding-left:1.25rem; font-style:normal; margin:0;">
-          "ByteIndonesia merupakan portal berita teknologi dan informasi digital nasional di bawah naungan <strong style="color:var(--text-primary);">PT Byte Media Nusantara</strong>. Kami menyajikan jurnalisme teknologi yang kredibel, akurat, dan berwawasan luas untuk mendukung agenda transformasi digital Indonesia."
+          "QUERYINDO merupakan portal berita teknologi dan informasi digital nasional di bawah naungan <strong style="color:var(--text-primary);">PT Query Media Nusantara</strong>. Kami menyajikan jurnalisme teknologi yang kredibel, akurat, dan berwawasan luas untuk mendukung agenda transformasi digital Indonesia."
         </p>
       </div>
 
@@ -113,8 +113,8 @@ function renderTentangKami(): string {
       <!-- Sejarah Pendirian -->
       ${sectionTitle('Sejarah & Latar Belakang')}
       <div style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:0.85rem;">
-        <p>ByteIndonesia didirikan pada <strong style="color:var(--text-primary);">Maret 2025</strong> oleh sekelompok jurnalis teknologi senior dan insinyur perangkat lunak yang melihat kebutuhan mendesak akan media teknologi nasional yang kredibel dan mendalam. Di tengah pesatnya perkembangan AI dan maraknya disinformasi digital, ByteIndonesia hadir dengan komitmen akurasi data dan independensi editorial.</p>
-        <p>ByteIndonesia menjadi rujukan utama bagi pendiri startup, investor ventura, pengambil kebijakan, insinyur teknologi, dan masyarakat luas. Tim redaksi kami berpengalaman meliput bidang Kecerdasan Buatan, Keamanan Siber, Ekonomi Digital, Gadget, dan Infrastruktur Cloud.</p>
+        <p>QUERYINDO didirikan pada <strong style="color:var(--text-primary);">Maret 2025</strong> oleh sekelompok jurnalis teknologi senior dan insinyur perangkat lunak yang melihat kebutuhan mendesak akan media teknologi nasional yang kredibel dan mendalam. Di tengah pesatnya perkembangan AI dan maraknya disinformasi digital, QUERYINDO hadir dengan komitmen akurasi data dan independensi editorial.</p>
+        <p>QUERYINDO menjadi rujukan utama bagi pendiri startup, investor ventura, pengambil kebijakan, insinyur teknologi, dan masyarakat luas. Tim redaksi kami berpengalaman meliput bidang Kecerdasan Buatan, Keamanan Siber, Ekonomi Digital, Gadget, dan Infrastruktur Cloud.</p>
       </div>
 
       <!-- Tiga Pilar -->
@@ -193,12 +193,12 @@ function renderHubungiKami(): string {
       <!-- Email Per Divisi -->
       ${sectionTitle('Email Departemen')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Redaksi & Newsroom', 'redaksi@byteindonesia.id')}
-        ${infoCard('Iklan & Kemitraan Bisnis', 'iklan@byteindonesia.id', 'var(--accent-violet)')}
-        ${infoCard('Humas & Media Relations', 'humas@byteindonesia.id', 'var(--accent-emerald)')}
-        ${infoCard('Teknologi & Pengembangan', 'tech@byteindonesia.id')}
-        ${infoCard('Ombudsman & Pengaduan', 'ombudsman@byteindonesia.id', 'var(--accent-violet)')}
-        ${infoCard('Karir & Rekrutmen', 'karir@byteindonesia.id', 'var(--accent-emerald)')}
+        ${infoCard('Redaksi & Newsroom', 'redaksi@queryindo.id')}
+        ${infoCard('Iklan & Kemitraan Bisnis', 'iklan@queryindo.id', 'var(--accent-violet)')}
+        ${infoCard('Humas & Media Relations', 'humas@queryindo.id', 'var(--accent-emerald)')}
+        ${infoCard('Teknologi & Pengembangan', 'tech@queryindo.id')}
+        ${infoCard('Ombudsman & Pengaduan', 'ombudsman@queryindo.id', 'var(--accent-violet)')}
+        ${infoCard('Karir & Rekrutmen', 'karir@queryindo.id', 'var(--accent-emerald)')}
       </div>
 
       <!-- Jaringan Biro -->
@@ -246,17 +246,17 @@ function renderHubungiKami(): string {
 
 function renderKodeEtik(): string {
   const articles = [
-    { title: 'Independensi', body: 'Wartawan Indonesia bersikap independen, menghasilkan berita akurat, berimbang, dan tidak beritikad buruk. Redaksi ByteIndonesia memastikan jurnalis tidak menerima suap atau tekanan dalam produksi berita.' },
-    { title: 'Metode Profesional', body: 'Wartawan Indonesia menempuh cara profesional dalam melaksanakan tugas jurnalistik. ByteIndonesia menerapkan SOP liputan digital yang meliputi verifikasi dokumen elektronik dan pengecekan metadata.' },
+    { title: 'Independensi', body: 'Wartawan Indonesia bersikap independen, menghasilkan berita akurat, berimbang, dan tidak beritikad buruk. Redaksi QUERYINDO memastikan jurnalis tidak menerima suap atau tekanan dalam produksi berita.' },
+    { title: 'Metode Profesional', body: 'Wartawan Indonesia menempuh cara profesional dalam melaksanakan tugas jurnalistik. QUERYINDO menerapkan SOP liputan digital yang meliputi verifikasi dokumen elektronik dan pengecekan metadata.' },
     { title: 'Uji Informasi', body: 'Wartawan Indonesia selalu menguji informasi, memberitakan secara berimbang, tidak mencampurkan fakta dan opini yang menghakimi, serta menerapkan asas praduga tak bersalah. Berita dipublikasikan wajib diverifikasi minimal tiga sumber.' },
     { title: 'Larangan Berita Bohong', body: 'Wartawan Indonesia tidak membuat berita bohong, fitnah, sadis, dan cabul. Redaksi menerapkan sistem pemeriksaan berlapis sebelum artikel dipublikasikan.' },
     { title: 'Perlindungan Identitas', body: 'Wartawan Indonesia tidak menyebutkan identitas korban kejahatan susila dan anak pelaku kejahatan. Prinsip perlindungan identitas diterapkan ketat.' },
-    { title: 'Hak Jawab & Koreksi', body: 'ByteIndonesia menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi ombudsman@byteindonesia.id.' },
+    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi ombudsman@queryindo.id.' },
     { title: 'Perlindungan Sumber', body: 'Wartawan Indonesia memiliki Hak Tolak untuk melindungi narasumber rahasia yang tidak bersedia diketahui identitasnya demi alasan keamanan.' },
     { title: 'Embargo & Ralat Berita', body: 'Wartawan Indonesia menghormati embargo informasi dan segera mengoreksi berita yang keliru dengan pencantuman stempel waktu revisi yang transparan.' },
     { title: 'Larangan Plagiarisme', body: 'Orisinalitas konten dijaga ketat. Setiap pengutipan karya pihak lain wajib mencantumkan atribusi dan tautan balik secara eksplisit.' },
     { title: 'Transparansi Konten AI', body: 'Konten yang diproduksi dengan bantuan kecerdasan buatan wajib dilabeli secara eksplisit (seperti ringkasan berita AI atau gambar ilustrasi berlabel watermark AI).' },
-    { title: 'Pertanggungjawaban', body: 'ByteIndonesia memiliki Dewan Etik Internal yang berwenang menangani pengaduan publik dan memastikan kepatuhan terhadap kode etik jurnalistik.' },
+    { title: 'Pertanggungjawaban', body: 'QUERYINDO memiliki Dewan Etik Internal yang berwenang menangani pengaduan publik dan memastikan kepatuhan terhadap kode etik jurnalistik.' },
   ];
 
   const accentColors = ['var(--accent-cyan)', 'var(--accent-violet)', 'var(--accent-emerald)'];
@@ -265,7 +265,7 @@ function renderKodeEtik(): string {
     <section style="display:flex; flex-direction:column; gap:2rem;">
       <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
         <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Seluruh jurnalis dan editor ByteIndonesia wajib mematuhi <strong style="color:var(--text-primary);">Kode Etik Jurnalistik Dewan Pers Republik Indonesia</strong> (Peraturan Dewan Pers No. 6/Peraturan-DP/V/2008) serta UU Pers No. 40 Tahun 1999.
+          Seluruh jurnalis dan editor QUERYINDO wajib mematuhi <strong style="color:var(--text-primary);">Kode Etik Jurnalistik Dewan Pers Republik Indonesia</strong> (Peraturan Dewan Pers No. 6/Peraturan-DP/V/2008) serta UU Pers No. 40 Tahun 1999.
         </p>
       </div>
 
@@ -278,7 +278,7 @@ function renderKodeEtik(): string {
       <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
         <p style="margin:0 0 0.75rem 0;">Laporan pelanggaran etik atau permohonan Hak Jawab disampaikan melalui:</p>
         <ul style="padding-left:1.15rem; display:flex; flex-direction:column; gap:0.4rem; margin:0; font-family:var(--font-mono);">
-          <li>Email Ombudsman: ombudsman@byteindonesia.id</li>
+          <li>Email Ombudsman: ombudsman@queryindo.id</li>
           <li>WhatsApp Pengaduan: +62 812-7093-9344</li>
         </ul>
       </div>
@@ -293,14 +293,14 @@ function renderRedaksi(): string {
 
       <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
         <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Susunan redaksi ByteIndonesia disusun berdasarkan <strong style="color:var(--text-primary);">UU Pers No. 40 Tahun 1999</strong> dan Standar Perusahaan Pers Dewan Pers Republik Indonesia.
+          Susunan redaksi QUERYINDO disusun berdasarkan <strong style="color:var(--text-primary);">UU Pers No. 40 Tahun 1999</strong> dan Standar Perusahaan Pers Dewan Pers Republik Indonesia.
         </p>
       </div>
 
       <!-- Pimpinan Utama -->
       ${sectionTitle('Pimpinan & Penanggung Jawab')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${staffCard('Direktur Utama / CEO', 'Rijal Umami', 'Pendiri ByteIndonesia. Lulusan Teknik Informatika dengan pengalaman 12 tahun di industri media digital.')}
+        ${staffCard('Direktur Utama / CEO', 'Rijal Umami', 'Pendiri QUERYINDO. Lulusan Teknik Informatika dengan pengalaman 12 tahun di industri media digital.')}
         ${staffCard('Pemimpin Redaksi', 'Dian Prasetyo, M.T.', 'Mantan Redaktur Senior TechScape. 15 tahun pengalaman jurnalisme teknologi investigatif.')}
         ${staffCard('Wakil Pemimpin Redaksi', 'Sari Wulandari, M.Kom.', 'Spesialis liputan AI & Big Data. Fellow Knight-Wallace Journalism, Univ. of Michigan 2023.')}
       </div>
@@ -327,7 +327,7 @@ function renderRedaksi(): string {
       <!-- Tim Reporter & Teknologi -->
       ${sectionTitle('Tim Teknologi & Engineering')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
-        ${staffCard('CTO / Lead Engineer', 'Hasan Maulana', 'Arsitek platform ByteIndonesia. 10 tahun pengalaman cloud architecture.')}
+        ${staffCard('CTO / Lead Engineer', 'Hasan Maulana', 'Arsitek platform QUERYINDO. 10 tahun pengalaman cloud architecture.')}
         ${staffCard('Backend Engineer', 'Arif Hidayat', 'Spesialis Go, PostgreSQL, dan arsitektur microservices.')}
         ${staffCard('Frontend Engineer', 'Putri Ayu', 'Spesialis TypeScript, React, dan optimasi Core Web Vitals.')}
         ${staffCard('UI/UX Designer', 'Galih Pramono', 'Desainer antarmuka platform berbasis Stanford HCI guidelines.')}
@@ -339,15 +339,15 @@ function renderRedaksi(): string {
 
 function renderPedomanMediaSiber(): string {
   const babs = [
-    { title: 'Ruang Lingkup', content: 'Pedoman ini mencakup seluruh kegiatan pemberitaan digital ByteIndonesia yang didistribusikan melalui situs web, aplikasi mobile, dan media sosial.' },
+    { title: 'Ruang Lingkup', content: 'Pedoman ini mencakup seluruh kegiatan pemberitaan digital QUERYINDO yang didistribusikan melalui situs web, aplikasi mobile, dan media sosial.' },
     { title: 'Verifikasi & Keberimbangan Berita', content: 'Setiap berita wajib melalui uji informasi dan verifikasi berimbang. Berita mendesak (breaking news) dapat ditayangkan segera dengan kewajiban ralat/pembaruan berkala.' },
-    { title: 'Isi Buatan Pengguna (UGC)', content: 'ByteIndonesia mengelola komentar pembaca dengan filter AI otomatis dan fitur pelaporan pengguna untuk menolak ujaran kebencian atau disinformasi.' },
+    { title: 'Isi Buatan Pengguna (UGC)', content: 'QUERYINDO mengelola komentar pembaca dengan filter AI otomatis dan fitur pelaporan pengguna untuk menolak ujaran kebencian atau disinformasi.' },
     { title: 'Ralat, Koreksi, & Hak Jawab', content: 'Setiap kesalahan data diperbaiki segera dengan pencantuman ralat transparan pada artikel tanpa mengubah URL asal.' },
     { title: 'Pencabutan Berita', content: 'Pencabutan berita hanya dilakukan atas putusan pengadilan yang berkekuatan hukum tetap atau rekomendasi resmi Dewan Pers.' },
     { title: 'Iklan & Konten Bersponsor', content: 'Setiap artikel advertorial atau berbayar wajib diberi tanda/badge SPONSORED secara jelas dan tegas.' },
-    { title: 'Hak Cipta & Pengutipan', content: 'Pengutipan artikel ByteIndonesia diperbolehkan maksimal 30% isi dengan kewajiban menyertakan tautan balik (backlink) aktif ke sumber.' },
+    { title: 'Hak Cipta & Pengutipan', content: 'Pengutipan artikel QUERYINDO diperbolehkan maksimal 30% isi dengan kewajiban menyertakan tautan balik (backlink) aktif ke sumber.' },
     { title: 'Sengketa Pemberitaan', content: 'Sengketa pemberitaan diselesaikan terlebih dahulu melalui mekanisme Hak Jawab atau mediasi di Dewan Pers sesuai UU Pers.' },
-    { title: 'Perlindungan Data Pribadi', content: 'ByteIndonesia tunduk pada UU PDP No. 27 Tahun 2022. Pengumpulan data pengguna dibatasi sesuai kebutuhan operasional platform.' },
+    { title: 'Perlindungan Data Pribadi', content: 'QUERYINDO tunduk pada UU PDP No. 27 Tahun 2022. Pengumpulan data pengguna dibatasi sesuai kebutuhan operasional platform.' },
   ];
 
   const accentColors = ['var(--accent-cyan)', 'var(--accent-violet)', 'var(--accent-emerald)'];
@@ -382,18 +382,18 @@ function renderDisclaimer(): string {
 
       ${sectionTitle('Batasan Tanggung Jawab')}
       <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:0.85rem;">
-        <p>Seluruh informasi di portal ByteIndonesia (<code style="color:var(--accent-cyan);">byteindonesia.id</code>) disediakan <strong style="color:var(--text-primary);">as-is</strong> untuk tujuan informasi umum. ByteIndonesia berupaya menjaga keakuratan informasi namun tidak bertanggung jawab atas keputusan independen yang diambil pembaca berdasarkan konten situs ini.</p>
+        <p>Seluruh informasi di portal QUERYINDO (<code style="color:var(--accent-cyan);">queryindo.id</code>) disediakan <strong style="color:var(--text-primary);">as-is</strong> untuk tujuan informasi umum. QUERYINDO berupaya menjaga keakuratan informasi namun tidak bertanggung jawab atas keputusan independen yang diambil pembaca berdasarkan konten situs ini.</p>
         <p>Informasi harga saham, data teknis gadget, atau ulasan produk bersifat informatif dan bukan merupakan nasihat finansial atau investasi resmi.</p>
       </div>
 
       ${sectionTitle('Hak Kekayaan Intelektual')}
       <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0 0 0.5rem 0;">Seluruh materi merek, desain logo, dan artikel terlindungi oleh <strong style="color:var(--text-primary);">UU Hak Cipta No. 28 Tahun 2014</strong> dan Hak Merek PT Byte Media Nusantara.</p>
+        <p style="margin:0 0 0.5rem 0;">Seluruh materi merek, desain logo, dan artikel terlindungi oleh <strong style="color:var(--text-primary);">UU Hak Cipta No. 28 Tahun 2014</strong> dan Hak Merek PT Query Media Nusantara.</p>
       </div>
 
       ${sectionTitle('Privasi Data (UU PDP)')}
       <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel dpo@byteindonesia.id.</p>
+        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel dpo@queryindo.id.</p>
       </div>
     </section>
   `;
@@ -406,7 +406,7 @@ function renderInfoIklan(): string {
 
       <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
         <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Jangkau <strong style="color:var(--text-primary);">audiens teknologi premium Indonesia</strong> melalui berbagai format iklan dan kemitraan native ByteIndonesia.
+          Jangkau <strong style="color:var(--text-primary);">audiens teknologi premium Indonesia</strong> melalui berbagai format iklan dan kemitraan native QUERYINDO.
         </p>
       </div>
 
@@ -441,7 +441,7 @@ function renderInfoIklan(): string {
       <!-- Kontak -->
       ${sectionTitle('Kontak Tim Iklan')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Email Iklan', 'iklan@byteindonesia.id')}
+        ${infoCard('Email Iklan', 'iklan@queryindo.id')}
         ${infoCard('WhatsApp Commercial', '+62 813-2000-8899', 'var(--accent-violet)')}
       </div>
     </section>
@@ -455,7 +455,7 @@ function renderKarir(): string {
 
       <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
         <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Bergabunglah bersama ByteIndonesia untuk membangun media teknologi terbaik di Indonesia.
+          Bergabunglah bersama QUERYINDO untuk membangun media teknologi terbaik di Indonesia.
         </p>
       </div>
 
@@ -471,7 +471,7 @@ function renderKarir(): string {
       <!-- Cara Melamar -->
       ${sectionTitle('Prosedur Lamaran')}
       <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        Kirimkan CV dan portofolio ke <code style="color:var(--accent-cyan); font-family:var(--font-mono);">karir@byteindonesia.id</code> dengan subjek <code style="color:var(--accent-cyan); font-family:var(--font-mono);">[Posisi] — Nama Lengkap</code>.
+        Kirimkan CV dan portofolio ke <code style="color:var(--accent-cyan); font-family:var(--font-mono);">karir@queryindo.id</code> dengan subjek <code style="color:var(--accent-cyan); font-family:var(--font-mono);">[Posisi] — Nama Lengkap</code>.
       </div>
     </section>
   `;
@@ -524,7 +524,7 @@ export class InstitutionalPages {
         <div style="background:var(--bg-secondary); padding:2.25rem 2rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); margin-bottom:2.25rem; position:relative; overflow:hidden;">
           <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
             <span style="width:8px; height:8px; border-radius:50%; background:var(--accent-cyan);"></span>
-            <span style="font-size:0.68rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.12em; font-family:var(--font-mono);">BYTEINDONESIA INSTITUTIONAL</span>
+            <span style="font-size:0.68rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.12em; font-family:var(--font-mono);">QUERYINDO INSTITUTIONAL</span>
           </div>
           <h1 style="font-size:1.75rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1.3; letter-spacing:-0.02em;">${title}</h1>
         </div>

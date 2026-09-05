@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 *.exe
 server.exe
+backend-linux
+queryindo-backend

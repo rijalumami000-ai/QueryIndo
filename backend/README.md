@@ -1,6 +1,6 @@
-# ByteIndonesia - Go (Golang) High-Performance Backend API
+# QUERYINDO - Go (Golang) High-Performance Backend API
 
-Panduan arsitektur backend skala nasional untuk **ByteIndonesia** menggunakan **Go (Golang)** dan **Fiber Framework** (berbasis Fasthttp) untuk penanganan konkurensi ekstrem, latensi rendah, dan konsumsi memori minimal.
+Panduan arsitektur backend skala nasional untuk **QUERYINDO** menggunakan **Go (Golang)** dan **Fiber Framework** (berbasis Fasthttp) untuk penanganan konkurensi ekstrem, latensi rendah, dan konsumsi memori minimal.
 
 ---
 

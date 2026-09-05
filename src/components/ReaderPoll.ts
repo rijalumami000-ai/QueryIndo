@@ -5,39 +5,69 @@ export interface PollOption {
   votes: number;
 }
 
-export class ReaderPoll {
-  private static pollId = 'poll-2026-ai-gov';
-  private static questionId = 'Apakah regulasi dan transparansi metadata AI di Indonesia sudah cukup memadai untuk menekan penipuan deepfake?';
-  private static questionEn = 'Is AI metadata transparency and regulation in Indonesia adequate enough to suppress deepfake scams?';
-  
-  private static options: PollOption[] = [
-    { id: 'opt-1', textId: 'Sangat Memadai & Siap', textEn: 'Highly Adequate & Ready', votes: 1420 },
-    { id: 'opt-2', textId: 'Perlu Pengawasan Ketat', textEn: 'Needs Stricter Supervision', votes: 2890 },
-    { id: 'opt-3', textId: 'Belum Memadai', textEn: 'Not Yet Adequate', votes: 3120 },
-    { id: 'opt-4', textId: 'Butuh Sosialisasi Publik', textEn: 'Needs Public Outreach', votes: 850 }
-  ];
+export interface PollData {
+  id: string;
+  questionId: string;
+  questionEn: string;
+  options: PollOption[];
+}
 
-  public static getVotedOptionId(): string | null {
-    return localStorage.getItem(`byte_poll_vote_${this.pollId}`);
+export class ReaderPoll {
+  private static STORAGE_KEY = 'byte_editorial_poll_data';
+
+  private static DEFAULT_POLL: PollData = {
+    id: 'poll-2026-ai-gov',
+    questionId: 'Apakah regulasi dan transparansi metadata AI di Indonesia sudah cukup memadai untuk menekan penipuan deepfake?',
+    questionEn: 'Is AI metadata transparency and regulation in Indonesia adequate enough to suppress deepfake scams?',
+    options: [
+      { id: 'opt-1', textId: 'Sangat Memadai & Siap', textEn: 'Highly Adequate & Ready', votes: 1420 },
+      { id: 'opt-2', textId: 'Perlu Pengawasan Ketat', textEn: 'Needs Stricter Supervision', votes: 2890 },
+      { id: 'opt-3', textId: 'Belum Memadai', textEn: 'Not Yet Adequate', votes: 3120 },
+      { id: 'opt-4', textId: 'Butuh Sosialisasi Publik', textEn: 'Needs Public Outreach', votes: 850 }
+    ]
+  };
+
+  public static getPollData(): PollData {
+    const raw = localStorage.getItem(this.STORAGE_KEY);
+    if (!raw) {
+      this.savePollData(this.DEFAULT_POLL);
+      return this.DEFAULT_POLL;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return this.DEFAULT_POLL;
+    }
+  }
+
+  public static savePollData(poll: PollData): void {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(poll));
+  }
+
+  public static getVotedOptionId(pollId: string): string | null {
+    return localStorage.getItem(`byte_poll_vote_${pollId}`);
   }
 
   public static vote(optionId: string) {
-    const previousVote = this.getVotedOptionId();
+    const poll = this.getPollData();
+    const previousVote = this.getVotedOptionId(poll.id);
     if (previousVote) return; // Prevent duplicate voting
 
-    const targetOpt = this.options.find(o => o.id === optionId);
+    const targetOpt = poll.options.find(o => o.id === optionId);
     if (targetOpt) {
       targetOpt.votes += 1;
-      localStorage.setItem(`byte_poll_vote_${this.pollId}`, optionId);
+      this.savePollData(poll);
+      localStorage.setItem(`byte_poll_vote_${poll.id}`, optionId);
     }
   }
 
   public static renderHTML(lang: 'id' | 'en'): string {
-    const votedOptionId = this.getVotedOptionId();
+    const poll = this.getPollData();
+    const votedOptionId = this.getVotedOptionId(poll.id);
     const hasVoted = votedOptionId !== null;
-    const totalVotes = this.options.reduce((sum, opt) => sum + opt.votes, 0);
+    const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
 
-    const question = lang === 'en' ? this.questionEn : this.questionId;
+    const question = lang === 'en' ? poll.questionEn : poll.questionId;
     const widgetTitle = lang === 'en' ? 'EDITORIAL POLL' : 'JAJAK PENDAPAT REDAKSI';
     const totalLabel = lang === 'en' ? `${totalVotes.toLocaleString('en-US')} total votes` : `${totalVotes.toLocaleString('id-ID')} total suara`;
     const votedNotice = lang === 'en' ? '✓ You have voted' : '✓ Terima kasih atas partisipasi Anda';
@@ -56,7 +86,7 @@ export class ReaderPoll {
         <h4 style="font-size: 0.875rem; font-weight: 700; line-height: 1.45; color: var(--text-primary); margin: 0;">${question}</h4>
 
         <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-          ${this.options.map(opt => {
+          ${poll.options.map(opt => {
             const isSelected = votedOptionId === opt.id;
             const percentage = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
             const optionText = lang === 'en' ? opt.textEn : opt.textId;

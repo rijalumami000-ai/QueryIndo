@@ -13,6 +13,18 @@ export interface Author {
   avatar: string;
 }
 
+export interface AuthorProfile {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  socialTwitter?: string;
+  socialLinkedin?: string;
+  joinedAt: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -31,6 +43,7 @@ export interface Article {
   isFactChecked?: boolean;
   isSponsored?: boolean;
   sponsorName?: string;
+  isPremium?: boolean;
   revisionHistory?: Array<{ date: string; note: string }>;
   viewsCount: number;
   likesCount: number;

@@ -2,11 +2,13 @@ export class TextToSpeechService {
   private static synth: SpeechSynthesis | null = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
   private static isPlaying = false;
   private static isPaused = false;
+  private static playbackRate = 1.0;
   private static onStateChangeCallback: ((state: 'playing' | 'paused' | 'stopped', currentTime: number, duration: number) => void) | null = null;
   private static timerInterval: number | null = null;
   private static elapsedSeconds = 0;
   private static totalEstimatedSeconds = 0;
   private static currentText = '';
+  private static currentLang: 'id' | 'en' = 'id';
 
   public static isSupported(): boolean {
     return typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -26,6 +28,18 @@ export class TextToSpeechService {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  public static setSpeed(speed: number) {
+    this.playbackRate = speed;
+    if (this.isPlaying) {
+      const remainingText = this.currentText;
+      this.play(remainingText, this.currentLang, this.onStateChangeCallback || undefined);
+    }
+  }
+
+  public static getSpeed(): number {
+    return this.playbackRate;
+  }
+
   // Start or resume playing speech
   public static play(
     text: string, 
@@ -34,6 +48,7 @@ export class TextToSpeechService {
   ) {
     if (!this.synth) return;
 
+    this.currentLang = lang;
     if (onStateChange) {
       this.onStateChangeCallback = onStateChange;
     }
@@ -55,14 +70,15 @@ export class TextToSpeechService {
 
     this.currentText = text;
 
-    // Estimate duration: ~2.2 words per second for standard speech rate
+    // Estimate duration taking playback rate into account: ~2.2 words per second at 1.0x
     const words = text.trim().split(/\s+/).length;
-    this.totalEstimatedSeconds = Math.max(8, Math.ceil(words / 2.2));
+    const baseSeconds = Math.max(8, Math.ceil(words / 2.2));
+    this.totalEstimatedSeconds = Math.ceil(baseSeconds / this.playbackRate);
     this.elapsedSeconds = 0;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang === 'en' ? 'en-US' : 'id-ID';
-    utterance.rate = 1.0;
+    utterance.rate = this.playbackRate;
     utterance.pitch = 1.0;
 
     // Find native voice matching language

@@ -1,22 +1,51 @@
 {
-  "name": "ByteIndonesia News Portal",
-  "short_name": "ByteIndonesia",
-  "description": "Portal Berita Teknologi Terdepan & Terupdate",
+  "name": "QUERYINDO — Tech & Finance Journalism",
+  "short_name": "QUERYINDO",
+  "description": "Portal Berita Jurnalisme Teknologi, Kecerdasan Buatan, dan Pasar Keuangan Terdepan Indonesia",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0d0e12",
-  "theme_color": "#0d0e12",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "categories": ["news", "technology", "finance", "business"],
   "icons": [
     {
       "src": "/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kecerdasan Buatan (AI)",
+      "short_name": "AI News",
+      "description": "Perkembangan LLM, Superkomputer & AI Nasional",
+      "url": "/#category/ai",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Pasar & Indeks Finansial",
+      "short_name": "Market Index",
+      "description": "Pergerakan Saham Teknologi & Finansial",
+      "url": "/#category/startup",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Gadget & Inovasi",
+      "short_name": "Gadget",
+      "description": "Spesifikasi & Ulasan Hardware Terkini",
+      "url": "/#category/gadget",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
     }
   ]
 }

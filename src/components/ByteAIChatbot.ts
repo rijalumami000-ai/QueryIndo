@@ -6,7 +6,7 @@ export class ByteAIChatbot {
   private messages: Array<{ sender: 'user' | 'ai'; text: string }> = [
     {
       sender: 'ai',
-      text: 'Halo! Saya **ByteAI Assistant**, pakar kecerdasan buatan ByteIndonesia. Ada isu teknologi, gadget, atau kedaulatan digital yang ingin Anda tanyakan?'
+      text: 'Halo! Saya **QueryAI Assistant**, pakar kecerdasan buatan QUERYINDO. Ada isu teknologi, gadget, atau kedaulatan digital yang ingin Anda tanyakan?'
     }
   ];
 
@@ -16,7 +16,7 @@ export class ByteAIChatbot {
       <button id="byte-ai-trigger-btn" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 990; padding: 0.65rem 1.15rem; background: var(--bg-tertiary); color: var(--text-primary); font-weight: 700; border-radius: var(--radius-full); border: 1px solid var(--border-active); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.825rem; transition: transform 0.2s ease, border-color 0.2s ease;">
         <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-cyan);"></div>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span>ByteResearch Copilot</span>
+        <span>QueryAI Copilot</span>
       </button>
 
       <!-- Chat Window Widget -->
@@ -29,7 +29,7 @@ export class ByteAIChatbot {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <div>
-              <h4 style="font-weight: 800; font-size: 0.88rem; color: var(--text-primary); margin: 0;">ByteResearch Copilot</h4>
+              <h4 style="font-weight: 800; font-size: 0.88rem; color: var(--text-primary); margin: 0;">QueryAI Copilot</h4>
               <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">RAG Neural Assistant • RAG-v2.4</span>
             </div>
           </div>
@@ -140,7 +140,7 @@ export class ByteAIChatbot {
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: `Kamu adalah ByteAI Assistant, jurnalis AI dari media teknologi ByteIndonesia. Jawablah pertanyaan pembaca secara informatif, terpercaya, dan ringkas: \n\n${query}`
+                  text: `Kamu adalah QueryAI Assistant, jurnalis AI dari media teknologi QUERYINDO. Jawablah pertanyaan pembaca secara informatif, terpercaya, dan ringkas: \n\n${query}`
                 }]
               }]
             })
@@ -166,7 +166,7 @@ export class ByteAIChatbot {
   }
 
   private getLocalFallbackResponse(query: string): string {
-    let responseText = 'Terima kasih atas pertanyaannya. Redaksi ByteIndonesia terus memantau perkembangan teknologi terkini di Indonesia.';
+    let responseText = 'Terima kasih atas pertanyaannya. Redaksi QUERYINDO terus memantau perkembangan teknologi terkini di Indonesia.';
     const queryLower = query.toLowerCase();
 
     const matchedArticle = ARTICLES.find(a => 
@@ -176,7 +176,7 @@ export class ByteAIChatbot {
     );
 
     if (matchedArticle) {
-      responseText = `Berdasarkan analisis berita **ByteIndonesia**:\n\n**${matchedArticle.title}**\n\n${matchedArticle.aiSummary.map(s => `• ${s}`).join('\n')}\n\nAnda dapat membaca artikel lengkapnya di kategori **${matchedArticle.category.toUpperCase()}**.`;
+      responseText = `Berdasarkan analisis berita **QUERYINDO**:\n\n**${matchedArticle.title}**\n\n${matchedArticle.aiSummary.map(s => `• ${s}`).join('\n')}\n\nAnda dapat membaca artikel lengkapnya di kategori **${matchedArticle.category.toUpperCase()}**.`;
     } else if (queryLower.includes('ikn') || queryLower.includes('superkomputer')) {
       responseText = 'Pusat Data Nasional (PDN) di IKN telah resmi mengoperasikan superkomputer AI **Ganesha-1** berkapasitas 100 Petaflops ditenagai 100% PLTS ramah lingkungan.';
     } else if (queryLower.includes('ruu') || queryLower.includes('hukum') || queryLower.includes('regulasi')) {

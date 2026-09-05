@@ -1,5 +1,5 @@
-const CACHE_NAME = 'byteindonesia-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'queryindo-pwa-v2';
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/logo.png',
@@ -7,78 +7,99 @@ const ASSETS_TO_CACHE = [
   '/manifest.json'
 ];
 
-// Install Event: Cache Core Static Assets
-self.addEventListener('install', (e) => {
-  e.waitUntil(
+// Install Event: Pre-cache App Shell & Core Assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(STATIC_ASSETS);
     }).then(() => {
-      return (self as any).skipWaiting();
+      return self.skipWaiting();
     })
   );
 });
 
-// Activate Event: Cleanup Stale Old Caches
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
+// Activate Event: Cleanup Old Caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
           }
         })
       );
     }).then(() => {
-      return (self as any).clients.claim();
+      return self.clients.claim();
     })
   );
 });
 
-// Fetch Event: Smart Offline Caching Strategy
-self.addEventListener('fetch', (e: any) => {
-  const url = new URL(e.request.url);
+// Fetch Event: Network-first for APIs/Pages, Stale-while-revalidate for Static Media
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
 
-  // For Local API Requests or main bundle js/css (Vite builds) - network first, fallback to cache
-  if (url.origin === self.location.origin || e.request.url.includes('/api/v1/')) {
-    e.respondWith(
-      fetch(e.request)
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // 1. Navigation / Document requests: Network first with Cache fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
         .then((response) => {
-          // If valid response, clone and cache it dynamically
-          if (response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(e.request, copy);
-            });
-          }
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
         .catch(() => {
-          // Offline fallback: try matches in cache
-          return caches.match(e.request).then((cachedResponse) => {
-            if (cachedResponse) return cachedResponse;
-            // Return index.html as a fallback for hash router routes if requested page is document
-            if (e.request.mode === 'navigate') {
-              return caches.match('/index.html');
-            }
-          });
+          return caches.match('/index.html') || caches.match(request);
         })
     );
-  } else {
-    // For static external assets (Unsplash images, Google Fonts) - cache first, fallback to network
-    e.respondWith(
-      caches.match(e.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-        return fetch(e.request).then((response) => {
-          if (response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(e.request, copy);
-            });
+    return;
+  }
+
+  // 2. Local API or Dynamic Assets: Network first, cache fallback
+  if (url.pathname.startsWith('/api/') || url.origin === self.location.origin) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
-        });
-      })
+        })
+        .catch(() => caches.match(request))
     );
+    return;
   }
+
+  // 3. Static Media (Unsplash Images, Google Fonts, CDN Icons): Cache first, fallback to network
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Fetch in background to update cache (Stale-While-Revalidate)
+        fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
+          }
+        }).catch(() => {});
+        return cachedResponse;
+      }
+
+      return fetch(request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Fallback for image requests if completely offline
+        if (request.destination === 'image') {
+          return caches.match('/logo.png');
+        }
+      });
+    })
+  );
 });
