@@ -155,7 +155,10 @@ export class ReaderAuthService {
   /**
    * Log in or register with Google Account
    */
-  public static loginWithGoogle(emailInput: string = 'remoteku78@gmail.com', nameInput?: string): { success: boolean; message: string; user: ReaderUser } {
+  public static loginWithGoogle(emailInput: string, nameInput?: string): { success: boolean; message: string; user: ReaderUser } {
+    if (!emailInput || !emailInput.trim()) {
+      throw new Error('Alamat email Google diperlukan');
+    }
     const email = emailInput.trim().toLowerCase();
     const rawName = nameInput?.trim() || email.split('@')[0];
     const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);

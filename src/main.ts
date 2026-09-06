@@ -1642,114 +1642,99 @@ function renderGoogleAuthModalHTML() {
 
   userAuthContainer.innerHTML = `
     <!-- Header -->
-    <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative; padding: 1.5rem 1.5rem 1.25rem 1.5rem;">
-      <button class="btn-close" id="user-auth-close-btn" style="position: absolute; right: 1rem; top: 1rem; z-index: 10; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
-      <div style="text-align: center;">
-        <div style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; box-shadow: 0 2px 8px rgba(0,0,0,0.18);">
-          <svg width="22" height="22" viewBox="0 0 24 24">
+    <div class="modal-header-bar" style="background: var(--bg-tertiary); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Masuk dengan Google</span>
+      </div>
+      <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem; background: none; border: none;">✕</button>
+    </div>
+
+    <!-- Google Sign-In Form Body -->
+    <div style="padding: 1.5rem;">
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 1.25rem 0; line-height: 1.5;">
+        Masuk menggunakan Akun Google / Gmail Anda untuk menyimpan artikel favorit, riwayat baca, dan sinkronisasi preferensi bacaan di <strong>QUERYINDO</strong>.
+      </p>
+
+      <form id="form-google-signin" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label for="input-google-email" style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Alamat Email Google / Gmail <span style="color: var(--accent-rose);">*</span>
+          </label>
+          <input 
+            type="email" 
+            id="input-google-email" 
+            required 
+            placeholder="nama@gmail.com" 
+            autocomplete="email"
+            style="width: 100%; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; outline: none; box-sizing: border-box;"
+          />
+        </div>
+
+        <div>
+          <label for="input-google-name" style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Nama Lengkap / Panggilan <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">(Opsional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="input-google-name" 
+            placeholder="Contoh: Rahmat Hidayat" 
+            autocomplete="name"
+            style="width: 100%; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; outline: none; box-sizing: border-box;"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-submit-google-login"
+          style="width: 100%; padding: 0.85rem; margin-top: 0.25rem; background: #ffffff; color: #1f2937; font-weight: 800; font-size: 0.9rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.65rem; box-shadow: 0 2px 6px rgba(0,0,0,0.12); transition: all 0.2s ease;"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-        </div>
-        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem 0; color: var(--text-primary);">Login dengan Google</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Pilih akun untuk melanjutkan ke <strong style="color: var(--text-primary);">QUERYINDO</strong></p>
-      </div>
-    </div>
-
-    <!-- Google Account Selection List -->
-    <div style="padding: 1.25rem 1.5rem;">
-      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-        
-        <!-- Primary Detected Account (Remoteku / remoteku78@gmail.com) -->
-        <div class="google-acc-card" id="btn-login-account-remoteku" role="button" tabindex="0" style="display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 40px; height: 40px; border-radius: 50%; background: #2e7d32; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;">
-            R
-          </div>
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary);">Remoteku</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">remoteku78@gmail.com</div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <!-- Option: Use another Google account -->
-        <div class="google-acc-card" id="btn-toggle-other-google-acc" role="button" tabindex="0" style="display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0.9rem; background: transparent; border: 1px dashed var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-tertiary); color: var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-          </div>
-          <div style="flex: 1;">
-            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Gunakan akun Google lain</div>
-          </div>
-        </div>
-
-        <!-- Custom Account Input Form (Expandable) -->
-        <div id="other-google-acc-form" style="display: none; padding: 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-top: 0.25rem;">
-          <form id="form-other-google-acc" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Nama Lengkap</label>
-              <input type="text" id="input-other-google-name" value="" placeholder="Contoh: Rahmat Hidayat" style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
-            </div>
-            <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Email Gmail (@gmail.com)</label>
-              <input type="email" id="input-other-google-email" required value="" placeholder="nama@gmail.com" style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
-            </div>
-            <button type="submit" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.85rem; cursor: pointer;">
-              Lanjutkan dengan Akun Ini →
-            </button>
-          </form>
-        </div>
-
-      </div>
+          Lanjutkan dengan Google
+        </button>
+      </form>
 
       <!-- Google Policy Disclosure -->
       <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
-        Untuk melanjutkan, Google akan membagikan nama, alamat email, dan preferensi bahasa Anda dengan QUERYINDO.
+        Dengan masuk, preferensi baca dan artikel tersimpan Anda akan disinkronkan secara otomatis di akun Anda.
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  // Bind 1-Click Login for Remoteku (remoteku78@gmail.com)
-  userAuthContainer.querySelector('#btn-login-account-remoteku')?.addEventListener('click', () => {
-    const res = ReaderAuthService.loginWithGoogle('remoteku78@gmail.com', 'Remoteku');
-    preferences.savedArticleIds = res.user.savedArticles || [];
-    updateBookmarkBadge();
-    updateUserNavbarState();
-    Toast.show(res.message);
-    closeUserAuthModal();
-  });
-
-  // Toggle Other Google Account Form
-  const toggleBtn = userAuthContainer.querySelector('#btn-toggle-other-google-acc');
-  const otherForm = userAuthContainer.querySelector('#other-google-acc-form') as HTMLElement;
-  toggleBtn?.addEventListener('click', () => {
-    if (otherForm) {
-      const isHidden = otherForm.style.display === 'none';
-      otherForm.style.display = isHidden ? 'block' : 'none';
-      if (isHidden) {
-        (otherForm.querySelector('#input-other-google-email') as HTMLInputElement)?.focus();
-      }
-    }
-  });
-
-  // Handle Other Google Account Submit
-  const customForm = userAuthContainer.querySelector('#form-other-google-acc') as HTMLFormElement;
-  customForm?.addEventListener('submit', (e) => {
+  // Handle Form Submit
+  const googleForm = userAuthContainer.querySelector('#form-google-signin') as HTMLFormElement;
+  googleForm?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = (customForm.querySelector('#input-other-google-email') as HTMLInputElement).value.trim();
-    const name = (customForm.querySelector('#input-other-google-name') as HTMLInputElement).value.trim() || email.split('@')[0];
-    
-    if (!email) return;
+    const emailInput = (googleForm.querySelector('#input-google-email') as HTMLInputElement)?.value.trim();
+    const nameInput = (googleForm.querySelector('#input-google-name') as HTMLInputElement)?.value.trim();
 
-    const res = ReaderAuthService.loginWithGoogle(email, name);
-    preferences.savedArticleIds = res.user.savedArticles || [];
-    updateBookmarkBadge();
-    updateUserNavbarState();
-    Toast.show(res.message);
-    closeUserAuthModal();
+    if (!emailInput) {
+      Toast.show('Silakan masukkan alamat email Anda.');
+      return;
+    }
+
+    try {
+      const res = ReaderAuthService.loginWithGoogle(emailInput, nameInput || undefined);
+      preferences.savedArticleIds = res.user.savedArticles || [];
+      updateBookmarkBadge();
+      updateUserNavbarState();
+      Toast.show(`Selamat datang, ${res.user.name}! Akun Google berhasil terhubung.`);
+      closeUserAuthModal();
+    } catch (err: any) {
+      Toast.show(err.message || 'Gagal masuk dengan akun Google.');
+    }
   });
 }
 
