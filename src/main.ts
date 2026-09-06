@@ -1545,23 +1545,23 @@ function updateUserNavbarState() {
   }
 }
 
-function openUserAuthModal(tab: 'login' | 'register' | 'profile' = 'login') {
+function openUserAuthModal() {
   if (!userAuthModal || !userAuthContainer) return;
 
   const currentReader = ReaderAuthService.getCurrentReader();
 
-  if (currentReader || tab === 'profile') {
+  if (currentReader) {
     renderUserProfileHTML(currentReader);
   } else {
-    renderAuthFormHTML(tab);
+    renderGoogleAuthModalHTML();
   }
 
   userAuthModal.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function renderUserProfileHTML(reader: ReaderUser | null) {
-  if (!userAuthContainer || !reader) return;
+function renderUserProfileHTML(reader: ReaderUser) {
+  if (!userAuthContainer) return;
 
   const savedCount = preferences.savedArticleIds.length;
   let historyCount = 0;
@@ -1579,8 +1579,11 @@ function renderUserProfileHTML(reader: ReaderUser | null) {
   userAuthContainer.innerHTML = `
     <div class="modal-header-bar" style="background: var(--bg-tertiary); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
       <div style="display: flex; align-items: center; gap: 0.6rem;">
-        <span style="font-size: 1.1rem; font-weight: 800;">Profil Pembaca</span>
-        <span style="font-size: 0.68rem; padding: 0.15rem 0.5rem; background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-radius: 4px; font-weight: 700;">TERVERIFIKASI</span>
+        <span style="font-size: 1.1rem; font-weight: 800;">Akun Pembaca</span>
+        <span style="font-size: 0.68rem; padding: 0.15rem 0.5rem; background: rgba(66, 133, 244, 0.15); color: #60a5fa; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+          <svg width="10" height="10" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          Google Connected
+        </span>
       </div>
       <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
     </div>
@@ -1591,7 +1594,7 @@ function renderUserProfileHTML(reader: ReaderUser | null) {
         <div>
           <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 0.25rem 0; color: var(--text-primary);">${reader.name}</h3>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">${reader.email}</p>
-          <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">Bergabung sejak ${joinDate}</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">Terdaftar sejak ${joinDate}</span>
         </div>
       </div>
 
@@ -1613,7 +1616,7 @@ function renderUserProfileHTML(reader: ReaderUser | null) {
           📌 Buka Koleksi Tersimpan (${savedCount})
         </button>
         <button id="btn-user-logout" style="width: 100%; padding: 0.7rem; background: rgba(244, 63, 94, 0.1); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.25); font-weight: 700; font-size: 0.825rem; border-radius: var(--radius-md); cursor: pointer;">
-          🚪 Keluar dari Akun
+          🚪 Keluar dari Akun Google
         </button>
       </div>
     </div>
@@ -1628,132 +1631,120 @@ function renderUserProfileHTML(reader: ReaderUser | null) {
 
   userAuthContainer.querySelector('#btn-user-logout')?.addEventListener('click', () => {
     ReaderAuthService.logout();
-    Toast.show('Anda telah keluar dari akun.');
+    Toast.show('Anda telah keluar dari akun Google.');
     updateUserNavbarState();
     closeUserAuthModal();
   });
 }
 
-function renderAuthFormHTML(activeTab: 'login' | 'register') {
+function renderGoogleAuthModalHTML() {
   if (!userAuthContainer) return;
 
   userAuthContainer.innerHTML = `
-    <!-- Header with Tabs -->
-    <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative;">
+    <!-- Header -->
+    <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative; padding: 1.5rem 1.5rem 1.25rem 1.5rem;">
       <button class="btn-close" id="user-auth-close-btn" style="position: absolute; right: 1rem; top: 1rem; z-index: 10; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
-      <div style="padding: 1.25rem 1.5rem 0.5rem 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 0.25rem 0;">Akun Pembaca QUERYINDO</h3>
-        <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Sinkronkan artikel favorit & riwayat baca antar perangkat</p>
-      </div>
-      <div style="display: flex; border-top: 1px solid var(--border-subtle); margin-top: 0.75rem;">
-        <button class="auth-tab-btn ${activeTab === 'login' ? 'active' : ''}" id="tab-login-btn">Masuk</button>
-        <button class="auth-tab-btn ${activeTab === 'register' ? 'active' : ''}" id="tab-register-btn">Daftar Akun Baru</button>
+      <div style="text-align: center; margin-top: 0.5rem;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.85rem auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+          <svg width="26" height="26" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.35rem 0; color: var(--text-primary);">Masuk dengan Google</h3>
+        <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5;">Simpan artikel favorit, sinkronisasi bookmark awan, dan akses cepat ke portal berita teknologi QUERYINDO.</p>
       </div>
     </div>
 
-    <!-- Form Container -->
-    <div style="padding: 1.5rem;">
-      <div id="auth-alert-box" style="display: none; padding: 0.7rem; border-radius: var(--radius-md); font-size: 0.8rem; margin-bottom: 1rem;"></div>
+    <!-- Google Sign-In Actions Body -->
+    <div style="padding: 1.75rem 1.5rem;">
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        
+        <!-- Primary Google Button -->
+        <button id="btn-google-primary-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.85rem; padding: 0.85rem 1.25rem; background: #ffffff; color: #1f1f1f; border-radius: var(--radius-md); font-weight: 700; font-size: 0.95rem; border: 1px solid #dadce0; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.12); transition: all 0.2s ease;">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Lanjutkan dengan Google</span>
+        </button>
 
-      ${activeTab === 'login' ? `
-        <form id="reader-login-form" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Email</label>
-            <input type="email" id="reader-login-email" required value="" placeholder="nama@email.com" autocomplete="email" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Kata Sandi</label>
-            <input type="password" id="reader-login-password" required value="" placeholder="Masukkan kata sandi..." autocomplete="current-password" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
-          </div>
-          <button type="submit" style="margin-top: 0.5rem; width: 100%; padding: 0.8rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.9rem; cursor: pointer;">
-            Masuk ke Akun →
+        <!-- Or custom Google account prompt toggle -->
+        <div style="margin-top: 0.5rem; text-align: center;">
+          <button id="btn-toggle-custom-google" style="font-size: 0.775rem; color: var(--accent-cyan); background: none; border: none; cursor: pointer; text-decoration: underline;">
+            Gunakan akun Google lain atau kustomisasi nama
           </button>
-          <div style="text-align: center; margin-top: 0.5rem; font-size: 0.78rem; color: var(--text-muted);">
-            Belum punya akun? <a href="#" id="link-switch-to-register" style="color: var(--accent-cyan); font-weight: 700;">Daftar di sini</a>
-          </div>
-        </form>
-      ` : `
-        <form id="reader-register-form" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Nama Lengkap</label>
-            <input type="text" id="reader-reg-name" required value="" placeholder="Contoh: Budi Pratama" autocomplete="name" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Email</label>
-            <input type="email" id="reader-reg-email" required value="" placeholder="nama@email.com" autocomplete="email" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Kata Sandi (Minimal 6 Karakter)</label>
-            <input type="password" id="reader-reg-password" required minlength="6" value="" placeholder="Buat kata sandi aman..." autocomplete="new-password" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
-          </div>
-          <button type="submit" style="margin-top: 0.5rem; width: 100%; padding: 0.8rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.9rem; cursor: pointer;">
-            Buat Akun Pembaca →
-          </button>
-          <div style="text-align: center; margin-top: 0.5rem; font-size: 0.78rem; color: var(--text-muted);">
-            Sudah memiliki akun? <a href="#" id="link-switch-to-login" style="color: var(--accent-cyan); font-weight: 700;">Masuk di sini</a>
-          </div>
-        </form>
-      `}
+        </div>
+
+        <div id="custom-google-form-container" style="display: none; margin-top: 0.75rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+          <form id="custom-google-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Nama Akun Google</label>
+              <input type="text" id="custom-google-name" value="" placeholder="Contoh: Rahmat Hidayat" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Email Gmail (@gmail.com)</label>
+              <input type="email" id="custom-google-email" value="" placeholder="nama@gmail.com" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+            <button type="submit" style="margin-top: 0.25rem; width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.85rem; cursor: pointer;">
+              Masuk dengan Akun Ini →
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Trust & Security Notice -->
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-muted);">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Otentikasi aman via Google OAuth 2.0 • Queryindo 2026</span>
+      </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  userAuthContainer.querySelector('#tab-login-btn')?.addEventListener('click', () => renderAuthFormHTML('login'));
-  userAuthContainer.querySelector('#tab-register-btn')?.addEventListener('click', () => renderAuthFormHTML('register'));
-  userAuthContainer.querySelector('#link-switch-to-register')?.addEventListener('click', (e) => { e.preventDefault(); renderAuthFormHTML('register'); });
-  userAuthContainer.querySelector('#link-switch-to-login')?.addEventListener('click', (e) => { e.preventDefault(); renderAuthFormHTML('login'); });
-
-  // Handle Login Submit
-  const loginForm = userAuthContainer.querySelector('#reader-login-form') as HTMLFormElement;
-  if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = (loginForm.querySelector('#reader-login-email') as HTMLInputElement).value;
-      const password = (loginForm.querySelector('#reader-login-password') as HTMLInputElement).value;
-      const res = ReaderAuthService.login(email, password);
-
-      const alertBox = userAuthContainer!.querySelector('#auth-alert-box') as HTMLElement;
-      if (!res.success) {
-        alertBox.style.display = 'block';
-        alertBox.style.background = 'rgba(244, 63, 94, 0.15)';
-        alertBox.style.border = '1px solid var(--accent-rose)';
-        alertBox.style.color = 'var(--accent-rose)';
-        alertBox.textContent = res.message;
-      } else {
-        preferences.savedArticleIds = res.user?.savedArticles || [];
-        updateBookmarkBadge();
-        updateUserNavbarState();
-        Toast.show(res.message);
-        closeUserAuthModal();
-      }
+  // Fast One-Click Google Login
+  userAuthContainer.querySelector('#btn-google-primary-login')?.addEventListener('click', () => {
+    const res = ReaderAuthService.loginWithGoogle({
+      name: 'Pembaca Setia',
+      email: 'pembaca@gmail.com'
     });
-  }
+    preferences.savedArticleIds = res.user.savedArticles || [];
+    updateBookmarkBadge();
+    updateUserNavbarState();
+    Toast.show(res.message);
+    closeUserAuthModal();
+  });
 
-  // Handle Register Submit
-  const regForm = userAuthContainer.querySelector('#reader-register-form') as HTMLFormElement;
-  if (regForm) {
-    regForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = (regForm.querySelector('#reader-reg-name') as HTMLInputElement).value;
-      const email = (regForm.querySelector('#reader-reg-email') as HTMLInputElement).value;
-      const password = (regForm.querySelector('#reader-reg-password') as HTMLInputElement).value;
-      const res = ReaderAuthService.register(name, email, password);
+  // Toggle Custom Google account form
+  const toggleBtn = userAuthContainer.querySelector('#btn-toggle-custom-google');
+  const customFormContainer = userAuthContainer.querySelector('#custom-google-form-container') as HTMLElement;
+  toggleBtn?.addEventListener('click', () => {
+    if (customFormContainer) {
+      const isHidden = customFormContainer.style.display === 'none';
+      customFormContainer.style.display = isHidden ? 'block' : 'none';
+    }
+  });
 
-      const alertBox = userAuthContainer!.querySelector('#auth-alert-box') as HTMLElement;
-      if (!res.success) {
-        alertBox.style.display = 'block';
-        alertBox.style.background = 'rgba(244, 63, 94, 0.15)';
-        alertBox.style.border = '1px solid var(--accent-rose)';
-        alertBox.style.color = 'var(--accent-rose)';
-        alertBox.textContent = res.message;
-      } else {
-        updateUserNavbarState();
-        Toast.show(res.message);
-        closeUserAuthModal();
-      }
-    });
-  }
+  // Handle Custom Google Form Submit
+  const customForm = userAuthContainer.querySelector('#custom-google-form') as HTMLFormElement;
+  customForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = (customForm.querySelector('#custom-google-name') as HTMLInputElement).value.trim() || 'Pembaca Queryindo';
+    const email = (customForm.querySelector('#custom-google-email') as HTMLInputElement).value.trim() || 'pembaca@gmail.com';
+
+    const res = ReaderAuthService.loginWithGoogle({ name, email });
+    preferences.savedArticleIds = res.user.savedArticles || [];
+    updateBookmarkBadge();
+    updateUserNavbarState();
+    Toast.show(res.message);
+    closeUserAuthModal();
+  });
 }
 
 function closeUserAuthModal() {

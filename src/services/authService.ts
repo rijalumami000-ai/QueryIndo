@@ -11,6 +11,7 @@ export interface ReaderUser {
   name: string;
   email: string;
   avatar: string;
+  authProvider: 'google';
   savedArticles: string[];
   registeredAt: string;
 }
@@ -120,10 +121,10 @@ export class AuthService {
 }
 
 // --------------------------------------------------------------------------
-// Reader / Public User Authentication & Bookmark Cloud Sync System
+// Reader / Public User Authentication via Google Sign-In & Cloud Bookmark Sync
 // --------------------------------------------------------------------------
 export class ReaderAuthService {
-  private static getStoredUsers(): Array<ReaderUser & { passwordHash: string }> {
+  private static getStoredUsers(): ReaderUser[] {
     try {
       const raw = localStorage.getItem(READER_USERS_KEY);
       if (!raw) return [];
@@ -133,7 +134,7 @@ export class ReaderAuthService {
     }
   }
 
-  private static saveStoredUsers(users: Array<ReaderUser & { passwordHash: string }>) {
+  private static saveStoredUsers(users: ReaderUser[]) {
     localStorage.setItem(READER_USERS_KEY, JSON.stringify(users));
   }
 
@@ -151,92 +152,49 @@ export class ReaderAuthService {
     return this.getCurrentReader() !== null;
   }
 
-  public static register(name: string, email: string, password: string): { success: boolean; message: string; user?: ReaderUser } {
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (!trimmedName || !trimmedEmail || !password) {
-      return { success: false, message: 'Mohon lengkapi semua kolom pendaftaran.' };
-    }
-
-    if (password.length < 6) {
-      return { success: false, message: 'Kata sandi minimal 6 karakter.' };
-    }
+  /**
+   * One-Click Google Sign-In for Readers
+   */
+  public static loginWithGoogle(account?: { name: string; email: string; avatar?: string }): { success: boolean; message: string; user: ReaderUser } {
+    const defaultName = account?.name?.trim() || 'Pembaca Queryindo';
+    const defaultEmail = account?.email?.trim().toLowerCase() || 'pembaca@gmail.com';
+    const defaultAvatar = account?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=00f2fe&color=0d0e12&bold=true`;
 
     const users = this.getStoredUsers();
-    if (users.some(u => u.email === trimmedEmail)) {
-      return { success: false, message: 'Email sudah terdaftar. Silakan langsung masuk.' };
-    }
+    let existingUser = users.find(u => u.email === defaultEmail);
 
-    // Get any existing local bookmarks to sync into the new account
-    let currentSaved: string[] = [];
+    let localBookmarks: string[] = [];
     try {
-      currentSaved = JSON.parse(localStorage.getItem('byte_bookmarks') || '[]');
+      localBookmarks = JSON.parse(localStorage.getItem('byte_bookmarks') || '[]');
     } catch {}
 
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmedName)}&background=00f2fe&color=0d0e12&bold=true`;
-
-    const newUser: ReaderUser & { passwordHash: string } = {
-      id: `usr_${Date.now()}`,
-      name: trimmedName,
-      email: trimmedEmail,
-      avatar: avatarUrl,
-      savedArticles: currentSaved,
-      registeredAt: new Date().toISOString(),
-      passwordHash: btoa(password) // Base64 encoding for client storage
-    };
-
-    users.push(newUser);
-    this.saveStoredUsers(users);
-
-    const safeUser: ReaderUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      avatar: newUser.avatar,
-      savedArticles: newUser.savedArticles,
-      registeredAt: newUser.registeredAt
-    };
-
-    localStorage.setItem(READER_SESSION_KEY, JSON.stringify(safeUser));
-    return { success: true, message: 'Pendaftaran berhasil! Selamat datang di QUERYINDO.', user: safeUser };
-  }
-
-  public static login(email: string, password: string): { success: boolean; message: string; user?: ReaderUser } {
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail || !password) {
-      return { success: false, message: 'Email dan kata sandi wajib diisi.' };
+    if (!existingUser) {
+      existingUser = {
+        id: `g_usr_${Date.now()}`,
+        name: defaultName,
+        email: defaultEmail,
+        avatar: defaultAvatar,
+        authProvider: 'google',
+        savedArticles: localBookmarks,
+        registeredAt: new Date().toISOString()
+      };
+      users.push(existingUser);
+    } else {
+      // Merge bookmarks
+      existingUser.savedArticles = Array.from(new Set([...existingUser.savedArticles, ...localBookmarks]));
+      existingUser.name = defaultName;
+      existingUser.avatar = defaultAvatar;
     }
 
-    const users = this.getStoredUsers();
-    const found = users.find(u => u.email === trimmedEmail && u.passwordHash === btoa(password));
-
-    if (!found) {
-      return { success: false, message: 'Email atau kata sandi tidak cocok.' };
-    }
-
-    // Merge bookmarks between account and current browser session
-    let localSaved: string[] = [];
-    try {
-      localSaved = JSON.parse(localStorage.getItem('byte_bookmarks') || '[]');
-    } catch {}
-
-    const mergedBookmarks = Array.from(new Set([...found.savedArticles, ...localSaved]));
-    found.savedArticles = mergedBookmarks;
     this.saveStoredUsers(users);
-    localStorage.setItem('byte_bookmarks', JSON.stringify(mergedBookmarks));
+    localStorage.setItem(READER_SESSION_KEY, JSON.stringify(existingUser));
+    localStorage.setItem('byte_bookmarks', JSON.stringify(existingUser.savedArticles));
 
-    const safeUser: ReaderUser = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      avatar: found.avatar,
-      savedArticles: found.savedArticles,
-      registeredAt: found.registeredAt
+    return {
+      success: true,
+      message: `Berhasil masuk dengan Google sebagai ${existingUser.name}!`,
+      user: existingUser
     };
-
-    localStorage.setItem(READER_SESSION_KEY, JSON.stringify(safeUser));
-    return { success: true, message: `Selamat datang kembali, ${found.name}!`, user: safeUser };
   }
 
   public static syncSavedArticles(articleIds: string[]) {
