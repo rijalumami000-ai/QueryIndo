@@ -196,43 +196,20 @@ const adminCMS = new AdminCMS(() => {
 
 // Initialize Application
 async function init() {
-  // Initialize Lenis Smooth Scroll for Main Page
-  const lenis = new Lenis({
-    lerp: 0.08,
-    smoothWheel: true
-  });
+  // Initialize Lenis Smooth Scroll for Main Page (desktop only for performance)
+  let lenis: Lenis | null = null;
+  if (window.innerWidth > 768) {
+    lenis = new Lenis({
+      lerp: 0.1,
+      smoothWheel: true
+    });
 
-  // Initialize Lenis Smooth Scroll for Modal Overlays
-  const modalLenisInstances: Lenis[] = [];
-  const modalConfigs = [
-    { wrapperId: 'reader-modal', contentId: 'reader-modal-container' },
-    { wrapperId: 'bookmarks-modal', contentSelector: '#bookmarks-modal .modal-container' },
-    { wrapperId: 'glossary-modal', contentId: 'glossary-modal-container' },
-    { wrapperId: 'specs-modal', contentId: 'specs-modal-container' },
-    { wrapperId: 'user-auth-modal', contentId: 'user-auth-container' },
-    { wrapperId: 'admin-cms-modal', contentId: 'admin-cms-container' }
-  ];
-
-  modalConfigs.forEach(cfg => {
-    const wrap = document.getElementById(cfg.wrapperId);
-    const content = cfg.contentId ? document.getElementById(cfg.contentId) : (cfg.contentSelector ? document.querySelector(cfg.contentSelector) : null);
-    if (wrap && content) {
-      const ml = new Lenis({
-        wrapper: wrap,
-        content: content as HTMLElement,
-        lerp: 0.08,
-        smoothWheel: true
-      });
-      modalLenisInstances.push(ml);
-    }
-  });
-
-  const raf = (time: number) => {
-    lenis.raf(time);
-    modalLenisInstances.forEach(ml => ml.raf(time));
+    const raf = (time: number) => {
+      lenis?.raf(time);
+      requestAnimationFrame(raf);
+    };
     requestAnimationFrame(raf);
-  };
-  requestAnimationFrame(raf);
+  }
 
   applyTheme(preferences.theme);
   updateBookmarkBadge();
