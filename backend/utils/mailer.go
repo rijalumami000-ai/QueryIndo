@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
@@ -60,7 +61,8 @@ func SendHTMLEmail(toEmail string, subject string, htmlBody string) error {
 	header := make(map[string]string)
 	header["From"] = cfg.From
 	header["To"] = toEmail
-	header["Subject"] = fmt.Sprintf("=?utf-8?B?%s?=", subject)
+	header["Reply-To"] = cfg.User
+	header["Subject"] = fmt.Sprintf("=?UTF-8?B?%s?=", base64.StdEncoding.EncodeToString([]byte(subject)))
 	header["MIME-Version"] = "1.0"
 	header["Content-Type"] = "text/html; charset=\"UTF-8\""
 	header["Date"] = time.Now().Format(time.RFC1123Z)
