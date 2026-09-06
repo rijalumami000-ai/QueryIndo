@@ -153,16 +153,16 @@ export class ReaderAuthService {
   }
 
   /**
-   * Log in or register with Google Account
+   * Log in or register with Google Account Profile
    */
-  public static loginWithGoogle(emailInput: string, nameInput?: string): { success: boolean; message: string; user: ReaderUser } {
-    if (!emailInput || !emailInput.trim()) {
+  public static loginWithGoogleProfile(profile: { email: string; name?: string; avatar?: string }): { success: boolean; message: string; user: ReaderUser } {
+    if (!profile.email || !profile.email.trim()) {
       throw new Error('Alamat email Google diperlukan');
     }
-    const email = emailInput.trim().toLowerCase();
-    const rawName = nameInput?.trim() || email.split('@')[0];
+    const email = profile.email.trim().toLowerCase();
+    const rawName = profile.name?.trim() || email.split('@')[0];
     const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=4285F4&color=fff&bold=true`;
+    const avatarUrl = profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=4285F4&color=fff&bold=true`;
 
     const users = this.getStoredUsers();
     let existingUser = users.find(u => u.email === email);
@@ -185,7 +185,8 @@ export class ReaderAuthService {
       users.push(existingUser);
     } else {
       existingUser.savedArticles = Array.from(new Set([...existingUser.savedArticles, ...localBookmarks]));
-      if (nameInput) existingUser.name = formattedName;
+      if (profile.name) existingUser.name = formattedName;
+      if (profile.avatar) existingUser.avatar = avatarUrl;
     }
 
     this.saveStoredUsers(users);
@@ -194,9 +195,69 @@ export class ReaderAuthService {
 
     return {
       success: true,
-      message: `Berhasil masuk dengan Akun Google: ${existingUser.email}!`,
+      message: `Berhasil masuk dengan Akun Google: ${existingUser.name} (${existingUser.email})!`,
       user: existingUser
     };
+  }
+
+  public static loginWithGoogle(emailInput: string, nameInput?: string): { success: boolean; message: string; user: ReaderUser } {
+    return this.loginWithGoogleProfile({ email: emailInput, name: nameInput });
+  }
+
+  /**
+   * Open Official Google OAuth Popup Window
+   */
+  public static async signInWithGoogleOAuth(): Promise<{ success: boolean; message: string; user: ReaderUser }> {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '548981447021-u906t1p9g2l6d8q4m3g0h5q2c8p1k9a3.apps.googleusercontent.com';
+
+    return new Promise((resolve, reject) => {
+      const g = (window as any).google;
+      if (g?.accounts?.oauth2) {
+        try {
+          const client = g.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'email profile openid',
+            callback: async (tokenResponse: any) => {
+              if (tokenResponse?.access_token) {
+                try {
+                  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const data = await res.json();
+                  if (data && data.email) {
+                    const authResult = ReaderAuthService.loginWithGoogleProfile({
+                      email: data.email,
+                      name: data.name || data.given_name || data.email.split('@')[0],
+                      avatar: data.picture
+                    });
+                    resolve(authResult);
+                    return;
+                  }
+                } catch (e: any) {
+                  reject(new Error('Gagal mengambil data profil Google: ' + e.message));
+                  return;
+                }
+              }
+              if (tokenResponse?.error) {
+                reject(new Error(tokenResponse.error_description || tokenResponse.error || 'Otentikasi dibatalkan.'));
+              }
+            },
+            error_callback: (err: any) => {
+              reject(new Error(err?.message || 'Gagal membuka Google Sign-In.'));
+            }
+          });
+
+          client.requestAccessToken();
+        } catch (e: any) {
+          reject(new Error('Gagal memproses otentikasi Google: ' + e.message));
+        }
+      } else {
+        // Fallback popup if GSI script is still loading or blocked
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile%20openid`;
+        window.open(authUrl, 'GoogleSignIn', 'width=500,height=600');
+        reject(new Error('Membuka jendela Google Sign-In...'));
+      }
+    });
   }
 
   public static syncSavedArticles(articleIds: string[]) {

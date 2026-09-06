@@ -1655,85 +1655,72 @@ function renderGoogleAuthModalHTML() {
       <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem; background: none; border: none;">✕</button>
     </div>
 
-    <!-- Google Sign-In Form Body -->
-    <div style="padding: 1.5rem;">
-      <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 1.25rem 0; line-height: 1.5;">
-        Masuk menggunakan Akun Google / Gmail Anda untuk menyimpan artikel favorit, riwayat baca, dan sinkronisasi preferensi bacaan di <strong>QUERYINDO</strong>.
+    <!-- Google Sign-In Body (1-Click Google OAuth) -->
+    <div style="padding: 1.75rem 1.5rem; text-align: center;">
+      
+      <!-- Big Google Icon Emblem -->
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+        <svg width="28" height="28" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+      </div>
+
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.5rem 0;">
+        Hubungkan Akun Google Anda
+      </h3>
+      
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 1.5rem 0; line-height: 1.55;">
+        Simpan artikel favorit, riwayat baca, dan sinkronkan preferensi berita secara aman dengan Akun Google Anda di <strong>QUERYINDO</strong>.
       </p>
 
-      <form id="form-google-signin" style="display: flex; flex-direction: column; gap: 1rem;">
-        <div>
-          <label for="input-google-email" style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-            Alamat Email Google / Gmail <span style="color: var(--accent-rose);">*</span>
-          </label>
-          <input 
-            type="email" 
-            id="input-google-email" 
-            required 
-            placeholder="nama@gmail.com" 
-            autocomplete="email"
-            style="width: 100%; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; outline: none; box-sizing: border-box;"
-          />
-        </div>
-
-        <div>
-          <label for="input-google-name" style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-            Nama Lengkap / Panggilan <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">(Opsional)</span>
-          </label>
-          <input 
-            type="text" 
-            id="input-google-name" 
-            placeholder="Contoh: Rahmat Hidayat" 
-            autocomplete="name"
-            style="width: 100%; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; outline: none; box-sizing: border-box;"
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          id="btn-submit-google-login"
-          style="width: 100%; padding: 0.85rem; margin-top: 0.25rem; background: #ffffff; color: #1f2937; font-weight: 800; font-size: 0.9rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.65rem; box-shadow: 0 2px 6px rgba(0,0,0,0.12); transition: all 0.2s ease;"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          Lanjutkan dengan Google
-        </button>
-      </form>
+      <!-- Single 1-Click Google OAuth Button -->
+      <button 
+        id="btn-google-oauth-launch"
+        type="button"
+        style="width: 100%; padding: 0.85rem 1.25rem; background: #ffffff; color: #1f2937; font-weight: 700; font-size: 0.95rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span id="btn-google-oauth-text">Lanjutkan dengan Google</span>
+      </button>
 
       <!-- Google Policy Disclosure -->
-      <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
-        Dengan masuk, preferensi baca dan artikel tersimpan Anda akan disinkronkan secara otomatis di akun Anda.
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
+        Dengan melanjutkan, Anda mengizinkan Google membagikan nama, profil, dan alamat email Anda ke QUERYINDO.
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  // Handle Form Submit
-  const googleForm = userAuthContainer.querySelector('#form-google-signin') as HTMLFormElement;
-  googleForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const emailInput = (googleForm.querySelector('#input-google-email') as HTMLInputElement)?.value.trim();
-    const nameInput = (googleForm.querySelector('#input-google-name') as HTMLInputElement)?.value.trim();
+  // Bind 1-Click Launch Button
+  const launchBtn = userAuthContainer.querySelector('#btn-google-oauth-launch') as HTMLButtonElement;
+  const launchText = userAuthContainer.querySelector('#btn-google-oauth-text') as HTMLElement;
 
-    if (!emailInput) {
-      Toast.show('Silakan masukkan alamat email Anda.');
-      return;
-    }
+  launchBtn?.addEventListener('click', async () => {
+    if (launchBtn.disabled) return;
+    launchBtn.disabled = true;
+    if (launchText) launchText.textContent = 'Membuka Google Sign-In...';
 
     try {
-      const res = ReaderAuthService.loginWithGoogle(emailInput, nameInput || undefined);
+      const res = await ReaderAuthService.signInWithGoogleOAuth();
       preferences.savedArticleIds = res.user.savedArticles || [];
       updateBookmarkBadge();
       updateUserNavbarState();
-      Toast.show(`Selamat datang, ${res.user.name}! Akun Google berhasil terhubung.`);
+      Toast.show(res.message);
       closeUserAuthModal();
     } catch (err: any) {
-      Toast.show(err.message || 'Gagal masuk dengan akun Google.');
+      Toast.show(err.message || 'Gagal login dengan Google.');
+    } finally {
+      if (launchBtn) launchBtn.disabled = false;
+      if (launchText) launchText.textContent = 'Lanjutkan dengan Google';
     }
   });
 }
