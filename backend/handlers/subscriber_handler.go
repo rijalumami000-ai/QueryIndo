@@ -129,6 +129,13 @@ func BroadcastNewsletter(c *fiber.Ctx) error {
 		utils.SendNewsBroadcastEmail(emails, req.Subject, req.Headline, req.Articles)
 	}()
 
+	return c.JSON(fiber.Map{
+		"success":          true,
+		"message":          "Broadcast newsletter sedang diproses dan dikirim ke seluruh pelanggan!",
+		"recipients_count": len(emails),
+	})
+}
+
 // DeleteSubscriber removes a subscriber by ID (Protected)
 func DeleteSubscriber(c *fiber.Ctx) error {
 	id := c.Params("id")
