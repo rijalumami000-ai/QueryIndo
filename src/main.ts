@@ -1392,13 +1392,18 @@ function setupEventListeners() {
 
   // Glossary & Specs Buttons
   glossaryBtn?.addEventListener('click', openGlossaryModal);
+  document.getElementById('m-glossary-btn')?.addEventListener('click', openGlossaryModal);
   glossaryCloseBtn?.addEventListener('click', () => glossaryModal?.classList.remove('open'));
 
   specsBtn?.addEventListener('click', openSpecsModal);
+  document.getElementById('m-specs-btn')?.addEventListener('click', openSpecsModal);
   specsCloseBtn?.addEventListener('click', () => specsModal?.classList.remove('open'));
 
   // CMS Admin Button -> Navigate to #admin route
   adminCmsBtn?.addEventListener('click', () => {
+    window.location.hash = 'admin';
+  });
+  document.getElementById('m-cms-btn')?.addEventListener('click', () => {
     window.location.hash = 'admin';
   });
 
