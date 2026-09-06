@@ -1,11 +1,15 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"net/http"
 	"net/smtp"
 	"os"
 	"strings"
@@ -49,8 +53,20 @@ func getMailerConfig() MailerConfig {
 	}
 }
 
-// SendHTMLEmail sends an HTML email via SSL/TLS SMTP (e.g. Hostinger)
+// SendHTMLEmail sends an HTML email via Resend API (HTTPS 443), Brevo API (HTTPS 443), or Direct SMTP (SSL 465)
 func SendHTMLEmail(toEmail string, subject string, htmlBody string) error {
+	// 1. Check if Resend API Key is provided (HTTPS Port 443 - Bypasses all VPS port blocks)
+	resendKey := os.Getenv("RESEND_API_KEY")
+	if resendKey != "" {
+		return sendViaResend(resendKey, toEmail, subject, htmlBody)
+	}
+
+	// 2. Check if Brevo API Key is provided (HTTPS Port 443)
+	brevoKey := os.Getenv("BREVO_API_KEY")
+	if brevoKey != "" {
+		return sendViaBrevo(brevoKey, toEmail, subject, htmlBody)
+	}
+
 	cfg := getMailerConfig()
 
 	if cfg.Password == "" {
@@ -171,6 +187,89 @@ func SendHTMLEmail(toEmail string, subject string, htmlBody string) error {
 
 	log.Printf("✅ [MAILER] Email successfully sent to %s via %s (Port %s)\n", toEmail, cfg.Host, cfg.Port)
 	return nil
+}
+
+// sendViaResend sends email via Resend HTTP REST API over HTTPS port 443
+func sendViaResend(apiKey, toEmail, subject, htmlBody string) error {
+	cfg := getMailerConfig()
+	payload := map[string]interface{}{
+		"from":    cfg.From,
+		"to":      []string{toEmail},
+		"subject": subject,
+		"html":    htmlBody,
+	}
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("❌ [MAILER RESEND] HTTP Request Error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("✅ [MAILER RESEND] Email successfully delivered to %s via HTTPS 443\n", toEmail)
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("❌ [MAILER RESEND] Delivery failed (HTTP %d): %s\n", resp.StatusCode, string(body))
+	return fmt.Errorf("resend api error (status %d): %s", resp.StatusCode, string(body))
+}
+
+// sendViaBrevo sends email via Brevo (Sendinblue) HTTP REST API over HTTPS port 443
+func sendViaBrevo(apiKey, toEmail, subject, htmlBody string) error {
+	cfg := getMailerConfig()
+	payload := map[string]interface{}{
+		"sender": map[string]string{
+			"name":  "QUERYINDO Redaksi",
+			"email": cfg.User,
+		},
+		"to": []map[string]string{
+			{"email": toEmail},
+		},
+		"subject":     subject,
+		"htmlContent": htmlBody,
+	}
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", "https://api.brevo.com/v3/smtp/email", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("api-key", apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("❌ [MAILER BREVO] HTTP Request Error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("✅ [MAILER BREVO] Email successfully delivered to %s via HTTPS 443\n", toEmail)
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("❌ [MAILER BREVO] Delivery failed (HTTP %d): %s\n", resp.StatusCode, string(body))
+	return fmt.Errorf("brevo api error (status %d): %s", resp.StatusCode, string(body))
 }
 
 // BroadcastArticleItem defines an article card in the newsletter blast
