@@ -53,15 +53,24 @@ func getMailerConfig() MailerConfig {
 	}
 }
 
-// SendHTMLEmail sends an HTML email via Resend API (HTTPS 443), Brevo API (HTTPS 443), or Direct SMTP (SSL 465)
+// SendHTMLEmail sends an HTML email via Hostinger Mail API (HTTPS 443), Resend (HTTPS 443), Brevo (HTTPS 443), or Direct SMTP (SSL 465)
 func SendHTMLEmail(toEmail string, subject string, htmlBody string) error {
-	// 1. Check if Resend API Key is provided (HTTPS Port 443 - Bypasses all VPS port blocks)
+	// 1. Check if Hostinger Mail API Key is provided (Official Hostinger API via HTTPS Port 443)
+	hostingerKey := os.Getenv("HOSTINGER_MAIL_API_KEY")
+	if hostingerKey == "" {
+		hostingerKey = os.Getenv("HOSTINGER_API_KEY")
+	}
+	if hostingerKey != "" {
+		return sendViaHostingerAPI(hostingerKey, toEmail, subject, htmlBody)
+	}
+
+	// 2. Check if Resend API Key is provided (HTTPS Port 443 - Bypasses all VPS port blocks)
 	resendKey := os.Getenv("RESEND_API_KEY")
 	if resendKey != "" {
 		return sendViaResend(resendKey, toEmail, subject, htmlBody)
 	}
 
-	// 2. Check if Brevo API Key is provided (HTTPS Port 443)
+	// 3. Check if Brevo API Key is provided (HTTPS Port 443)
 	brevoKey := os.Getenv("BREVO_API_KEY")
 	if brevoKey != "" {
 		return sendViaBrevo(brevoKey, toEmail, subject, htmlBody)
@@ -270,6 +279,45 @@ func sendViaBrevo(apiKey, toEmail, subject, htmlBody string) error {
 	body, _ := io.ReadAll(resp.Body)
 	log.Printf("❌ [MAILER BREVO] Delivery failed (HTTP %d): %s\n", resp.StatusCode, string(body))
 	return fmt.Errorf("brevo api error (status %d): %s", resp.StatusCode, string(body))
+}
+
+// sendViaHostingerAPI sends email via Hostinger's official Mail REST API over HTTPS port 443
+func sendViaHostingerAPI(apiKey, toEmail, subject, htmlBody string) error {
+	cfg := getMailerConfig()
+	payload := map[string]interface{}{
+		"from":    cfg.From,
+		"to":      toEmail,
+		"subject": subject,
+		"html":    htmlBody,
+	}
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", "https://api.mail.hostinger.com/v1/emails", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("❌ [MAILER HOSTINGER API] HTTP Request Error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("✅ [MAILER HOSTINGER API] Email successfully delivered to %s via Hostinger HTTPS API 443\n", toEmail)
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("❌ [MAILER HOSTINGER API] Delivery failed (HTTP %d): %s\n", resp.StatusCode, string(body))
+	return fmt.Errorf("hostinger mail api error (status %d): %s", resp.StatusCode, string(body))
 }
 
 // BroadcastArticleItem defines an article card in the newsletter blast
