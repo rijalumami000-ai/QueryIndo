@@ -63,12 +63,12 @@ export class AdminCMS {
 
               <div>
                 <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-secondary);">Email Redaksi</label>
-                <input type="email" id="login-email" required value="editor@queryindo.id" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
+                <input type="text" id="login-email" required value="" placeholder="editor@queryindo.id" autocomplete="username" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
               </div>
 
               <div>
                 <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-secondary);">Kata Sandi (Password)</label>
-                <input type="password" id="login-password" required value="redaksi2026" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
+                <input type="password" id="login-password" required value="" placeholder="Masukkan kata sandi..." autocomplete="current-password" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
               </div>
 
               <button type="submit" id="btn-login-submit" style="margin-top: 0.5rem; width: 100%; padding: 0.85rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.95rem; cursor: pointer; box-shadow: var(--shadow-glow);">

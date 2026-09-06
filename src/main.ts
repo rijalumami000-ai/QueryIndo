@@ -2,6 +2,7 @@ import './styles/main.css';
 import { ARTICLES, CATEGORIES, TECH_INDEXES } from './data/mockNews';
 import type { Article, CategoryId, UserPreferences, TechIndexItem } from './types/news';
 import { AdminCMS } from './components/AdminCMS';
+import { ReaderAuthService, type ReaderUser } from './services/authService';
 import { ByteAIChatbot } from './components/ByteAIChatbot';
 import { ApiService } from './services/apiService';
 import { TechGlossary } from './components/TechGlossary';
@@ -153,7 +154,11 @@ const bookmarksCloseBtn = document.getElementById('bookmarks-close-btn');
 const bookmarksListContainer = document.getElementById('bookmarks-list-container');
 const logoBtn = document.getElementById('logo-btn');
 const newsletterForm = document.getElementById('newsletter-form');
-const adminCmsBtn = document.getElementById('admin-cms-btn');
+const searchPreviewDropdown = document.getElementById('search-preview-dropdown');
+const userAuthBtn = document.getElementById('user-auth-btn');
+const mUserAuthBtn = document.getElementById('m-user-auth-btn');
+const userAuthModal = document.getElementById('user-auth-modal');
+const userAuthContainer = document.getElementById('user-auth-container');
 const adminCmsModal = document.getElementById('admin-cms-modal');
 const adminCmsContainer = document.getElementById('admin-cms-container');
 
@@ -204,6 +209,7 @@ async function init() {
     { wrapperId: 'bookmarks-modal', contentSelector: '#bookmarks-modal .modal-container' },
     { wrapperId: 'glossary-modal', contentId: 'glossary-modal-container' },
     { wrapperId: 'specs-modal', contentId: 'specs-modal-container' },
+    { wrapperId: 'user-auth-modal', contentId: 'user-auth-container' },
     { wrapperId: 'admin-cms-modal', contentId: 'admin-cms-container' }
   ];
 
@@ -230,6 +236,7 @@ async function init() {
 
   applyTheme(preferences.theme);
   updateBookmarkBadge();
+  updateUserNavbarState();
 
   // Mount Floating AI Chatbot Widget
   const chatbotWrapper = document.createElement('div');
@@ -1142,15 +1149,32 @@ function setupReaderControls(article: Article) {
   }
 }
 
-// Toggle Bookmark
+// Toggle Bookmark with Cloud Sync
 function toggleBookmark(articleId: string) {
-  const index = preferences.savedArticleIds.indexOf(articleId);
-  if (index > -1) {
-    preferences.savedArticleIds.splice(index, 1);
+  const isCurrentlySaved = preferences.savedArticleIds.includes(articleId);
+  if (isCurrentlySaved) {
+    preferences.savedArticleIds = preferences.savedArticleIds.filter(id => id !== articleId);
   } else {
     preferences.savedArticleIds.push(articleId);
   }
   localStorage.setItem('byte_bookmarks', JSON.stringify(preferences.savedArticleIds));
+  
+  // Sync to Reader Account if logged in
+  if (ReaderAuthService.isReaderLoggedIn()) {
+    ReaderAuthService.syncSavedArticles(preferences.savedArticleIds);
+    Toast.show(
+      !isCurrentlySaved 
+        ? (preferences.language === 'en' ? 'Article saved to your account collection.' : 'Artikel tersimpan ke koleksi akun Anda.')
+        : (preferences.language === 'en' ? 'Article removed from your collection.' : 'Artikel dihapus dari koleksi tersimpan.')
+    );
+  } else {
+    Toast.show(
+      !isCurrentlySaved
+        ? (preferences.language === 'en' ? 'Article saved locally. Sign in to sync across devices!' : 'Artikel disimpan di perangkat. Masuk akun untuk sinkronisasi cloud!')
+        : (preferences.language === 'en' ? 'Article removed.' : 'Artikel dihapus dari simpanan.')
+    );
+  }
+
   updateBookmarkBadge();
   renderFeed();
 }
@@ -1375,6 +1399,370 @@ function openSpecsModal() {
   renderBookmarksModal();
 };
 
+// --------------------------------------------------------------------------
+// Instant Live Search Preview & Quick Shortcuts System
+// --------------------------------------------------------------------------
+let activeSearchIndex = -1;
+
+function highlightMatch(text: string, query: string): string {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+function renderSearchPreviewDropdown(query: string) {
+  if (!searchPreviewDropdown) return;
+  const trimmed = query.trim().toLowerCase();
+  
+  if (!trimmed) {
+    searchPreviewDropdown.style.display = 'none';
+    searchPreviewDropdown.innerHTML = '';
+    activeSearchIndex = -1;
+    return;
+  }
+
+  const matches = ARTICLES.filter(art => {
+    return art.title.toLowerCase().includes(trimmed) ||
+           art.subtitle.toLowerCase().includes(trimmed) ||
+           art.tags.some(t => t.toLowerCase().includes(trimmed));
+  });
+
+  const lang = preferences.language;
+
+  if (matches.length === 0) {
+    searchPreviewDropdown.innerHTML = `
+      <div class="search-preview-empty">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:0.4rem; opacity:0.6;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <p style="margin: 0; font-size: 0.85rem; font-weight: 600;">${lang === 'en' ? `No articles found for "${escapeHtml(query)}"` : `Tidak ditemukan berita untuk "${escapeHtml(query)}"`}</p>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">${lang === 'en' ? 'Try keywords like AI, Apple, Startup, Cyber' : 'Coba kata kunci lain seperti: AI, Apple, Startup, Cyber'}</span>
+      </div>
+    `;
+    searchPreviewDropdown.style.display = 'block';
+    return;
+  }
+
+  const topMatches = matches.slice(0, 5);
+
+  searchPreviewDropdown.innerHTML = `
+    <div class="search-preview-header">
+      <span>${lang === 'en' ? 'Quick Article Preview' : 'Pratinjau Berita Terkait'}</span>
+      <span>${matches.length} ${lang === 'en' ? 'articles found' : 'berita ditemukan'}</span>
+    </div>
+    <div class="search-preview-list" id="search-preview-items-list">
+      ${topMatches.map((art, idx) => `
+        <div class="search-preview-item ${idx === activeSearchIndex ? 'active' : ''}" data-art-id="${art.id}" data-item-idx="${idx}">
+          <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="search-preview-thumb" />
+          <div class="search-preview-info">
+            <div class="search-preview-meta">
+              <span class="search-preview-tag">${art.category.toUpperCase()}</span>
+              <span>•</span>
+              <span>${art.readTimeMinutes} min ${lang === 'en' ? 'read' : 'baca'}</span>
+            </div>
+            <div class="search-preview-title">${highlightMatch(art.title, query)}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="search-preview-footer">
+      <button type="button" class="search-preview-all-btn" id="btn-see-all-search">
+        ${lang === 'en' ? `View all ${matches.length} results for "${escapeHtml(query)}" →` : `Lihat semua ${matches.length} hasil untuk "${escapeHtml(query)}" →`}
+      </button>
+    </div>
+  `;
+
+  searchPreviewDropdown.style.display = 'block';
+
+  // Bind item clicks
+  searchPreviewDropdown.querySelectorAll('.search-preview-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const artId = item.getAttribute('data-art-id');
+      if (artId) {
+        closeSearchPreviewDropdown();
+        window.location.hash = `article/${artId}`;
+        openArticleReader(artId);
+      }
+    });
+  });
+
+  // Bind see all button
+  searchPreviewDropdown.querySelector('#btn-see-all-search')?.addEventListener('click', () => {
+    closeSearchPreviewDropdown();
+    renderFeed();
+    document.getElementById('news-feed-heading')?.scrollIntoView({ behavior: 'smooth' });
+  });
+}
+
+function closeSearchPreviewDropdown() {
+  if (searchPreviewDropdown) {
+    searchPreviewDropdown.style.display = 'none';
+    searchPreviewDropdown.innerHTML = '';
+    activeSearchIndex = -1;
+  }
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// --------------------------------------------------------------------------
+// Reader / User Authentication & Profile Management System
+// --------------------------------------------------------------------------
+function updateUserNavbarState() {
+  const currentReader = ReaderAuthService.getCurrentReader();
+  
+  if (currentReader) {
+    const firstName = currentReader.name.split(' ')[0];
+    if (userAuthBtn) {
+      userAuthBtn.innerHTML = `
+        <img src="${currentReader.avatar}" alt="${currentReader.name}" class="user-avatar-badge" />
+        <span id="user-auth-btn-text" style="font-weight:700;">${firstName}</span>
+      `;
+      userAuthBtn.title = `Akun: ${currentReader.name} (Klik untuk Buka Profil)`;
+      userAuthBtn.style.background = 'rgba(0, 242, 254, 0.12)';
+    }
+    if (mUserAuthBtn) {
+      mUserAuthBtn.innerHTML = `
+        <img src="${currentReader.avatar}" alt="${currentReader.name}" class="user-avatar-badge" />
+        <span id="m-user-auth-btn-text">${firstName}</span>
+      `;
+    }
+  } else {
+    if (userAuthBtn) {
+      userAuthBtn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="user-auth-btn-text">Masuk</span>
+      `;
+      userAuthBtn.title = 'Masuk / Daftar Akun Pembaca QUERYINDO';
+      userAuthBtn.style.background = 'rgba(0, 242, 254, 0.08)';
+    }
+    if (mUserAuthBtn) {
+      mUserAuthBtn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="m-user-auth-btn-text">Masuk / Akun</span>
+      `;
+    }
+  }
+}
+
+function openUserAuthModal(tab: 'login' | 'register' | 'profile' = 'login') {
+  if (!userAuthModal || !userAuthContainer) return;
+
+  const currentReader = ReaderAuthService.getCurrentReader();
+
+  if (currentReader || tab === 'profile') {
+    renderUserProfileHTML(currentReader);
+  } else {
+    renderAuthFormHTML(tab);
+  }
+
+  userAuthModal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderUserProfileHTML(reader: ReaderUser | null) {
+  if (!userAuthContainer || !reader) return;
+
+  const savedCount = preferences.savedArticleIds.length;
+  let historyCount = 0;
+  try {
+    const history = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
+    historyCount = history.length;
+  } catch {}
+
+  const joinDate = new Date(reader.registeredAt).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  userAuthContainer.innerHTML = `
+    <div class="modal-header-bar" style="background: var(--bg-tertiary); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span style="font-size: 1.1rem; font-weight: 800;">Profil Pembaca</span>
+        <span style="font-size: 0.68rem; padding: 0.15rem 0.5rem; background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-radius: 4px; font-weight: 700;">TERVERIFIKASI</span>
+      </div>
+      <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
+    </div>
+
+    <div style="padding: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle);">
+        <img src="${reader.avatar}" alt="${reader.name}" style="width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent-cyan); object-fit: cover;" />
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 0.25rem 0; color: var(--text-primary);">${reader.name}</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">${reader.email}</p>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">Bergabung sejak ${joinDate}</span>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <div style="background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+          <div style="font-size: 1.3rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-mono);">${savedCount}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Artikel Tersimpan</div>
+        </div>
+        <div style="background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+          <div style="font-size: 1.3rem; font-weight: 800; color: var(--accent-emerald); font-family: var(--font-mono);">${historyCount}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Riwayat Baca</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <button id="btn-open-my-bookmarks" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.85rem; border-radius: var(--radius-md); border: none; cursor: pointer;">
+          📌 Buka Koleksi Tersimpan (${savedCount})
+        </button>
+        <button id="btn-user-logout" style="width: 100%; padding: 0.7rem; background: rgba(244, 63, 94, 0.1); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.25); font-weight: 700; font-size: 0.825rem; border-radius: var(--radius-md); cursor: pointer;">
+          🚪 Keluar dari Akun
+        </button>
+      </div>
+    </div>
+  `;
+
+  userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
+  
+  userAuthContainer.querySelector('#btn-open-my-bookmarks')?.addEventListener('click', () => {
+    closeUserAuthModal();
+    renderBookmarksModal();
+  });
+
+  userAuthContainer.querySelector('#btn-user-logout')?.addEventListener('click', () => {
+    ReaderAuthService.logout();
+    Toast.show('Anda telah keluar dari akun.');
+    updateUserNavbarState();
+    closeUserAuthModal();
+  });
+}
+
+function renderAuthFormHTML(activeTab: 'login' | 'register') {
+  if (!userAuthContainer) return;
+
+  userAuthContainer.innerHTML = `
+    <!-- Header with Tabs -->
+    <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative;">
+      <button class="btn-close" id="user-auth-close-btn" style="position: absolute; right: 1rem; top: 1rem; z-index: 10; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
+      <div style="padding: 1.25rem 1.5rem 0.5rem 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 0.25rem 0;">Akun Pembaca QUERYINDO</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Sinkronkan artikel favorit & riwayat baca antar perangkat</p>
+      </div>
+      <div style="display: flex; border-top: 1px solid var(--border-subtle); margin-top: 0.75rem;">
+        <button class="auth-tab-btn ${activeTab === 'login' ? 'active' : ''}" id="tab-login-btn">Masuk</button>
+        <button class="auth-tab-btn ${activeTab === 'register' ? 'active' : ''}" id="tab-register-btn">Daftar Akun Baru</button>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <div style="padding: 1.5rem;">
+      <div id="auth-alert-box" style="display: none; padding: 0.7rem; border-radius: var(--radius-md); font-size: 0.8rem; margin-bottom: 1rem;"></div>
+
+      ${activeTab === 'login' ? `
+        <form id="reader-login-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Email</label>
+            <input type="email" id="reader-login-email" required value="" placeholder="nama@email.com" autocomplete="email" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Kata Sandi</label>
+            <input type="password" id="reader-login-password" required value="" placeholder="Masukkan kata sandi..." autocomplete="current-password" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
+          </div>
+          <button type="submit" style="margin-top: 0.5rem; width: 100%; padding: 0.8rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.9rem; cursor: pointer;">
+            Masuk ke Akun →
+          </button>
+          <div style="text-align: center; margin-top: 0.5rem; font-size: 0.78rem; color: var(--text-muted);">
+            Belum punya akun? <a href="#" id="link-switch-to-register" style="color: var(--accent-cyan); font-weight: 700;">Daftar di sini</a>
+          </div>
+        </form>
+      ` : `
+        <form id="reader-register-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Nama Lengkap</label>
+            <input type="text" id="reader-reg-name" required value="" placeholder="Contoh: Budi Pratama" autocomplete="name" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Email</label>
+            <input type="email" id="reader-reg-email" required value="" placeholder="nama@email.com" autocomplete="email" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">Kata Sandi (Minimal 6 Karakter)</label>
+            <input type="password" id="reader-reg-password" required minlength="6" value="" placeholder="Buat kata sandi aman..." autocomplete="new-password" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem;" />
+          </div>
+          <button type="submit" style="margin-top: 0.5rem; width: 100%; padding: 0.8rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.9rem; cursor: pointer;">
+            Buat Akun Pembaca →
+          </button>
+          <div style="text-align: center; margin-top: 0.5rem; font-size: 0.78rem; color: var(--text-muted);">
+            Sudah memiliki akun? <a href="#" id="link-switch-to-login" style="color: var(--accent-cyan); font-weight: 700;">Masuk di sini</a>
+          </div>
+        </form>
+      `}
+    </div>
+  `;
+
+  userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
+
+  userAuthContainer.querySelector('#tab-login-btn')?.addEventListener('click', () => renderAuthFormHTML('login'));
+  userAuthContainer.querySelector('#tab-register-btn')?.addEventListener('click', () => renderAuthFormHTML('register'));
+  userAuthContainer.querySelector('#link-switch-to-register')?.addEventListener('click', (e) => { e.preventDefault(); renderAuthFormHTML('register'); });
+  userAuthContainer.querySelector('#link-switch-to-login')?.addEventListener('click', (e) => { e.preventDefault(); renderAuthFormHTML('login'); });
+
+  // Handle Login Submit
+  const loginForm = userAuthContainer.querySelector('#reader-login-form') as HTMLFormElement;
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = (loginForm.querySelector('#reader-login-email') as HTMLInputElement).value;
+      const password = (loginForm.querySelector('#reader-login-password') as HTMLInputElement).value;
+      const res = ReaderAuthService.login(email, password);
+
+      const alertBox = userAuthContainer!.querySelector('#auth-alert-box') as HTMLElement;
+      if (!res.success) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(244, 63, 94, 0.15)';
+        alertBox.style.border = '1px solid var(--accent-rose)';
+        alertBox.style.color = 'var(--accent-rose)';
+        alertBox.textContent = res.message;
+      } else {
+        preferences.savedArticleIds = res.user?.savedArticles || [];
+        updateBookmarkBadge();
+        updateUserNavbarState();
+        Toast.show(res.message);
+        closeUserAuthModal();
+      }
+    });
+  }
+
+  // Handle Register Submit
+  const regForm = userAuthContainer.querySelector('#reader-register-form') as HTMLFormElement;
+  if (regForm) {
+    regForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = (regForm.querySelector('#reader-reg-name') as HTMLInputElement).value;
+      const email = (regForm.querySelector('#reader-reg-email') as HTMLInputElement).value;
+      const password = (regForm.querySelector('#reader-reg-password') as HTMLInputElement).value;
+      const res = ReaderAuthService.register(name, email, password);
+
+      const alertBox = userAuthContainer!.querySelector('#auth-alert-box') as HTMLElement;
+      if (!res.success) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(244, 63, 94, 0.15)';
+        alertBox.style.border = '1px solid var(--accent-rose)';
+        alertBox.style.color = 'var(--accent-rose)';
+        alertBox.textContent = res.message;
+      } else {
+        updateUserNavbarState();
+        Toast.show(res.message);
+        closeUserAuthModal();
+      }
+    });
+  }
+}
+
+function closeUserAuthModal() {
+  if (userAuthModal) {
+    userAuthModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
 // Event Listeners Registration
 function setupEventListeners() {
   // Hash Routing Change
@@ -1385,7 +1773,6 @@ function setupEventListeners() {
     const newTheme = preferences.theme === 'dark' ? 'light' : 'dark';
     applyTheme(newTheme);
   });
-
 
   // Footer links now use hash routes (#page/xxx) — no manual event listeners needed
   document.getElementById('link-sitemap')?.addEventListener('click', (e) => { e.preventDefault(); Toast.show(preferences.language === 'en' ? 'QUERYINDO Sitemap 2026.' : 'Peta Situs QUERYINDO 2026.'); });
@@ -1399,18 +1786,62 @@ function setupEventListeners() {
   document.getElementById('m-specs-btn')?.addEventListener('click', openSpecsModal);
   specsCloseBtn?.addEventListener('click', () => specsModal?.classList.remove('open'));
 
-  // CMS Admin Button -> Navigate to #admin route
-  adminCmsBtn?.addEventListener('click', () => {
-    window.location.hash = 'admin';
-  });
-  document.getElementById('m-cms-btn')?.addEventListener('click', () => {
-    window.location.hash = 'admin';
+  // Reader Auth & User Profile Modals
+  userAuthBtn?.addEventListener('click', () => openUserAuthModal());
+  mUserAuthBtn?.addEventListener('click', () => openUserAuthModal());
+
+  // Search Bar Filter & Live Preview Dropdown
+  searchInput?.addEventListener('input', (e) => {
+    const query = (e.target as HTMLInputElement).value;
+    searchQuery = query;
+    renderFeed();
+    renderSearchPreviewDropdown(query);
   });
 
-  // Search Bar Filter
-  searchInput?.addEventListener('input', (e) => {
-    searchQuery = (e.target as HTMLInputElement).value;
-    renderFeed();
+  searchInput?.addEventListener('focus', () => {
+    if (searchInput.value.trim()) {
+      renderSearchPreviewDropdown(searchInput.value);
+    }
+  });
+
+  // Keyboard navigation inside search input
+  searchInput?.addEventListener('keydown', (e) => {
+    if (!searchPreviewDropdown || searchPreviewDropdown.style.display === 'none') return;
+    const items = searchPreviewDropdown.querySelectorAll('.search-preview-item');
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeSearchIndex = (activeSearchIndex + 1) % items.length;
+      items.forEach((item, idx) => item.classList.toggle('active', idx === activeSearchIndex));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeSearchIndex = (activeSearchIndex - 1 + items.length) % items.length;
+      items.forEach((item, idx) => item.classList.toggle('active', idx === activeSearchIndex));
+    } else if (e.key === 'Enter') {
+      if (activeSearchIndex >= 0 && activeSearchIndex < items.length) {
+        e.preventDefault();
+        const activeItem = items[activeSearchIndex] as HTMLElement;
+        const artId = activeItem.getAttribute('data-art-id');
+        if (artId) {
+          closeSearchPreviewDropdown();
+          window.location.hash = `article/${artId}`;
+          openArticleReader(artId);
+        }
+      } else {
+        closeSearchPreviewDropdown();
+      }
+    } else if (e.key === 'Escape') {
+      closeSearchPreviewDropdown();
+    }
+  });
+
+  // Close Search Dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const searchBox = document.getElementById('navbar-search-box');
+    if (searchBox && !searchBox.contains(e.target as Node)) {
+      closeSearchPreviewDropdown();
+    }
   });
 
   // Advanced Filter Panel Toggle & Select Listeners
@@ -1442,12 +1873,14 @@ function setupEventListeners() {
     }
 
     if (e.key === 'Escape') {
+      closeSearchPreviewDropdown();
       if (readerModal?.classList.contains('open')) {
         window.location.hash = '';
         readerModal.classList.remove('open');
         document.body.style.overflow = '';
         TextToSpeechService.stop();
       }
+      if (userAuthModal?.classList.contains('open')) closeUserAuthModal();
       if (bookmarksModal?.classList.contains('open')) bookmarksModal.classList.remove('open');
       if (glossaryModal?.classList.contains('open')) glossaryModal.classList.remove('open');
       if (specsModal?.classList.contains('open')) specsModal.classList.remove('open');
@@ -1473,6 +1906,11 @@ function setupEventListeners() {
   });
 
   // Close modals on clicking overlay
+  userAuthModal?.addEventListener('click', (e) => {
+    if (e.target === userAuthModal) {
+      closeUserAuthModal();
+    }
+  });
 
   readerModal?.addEventListener('click', (e) => {
     if (e.target === readerModal) {
@@ -1515,6 +1953,7 @@ function setupEventListeners() {
     window.location.hash = '';
     currentCategory = 'all';
     searchQuery = '';
+    closeSearchPreviewDropdown();
     if (searchInput) searchInput.value = '';
     renderCategories();
     renderFeed();
