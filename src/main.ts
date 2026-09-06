@@ -1691,14 +1691,63 @@ function renderGoogleAuthModalHTML() {
         <span id="btn-google-oauth-text">Lanjutkan dengan Google</span>
       </button>
 
+      <!-- Instant Login Fallback Option -->
+      <div style="margin-top: 1rem;">
+        <button 
+          id="btn-toggle-instant-email" 
+          type="button" 
+          style="background: none; border: none; color: var(--text-muted); font-size: 0.78rem; text-decoration: underline; cursor: pointer; padding: 0.25rem 0.5rem;"
+        >
+          Masuk cepat dengan alamat email →
+        </button>
+      </div>
+
+      <div id="instant-email-box" style="display: none; margin-top: 0.85rem; padding: 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: left;">
+        <form id="form-instant-email" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Masukkan Email Akun Google:</label>
+          <input type="email" id="input-instant-email" required placeholder="nama@gmail.com" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.825rem; box-sizing: border-box;" />
+          <button type="submit" style="padding: 0.55rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.8rem; border: none; border-radius: var(--radius-sm); cursor: pointer;">
+            Masuk Langsung Sekarang
+          </button>
+        </form>
+      </div>
+
       <!-- Google Policy Disclosure -->
-      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
-        Dengan melanjutkan, Anda mengizinkan Google membagikan nama, profil, dan alamat email Anda ke QUERYINDO.
+      <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
+        Dengan melanjutkan, preferensi baca dan artikel tersimpan Anda akan disinkronkan secara otomatis di akun Anda.
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
+
+  // Toggle Instant Email Form
+  const toggleInstant = userAuthContainer.querySelector('#btn-toggle-instant-email');
+  const instantBox = userAuthContainer.querySelector('#instant-email-box') as HTMLElement;
+  toggleInstant?.addEventListener('click', () => {
+    if (instantBox) {
+      const isHidden = instantBox.style.display === 'none';
+      instantBox.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) {
+        (instantBox.querySelector('#input-instant-email') as HTMLInputElement)?.focus();
+      }
+    }
+  });
+
+  // Handle Instant Email Form Submit
+  const instantForm = userAuthContainer.querySelector('#form-instant-email') as HTMLFormElement;
+  instantForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = (instantForm.querySelector('#input-instant-email') as HTMLInputElement)?.value.trim();
+    if (!email) return;
+
+    const res = ReaderAuthService.loginWithGoogle(email);
+    preferences.savedArticleIds = res.user.savedArticles || [];
+    updateBookmarkBadge();
+    updateUserNavbarState();
+    Toast.show(res.message);
+    closeUserAuthModal();
+  });
 
   // Bind 1-Click Launch Button
   const launchBtn = userAuthContainer.querySelector('#btn-google-oauth-launch') as HTMLButtonElement;
@@ -1718,6 +1767,9 @@ function renderGoogleAuthModalHTML() {
       closeUserAuthModal();
     } catch (err: any) {
       Toast.show(err.message || 'Gagal login dengan Google.');
+      if (instantBox) {
+        instantBox.style.display = 'block';
+      }
     } finally {
       if (launchBtn) launchBtn.disabled = false;
       if (launchText) launchText.textContent = 'Lanjutkan dengan Google';
