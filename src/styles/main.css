@@ -677,6 +677,12 @@ button {
   border: 1.5px solid var(--accent-cyan);
 }
 
+.google-acc-card:hover {
+  background: rgba(0, 242, 254, 0.08) !important;
+  border-color: var(--accent-cyan) !important;
+  transform: translateY(-1px);
+}
+
 /* Actions Header */
 .nav-actions {
   display: flex;

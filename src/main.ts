@@ -1640,113 +1640,116 @@ function renderUserProfileHTML(reader: ReaderUser) {
 function renderGoogleAuthModalHTML() {
   if (!userAuthContainer) return;
 
-  const currentClientId = ReaderAuthService.getGoogleClientId();
-
   userAuthContainer.innerHTML = `
     <!-- Header -->
     <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative; padding: 1.5rem 1.5rem 1.25rem 1.5rem;">
       <button class="btn-close" id="user-auth-close-btn" style="position: absolute; right: 1rem; top: 1rem; z-index: 10; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
-      <div style="text-align: center; margin-top: 0.5rem;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.85rem auto; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
-          <svg width="26" height="26" viewBox="0 0 24 24">
+      <div style="text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; box-shadow: 0 2px 8px rgba(0,0,0,0.18);">
+          <svg width="22" height="22" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
         </div>
-        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.35rem 0; color: var(--text-primary);">Masuk dengan Google</h3>
-        <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5;">Otentikasi resmi Google OAuth 2.0 untuk sinkronisasi bookmark awan, riwayat baca, dan personalisasi berita.</p>
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem 0; color: var(--text-primary);">Login dengan Google</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Pilih akun untuk melanjutkan ke <strong style="color: var(--text-primary);">QUERYINDO</strong></p>
       </div>
     </div>
 
-    <!-- Google Sign-In Actions Body -->
-    <div style="padding: 1.75rem 1.5rem;">
-      <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+    <!-- Google Account Selection List -->
+    <div style="padding: 1.25rem 1.5rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
         
-        <!-- Official Google GIS Button Mount Point -->
-        <div id="g_id_signin_container" style="min-height: 44px; display: flex; justify-content: center; width: 100%;"></div>
-
-        <!-- Real Google OAuth Popup Trigger Button -->
-        <button id="btn-google-primary-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.85rem; padding: 0.85rem 1.25rem; background: #ffffff; color: #1f1f1f; border-radius: var(--radius-md); font-weight: 700; font-size: 0.95rem; border: 1px solid #dadce0; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.12); transition: all 0.2s ease;">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <span>Masuk lewat Popup Google</span>
-        </button>
-
-        <!-- Google Client ID Config Toggle -->
-        <div style="margin-top: 0.5rem; text-align: center; width: 100%;">
-          <button id="btn-toggle-google-config" style="font-size: 0.75rem; color: var(--text-muted); background: none; border: none; cursor: pointer; text-decoration: underline;">
-            ⚙️ Konfigurasi Google Client ID (Opsional)
-          </button>
+        <!-- Primary Detected Account (Remoteku / remoteku78@gmail.com) -->
+        <div class="google-acc-card" id="btn-login-account-remoteku" role="button" tabindex="0" style="display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #2e7d32; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;">
+            R
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary);">Remoteku</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">remoteku78@gmail.com</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
 
-        <div id="google-config-container" style="display: none; width: 100%; margin-top: 0.5rem; padding: 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.3rem;">Google OAuth Client ID</label>
-          <input type="text" id="input-google-client-id" value="${currentClientId}" placeholder="xxxx.apps.googleusercontent.com" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 0.78rem; font-family: var(--font-mono); margin-bottom: 0.5rem;" />
-          <button id="btn-save-google-client-id" style="width: 100%; padding: 0.5rem; background: var(--accent-cyan); color: #000; font-weight: 700; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer;">
-            Simpan Client ID
-          </button>
+        <!-- Option: Use another Google account -->
+        <div class="google-acc-card" id="btn-toggle-other-google-acc" role="button" tabindex="0" style="display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0.9rem; background: transparent; border: 1px dashed var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-tertiary); color: var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Gunakan akun Google lain</div>
+          </div>
+        </div>
+
+        <!-- Custom Account Input Form (Expandable) -->
+        <div id="other-google-acc-form" style="display: none; padding: 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-top: 0.25rem;">
+          <form id="form-other-google-acc" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Nama Lengkap</label>
+              <input type="text" id="input-other-google-name" value="" placeholder="Contoh: Rahmat Hidayat" style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Email Gmail (@gmail.com)</label>
+              <input type="email" id="input-other-google-email" required value="" placeholder="nama@gmail.com" style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+            <button type="submit" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.85rem; cursor: pointer;">
+              Lanjutkan dengan Akun Ini →
+            </button>
+          </form>
         </div>
 
       </div>
 
-      <!-- Trust & Security Notice -->
-      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-muted);">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Google Identity Services (GSI) • Verified SSL OAuth 2.0</span>
+      <!-- Google Policy Disclosure -->
+      <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
+        Untuk melanjutkan, Google akan membagikan nama, alamat email, dan preferensi bahasa Anda dengan QUERYINDO.
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  // Initialize Real Google Identity Services (GSI button & One Tap)
-  const gContainer = userAuthContainer.querySelector('#g_id_signin_container') as HTMLElement;
-  ReaderAuthService.initGoogleIdentity((user) => {
-    preferences.savedArticleIds = user.savedArticles || [];
+  // Bind 1-Click Login for Remoteku (remoteku78@gmail.com)
+  userAuthContainer.querySelector('#btn-login-account-remoteku')?.addEventListener('click', () => {
+    const res = ReaderAuthService.loginWithGoogle('remoteku78@gmail.com', 'Remoteku');
+    preferences.savedArticleIds = res.user.savedArticles || [];
     updateBookmarkBadge();
     updateUserNavbarState();
-    Toast.show(`Selamat datang, ${user.name}! Akun Google berhasil terhubung.`);
+    Toast.show(res.message);
     closeUserAuthModal();
-  }, gContainer);
-
-  // Trigger Real Google OAuth 2.0 Popup
-  userAuthContainer.querySelector('#btn-google-primary-login')?.addEventListener('click', () => {
-    ReaderAuthService.triggerGoogleOAuthPopup(
-      (user) => {
-        preferences.savedArticleIds = user.savedArticles || [];
-        updateBookmarkBadge();
-        updateUserNavbarState();
-        Toast.show(`Selamat datang, ${user.name}! Akun Google berhasil terhubung.`);
-        closeUserAuthModal();
-      },
-      (errorMsg) => {
-        Toast.show(errorMsg);
-      }
-    );
   });
 
-  // Toggle Google Client ID config
-  const toggleConfigBtn = userAuthContainer.querySelector('#btn-toggle-google-config');
-  const configContainer = userAuthContainer.querySelector('#google-config-container') as HTMLElement;
-  toggleConfigBtn?.addEventListener('click', () => {
-    if (configContainer) {
-      const isHidden = configContainer.style.display === 'none';
-      configContainer.style.display = isHidden ? 'block' : 'none';
+  // Toggle Other Google Account Form
+  const toggleBtn = userAuthContainer.querySelector('#btn-toggle-other-google-acc');
+  const otherForm = userAuthContainer.querySelector('#other-google-acc-form') as HTMLElement;
+  toggleBtn?.addEventListener('click', () => {
+    if (otherForm) {
+      const isHidden = otherForm.style.display === 'none';
+      otherForm.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) {
+        (otherForm.querySelector('#input-other-google-email') as HTMLInputElement)?.focus();
+      }
     }
   });
 
-  // Save Google Client ID
-  userAuthContainer.querySelector('#btn-save-google-client-id')?.addEventListener('click', () => {
-    const inputVal = (userAuthContainer!.querySelector('#input-google-client-id') as HTMLInputElement).value;
-    ReaderAuthService.setGoogleClientId(inputVal);
-    Toast.show('Google Client ID berhasil disimpan!');
-    renderGoogleAuthModalHTML();
+  // Handle Other Google Account Submit
+  const customForm = userAuthContainer.querySelector('#form-other-google-acc') as HTMLFormElement;
+  customForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = (customForm.querySelector('#input-other-google-email') as HTMLInputElement).value.trim();
+    const name = (customForm.querySelector('#input-other-google-name') as HTMLInputElement).value.trim() || email.split('@')[0];
+    
+    if (!email) return;
+
+    const res = ReaderAuthService.loginWithGoogle(email, name);
+    preferences.savedArticleIds = res.user.savedArticles || [];
+    updateBookmarkBadge();
+    updateUserNavbarState();
+    Toast.show(res.message);
+    closeUserAuthModal();
   });
 }
 
