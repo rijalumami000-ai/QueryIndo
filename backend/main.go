@@ -17,9 +17,17 @@ import (
 )
 
 func main() {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Println("ℹ️ Warning: File .env tidak ditemukan, menggunakan nilai default environment.")
+	// Load .env file with multi-path fallback
+	if err := godotenv.Load(".env", "/var/www/queryindo/backend/.env", "../.env"); err != nil {
+		log.Println("ℹ️ Info: Menggunakan environment sistem / default.")
+	}
+
+	if os.Getenv("HOSTINGER_MAIL_API_KEY") != "" {
+		log.Println("📧 Mailer System: Hostinger Mail REST API (HTTPS Port 443) Aktif")
+	} else if os.Getenv("SMTP_PASS") != "" {
+		log.Printf("📧 Mailer System: SMTP Direct (%s:%s)\n", os.Getenv("SMTP_HOST"), os.Getenv("SMTP_PORT"))
+	} else {
+		log.Println("ℹ️ Mailer System: Mode Simulasi (HOSTINGER_MAIL_API_KEY / SMTP_PASS tidak disetel)")
 	}
 
 	// Initialize Database Connection
