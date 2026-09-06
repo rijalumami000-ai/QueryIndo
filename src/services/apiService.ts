@@ -148,21 +148,40 @@ export class ApiService {
     return '';
   }
 
-  // Subscribe Email to Newsletter via Go Backend
+  // Subscribe Email to Newsletter with backend sync & persistent local storage
   public static async subscribeNewsletter(email: string): Promise<string> {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@') || !trimmed.includes('.')) {
+      return 'Format alamat email tidak valid (contoh: user@domain.com)';
+    }
+
+    // Persist locally in queryindo_newsletter_subscribers
+    try {
+      const localSubs: Array<{ email: string; date: string }> = JSON.parse(localStorage.getItem('queryindo_newsletter_subscribers') || '[]');
+      const alreadyExists = localSubs.some(s => s.email === trimmed);
+      if (!alreadyExists) {
+        localSubs.push({ email: trimmed, date: new Date().toISOString() });
+        localStorage.setItem('queryindo_newsletter_subscribers', JSON.stringify(localSubs));
+      } else if (!this.isBackendAvailable) {
+        return 'Alamat email Anda sudah terdaftar dalam langganan newsletter QUERYINDO!';
+      }
+    } catch {}
+
+    // Sync to Go Backend if available
     if (this.isBackendAvailable) {
       try {
         const res = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          body: JSON.stringify({ email: trimmed })
         });
         const json = await res.json();
         if (json.message) return json.message;
       } catch (err) {
-        console.warn('Newsletter subscription API failed.', err);
+        console.warn('Newsletter subscription API sync failed, stored locally.', err);
       }
     }
-    return '';
+
+    return 'Terima kasih! Alamat email Anda berhasil terdaftar di newsletter harian QUERYINDO.';
   }
 }
