@@ -13,6 +13,7 @@ import (
 	"net/smtp"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -281,28 +282,102 @@ func sendViaBrevo(apiKey, toEmail, subject, htmlBody string) error {
 	return fmt.Errorf("brevo api error (status %d): %s", resp.StatusCode, string(body))
 }
 
+var (
+	cachedHostingerMailboxID string
+	hostingerMutex           sync.Mutex
+)
+
+func getHostingerMailboxID(apiKey string) (string, error) {
+	hostingerMutex.Lock()
+	defer hostingerMutex.Unlock()
+
+	if envMailboxID := os.Getenv("HOSTINGER_MAILBOX_ID"); envMailboxID != "" {
+		return envMailboxID, nil
+	}
+
+	if cachedHostingerMailboxID != "" {
+		return cachedHostingerMailboxID, nil
+	}
+
+	req, err := http.NewRequest("GET", "https://api.mail.hostinger.com/api/v1/me", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Accept", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to fetch hostinger mailbox info (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	var meResp struct {
+		Data struct {
+			OrderResourceId string `json:"orderResourceId"`
+			Mailboxes       []struct {
+				ResourceId string `json:"resourceId"`
+				Address    string `json:"address"`
+			} `json:"mailboxes"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&meResp); err != nil {
+		return "", err
+	}
+
+	if len(meResp.Data.Mailboxes) == 0 {
+		return "", fmt.Errorf("no mailboxes found in hostinger account")
+	}
+
+	cfg := getMailerConfig()
+	for _, mb := range meResp.Data.Mailboxes {
+		if strings.EqualFold(mb.Address, cfg.User) {
+			cachedHostingerMailboxID = mb.ResourceId
+			return cachedHostingerMailboxID, nil
+		}
+	}
+
+	cachedHostingerMailboxID = meResp.Data.Mailboxes[0].ResourceId
+	return cachedHostingerMailboxID, nil
+}
+
 // sendViaHostingerAPI sends email via Hostinger's official Mail REST API over HTTPS port 443
 func sendViaHostingerAPI(apiKey, toEmail, subject, htmlBody string) error {
-	cfg := getMailerConfig()
-	payload := map[string]interface{}{
-		"from":    cfg.From,
-		"to":      toEmail,
-		"subject": subject,
-		"html":    htmlBody,
+	mailboxID, err := getHostingerMailboxID(apiKey)
+	if err != nil {
+		log.Printf("❌ [MAILER HOSTINGER API] Failed to get mailbox ID: %v\n", err)
+		return err
 	}
+
+	payload := map[string]interface{}{
+		"to":          []string{toEmail},
+		"displayName": "QUERYINDO Redaksi",
+		"subject":     subject,
+		"html":        htmlBody,
+	}
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.mail.hostinger.com/v1/emails", bytes.NewBuffer(jsonData))
+	sendURL := fmt.Sprintf("https://api.mail.hostinger.com/api/v1/mailboxes/%s/send", mailboxID)
+	req, err := http.NewRequest("POST", sendURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("❌ [MAILER HOSTINGER API] HTTP Request Error: %v\n", err)
@@ -311,7 +386,7 @@ func sendViaHostingerAPI(apiKey, toEmail, subject, htmlBody string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		log.Printf("✅ [MAILER HOSTINGER API] Email successfully delivered to %s via Hostinger HTTPS API 443\n", toEmail)
+		log.Printf("✅ [MAILER HOSTINGER API] Email successfully delivered to %s via Hostinger HTTPS API (Status %d)\n", toEmail, resp.StatusCode)
 		return nil
 	}
 
