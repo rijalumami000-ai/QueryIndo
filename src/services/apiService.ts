@@ -215,6 +215,26 @@ export class ApiService {
     }
   }
 
+  // Delete subscriber by ID or Email
+  public static async deleteSubscriber(idOrEmail: string | number): Promise<{ success: boolean; message: string }> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/newsletter/subscribers/${encodeURIComponent(String(idOrEmail))}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        const json = await res.json();
+        return {
+          success: json.success ?? res.ok,
+          message: json.message || 'Pelanggan berhasil dihapus'
+        };
+      } catch (err) {
+        return { success: false, message: 'Gagal terhubung ke server untuk menghapus pelanggan' };
+      }
+    }
+    return { success: true, message: 'Pelanggan berhasil dihapus dari simulasi lokal' };
+  }
+
   // Send Broadcast Newsletter Blast (Protected)
   public static async broadcastNewsletter(payload: {
     subject?: string;

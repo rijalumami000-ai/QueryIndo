@@ -129,9 +129,29 @@ func BroadcastNewsletter(c *fiber.Ctx) error {
 		utils.SendNewsBroadcastEmail(emails, req.Subject, req.Headline, req.Articles)
 	}()
 
+// DeleteSubscriber removes a subscriber by ID (Protected)
+func DeleteSubscriber(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "ID pelanggan wajib disertakan",
+		})
+	}
+
+	db := database.DB
+	if db != nil {
+		if err := db.Where("id = ? OR email = ?", id, id).Delete(&models.NewsletterSubscriber{}).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"success": false,
+				"message": "Gagal menghapus data pelanggan",
+			})
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
-		"message": "Broadcast newsletter sedang diproses dan dikirim ke seluruh pelanggan!",
-		"recipients_count": len(emails),
+		"message": "Pelanggan newsletter berhasil dihapus",
 	})
 }
+

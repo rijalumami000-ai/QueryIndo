@@ -601,12 +601,13 @@ export class AdminCMS {
                   <th style="padding: 0.85rem 1.25rem;">Alamat Email Pembaca</th>
                   <th style="padding: 0.85rem 1.25rem;">Waktu Registrasi</th>
                   <th style="padding: 0.85rem 1.25rem;">Status Langganan</th>
-                  <th style="padding: 0.85rem 1.25rem;">Konfirmasi Welcome</th>
+                  <th style="padding: 0.85rem 1.25rem;">Pengiriman Email</th>
+                  <th style="padding: 0.85rem 1.25rem; width: 80px; text-align: right;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="subscribers-table-body">
                 <tr>
-                  <td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                  <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
                     Memuat daftar pelanggan newsletter...
                   </td>
                 </tr>
@@ -1130,6 +1131,7 @@ export class AdminCMS {
 
       tbody.innerHTML = items.map((s, idx) => {
         const dateStr = s.createdAt || s.date ? new Date(s.createdAt || s.date!).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Baru saja';
+        const subId = s.id || s.email;
         return `
           <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
             <td style="padding: 0.9rem 1.25rem; font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">#${idx + 1}</td>
@@ -1152,12 +1154,37 @@ export class AdminCMS {
             <td style="padding: 0.9rem 1.25rem;">
               <span style="font-size: 0.75rem; color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 0.35rem;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <span>Terkirim (SSL 465)</span>
+                <span>Hostinger API (HTTPS 443)</span>
               </span>
+            </td>
+            <td style="padding: 0.9rem 1.25rem; text-align: right;">
+              <button class="btn-delete-subscriber" data-id="${subId}" data-email="${s.email}" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; border-radius: 6px; padding: 0.35rem 0.65rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: background 0.15s;" title="Hapus Pelanggan">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Hapus</span>
+              </button>
             </td>
           </tr>
         `;
       }).join('');
+
+      // Bind delete events
+      tbody.querySelectorAll('.btn-delete-subscriber').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const email = btn.getAttribute('data-email') || '';
+          if (!id) return;
+          if (confirm(`Hapus email "${email}" dari daftar pelanggan newsletter?`)) {
+            const res = await ApiService.deleteSubscriber(id);
+            if (res.success) {
+              Toast.show(`Pelanggan "${email}" berhasil dihapus.`);
+              modalElem.innerHTML = this.renderAdminModalHTML();
+              this.bindAdminEvents(modalElem);
+            } else {
+              Toast.show(res.message);
+            }
+          }
+        });
+      });
     };
 
     renderTableContent(subs);
@@ -1216,7 +1243,7 @@ export class AdminCMS {
             </div>
             <div>
               <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-primary);">Kirim Broadcast Buletin Berita</h3>
-              <span style="font-size: 0.75rem; color: var(--accent-cyan); font-family: var(--font-mono);">Gateway: redaksi@queryindo.com (SSL 465)</span>
+              <span style="font-size: 0.75rem; color: var(--accent-cyan); font-family: var(--font-mono);">Gateway: Hostinger Mail API (HTTPS 443)</span>
             </div>
           </div>
           <button class="btn-close" id="close-broadcast-modal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">✕</button>

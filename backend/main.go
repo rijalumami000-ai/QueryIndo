@@ -126,6 +126,7 @@ func main() {
 	// Newsletter Subscription & Redaksi Management Endpoints
 	api.Post("/newsletter/subscribe", handlers.SubscribeNewsletter)
 	api.Get("/newsletter/subscribers", middleware.Protected(), handlers.GetSubscribers)
+	api.Delete("/newsletter/subscribers/:id", middleware.Protected(), handlers.DeleteSubscriber)
 	api.Post("/newsletter/broadcast", middleware.Protected(), handlers.BroadcastNewsletter)
 
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap
