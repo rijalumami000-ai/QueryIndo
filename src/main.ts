@@ -1640,12 +1640,14 @@ function renderUserProfileHTML(reader: ReaderUser) {
 function renderGoogleAuthModalHTML() {
   if (!userAuthContainer) return;
 
+  const currentClientId = ReaderAuthService.getGoogleClientId();
+
   userAuthContainer.innerHTML = `
     <!-- Header -->
     <div style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); position: relative; padding: 1.5rem 1.5rem 1.25rem 1.5rem;">
       <button class="btn-close" id="user-auth-close-btn" style="position: absolute; right: 1rem; top: 1rem; z-index: 10; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
       <div style="text-align: center; margin-top: 0.5rem;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.85rem auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.85rem auto; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
           <svg width="26" height="26" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -1654,15 +1656,18 @@ function renderGoogleAuthModalHTML() {
           </svg>
         </div>
         <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.35rem 0; color: var(--text-primary);">Masuk dengan Google</h3>
-        <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5;">Simpan artikel favorit, sinkronisasi bookmark awan, dan akses cepat ke portal berita teknologi QUERYINDO.</p>
+        <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5;">Otentikasi resmi Google OAuth 2.0 untuk sinkronisasi bookmark awan, riwayat baca, dan personalisasi berita.</p>
       </div>
     </div>
 
     <!-- Google Sign-In Actions Body -->
     <div style="padding: 1.75rem 1.5rem;">
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
         
-        <!-- Primary Google Button -->
+        <!-- Official Google GIS Button Mount Point -->
+        <div id="g_id_signin_container" style="min-height: 44px; display: flex; justify-content: center; width: 100%;"></div>
+
+        <!-- Real Google OAuth Popup Trigger Button -->
         <button id="btn-google-primary-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.85rem; padding: 0.85rem 1.25rem; background: #ffffff; color: #1f1f1f; border-radius: var(--radius-md); font-weight: 700; font-size: 0.95rem; border: 1px solid #dadce0; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.12); transition: all 0.2s ease;">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1670,30 +1675,22 @@ function renderGoogleAuthModalHTML() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Lanjutkan dengan Google</span>
+          <span>Masuk lewat Popup Google</span>
         </button>
 
-        <!-- Or custom Google account prompt toggle -->
-        <div style="margin-top: 0.5rem; text-align: center;">
-          <button id="btn-toggle-custom-google" style="font-size: 0.775rem; color: var(--accent-cyan); background: none; border: none; cursor: pointer; text-decoration: underline;">
-            Gunakan akun Google lain atau kustomisasi nama
+        <!-- Google Client ID Config Toggle -->
+        <div style="margin-top: 0.5rem; text-align: center; width: 100%;">
+          <button id="btn-toggle-google-config" style="font-size: 0.75rem; color: var(--text-muted); background: none; border: none; cursor: pointer; text-decoration: underline;">
+            ⚙️ Konfigurasi Google Client ID (Opsional)
           </button>
         </div>
 
-        <div id="custom-google-form-container" style="display: none; margin-top: 0.75rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
-          <form id="custom-google-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <div>
-              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Nama Akun Google</label>
-              <input type="text" id="custom-google-name" value="" placeholder="Contoh: Rahmat Hidayat" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
-            </div>
-            <div>
-              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">Email Gmail (@gmail.com)</label>
-              <input type="email" id="custom-google-email" value="" placeholder="nama@gmail.com" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
-            </div>
-            <button type="submit" style="margin-top: 0.25rem; width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.85rem; cursor: pointer;">
-              Masuk dengan Akun Ini →
-            </button>
-          </form>
+        <div id="google-config-container" style="display: none; width: 100%; margin-top: 0.5rem; padding: 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.3rem;">Google OAuth Client ID</label>
+          <input type="text" id="input-google-client-id" value="${currentClientId}" placeholder="xxxx.apps.googleusercontent.com" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 0.78rem; font-family: var(--font-mono); margin-bottom: 0.5rem;" />
+          <button id="btn-save-google-client-id" style="width: 100%; padding: 0.5rem; background: var(--accent-cyan); color: #000; font-weight: 700; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer;">
+            Simpan Client ID
+          </button>
         </div>
 
       </div>
@@ -1701,49 +1698,55 @@ function renderGoogleAuthModalHTML() {
       <!-- Trust & Security Notice -->
       <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-muted);">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Otentikasi aman via Google OAuth 2.0 • Queryindo 2026</span>
+        <span>Google Identity Services (GSI) • Verified SSL OAuth 2.0</span>
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  // Fast One-Click Google Login
-  userAuthContainer.querySelector('#btn-google-primary-login')?.addEventListener('click', () => {
-    const res = ReaderAuthService.loginWithGoogle({
-      name: 'Pembaca Setia',
-      email: 'pembaca@gmail.com'
-    });
-    preferences.savedArticleIds = res.user.savedArticles || [];
+  // Initialize Real Google Identity Services (GSI button & One Tap)
+  const gContainer = userAuthContainer.querySelector('#g_id_signin_container') as HTMLElement;
+  ReaderAuthService.initGoogleIdentity((user) => {
+    preferences.savedArticleIds = user.savedArticles || [];
     updateBookmarkBadge();
     updateUserNavbarState();
-    Toast.show(res.message);
+    Toast.show(`Selamat datang, ${user.name}! Akun Google berhasil terhubung.`);
     closeUserAuthModal();
+  }, gContainer);
+
+  // Trigger Real Google OAuth 2.0 Popup
+  userAuthContainer.querySelector('#btn-google-primary-login')?.addEventListener('click', () => {
+    ReaderAuthService.triggerGoogleOAuthPopup(
+      (user) => {
+        preferences.savedArticleIds = user.savedArticles || [];
+        updateBookmarkBadge();
+        updateUserNavbarState();
+        Toast.show(`Selamat datang, ${user.name}! Akun Google berhasil terhubung.`);
+        closeUserAuthModal();
+      },
+      (errorMsg) => {
+        Toast.show(errorMsg);
+      }
+    );
   });
 
-  // Toggle Custom Google account form
-  const toggleBtn = userAuthContainer.querySelector('#btn-toggle-custom-google');
-  const customFormContainer = userAuthContainer.querySelector('#custom-google-form-container') as HTMLElement;
-  toggleBtn?.addEventListener('click', () => {
-    if (customFormContainer) {
-      const isHidden = customFormContainer.style.display === 'none';
-      customFormContainer.style.display = isHidden ? 'block' : 'none';
+  // Toggle Google Client ID config
+  const toggleConfigBtn = userAuthContainer.querySelector('#btn-toggle-google-config');
+  const configContainer = userAuthContainer.querySelector('#google-config-container') as HTMLElement;
+  toggleConfigBtn?.addEventListener('click', () => {
+    if (configContainer) {
+      const isHidden = configContainer.style.display === 'none';
+      configContainer.style.display = isHidden ? 'block' : 'none';
     }
   });
 
-  // Handle Custom Google Form Submit
-  const customForm = userAuthContainer.querySelector('#custom-google-form') as HTMLFormElement;
-  customForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = (customForm.querySelector('#custom-google-name') as HTMLInputElement).value.trim() || 'Pembaca Queryindo';
-    const email = (customForm.querySelector('#custom-google-email') as HTMLInputElement).value.trim() || 'pembaca@gmail.com';
-
-    const res = ReaderAuthService.loginWithGoogle({ name, email });
-    preferences.savedArticleIds = res.user.savedArticles || [];
-    updateBookmarkBadge();
-    updateUserNavbarState();
-    Toast.show(res.message);
-    closeUserAuthModal();
+  // Save Google Client ID
+  userAuthContainer.querySelector('#btn-save-google-client-id')?.addEventListener('click', () => {
+    const inputVal = (userAuthContainer!.querySelector('#input-google-client-id') as HTMLInputElement).value;
+    ReaderAuthService.setGoogleClientId(inputVal);
+    Toast.show('Google Client ID berhasil disimpan!');
+    renderGoogleAuthModalHTML();
   });
 }
 

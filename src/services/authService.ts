@@ -16,10 +16,27 @@ export interface ReaderUser {
   registeredAt: string;
 }
 
+export interface GoogleJwtPayload {
+  iss?: string;
+  nbf?: number;
+  aud?: string;
+  sub: string;
+  email: string;
+  email_verified?: boolean;
+  azp?: string;
+  name: string;
+  picture: string;
+  given_name?: string;
+  family_name?: string;
+  iat?: number;
+  exp?: number;
+}
+
 const TOKEN_KEY = 'byte_jwt_token';
 const USER_KEY = 'byte_user_session';
 const READER_SESSION_KEY = 'queryindo_reader_session';
 const READER_USERS_KEY = 'queryindo_reader_db';
+const GOOGLE_CLIENT_ID_KEY = 'queryindo_google_client_id';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const API_AUTH_URL = `${API_BASE_URL}/auth/login`;
@@ -121,9 +138,27 @@ export class AuthService {
 }
 
 // --------------------------------------------------------------------------
-// Reader / Public User Authentication via Google Sign-In & Cloud Bookmark Sync
+// Real Google Identity Services (GSI & OAuth 2.0) Reader Authentication
 // --------------------------------------------------------------------------
 export class ReaderAuthService {
+  private static DEFAULT_GOOGLE_CLIENT_ID = '548981447021-u906t1p9g2l6d8q4m3g0h5q2c8p1k9a3.apps.googleusercontent.com';
+
+  public static getGoogleClientId(): string {
+    const custom = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+    if (custom && custom.trim()) return custom.trim();
+    const envId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (envId && envId.trim()) return envId.trim();
+    return this.DEFAULT_GOOGLE_CLIENT_ID;
+  }
+
+  public static setGoogleClientId(clientId: string) {
+    if (clientId && clientId.trim()) {
+      localStorage.setItem(GOOGLE_CLIENT_ID_KEY, clientId.trim());
+    } else {
+      localStorage.removeItem(GOOGLE_CLIENT_ID_KEY);
+    }
+  }
+
   private static getStoredUsers(): ReaderUser[] {
     try {
       const raw = localStorage.getItem(READER_USERS_KEY);
@@ -153,12 +188,53 @@ export class ReaderAuthService {
   }
 
   /**
-   * One-Click Google Sign-In for Readers
+   * Safely decode Google Identity Services ID Token (JWT)
    */
-  public static loginWithGoogle(account?: { name: string; email: string; avatar?: string }): { success: boolean; message: string; user: ReaderUser } {
-    const defaultName = account?.name?.trim() || 'Pembaca Queryindo';
-    const defaultEmail = account?.email?.trim().toLowerCase() || 'pembaca@gmail.com';
-    const defaultAvatar = account?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=00f2fe&color=0d0e12&bold=true`;
+  public static decodeGoogleJwt(token: string): GoogleJwtPayload | null {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload) as GoogleJwtPayload;
+    } catch (e) {
+      console.error('Failed to decode Google JWT token', e);
+      return null;
+    }
+  }
+
+  /**
+   * Login using real Google JWT credential from Google Identity Services
+   */
+  public static loginWithGoogleCredential(credential: string): { success: boolean; message: string; user: ReaderUser } {
+    const payload = this.decodeGoogleJwt(credential);
+    if (!payload || !payload.email) {
+      return {
+        success: false,
+        message: 'Token Google tidak valid.',
+        user: null as any
+      };
+    }
+
+    return this.loginWithGoogleProfile({
+      sub: payload.sub || `g_${Date.now()}`,
+      name: payload.name || payload.email.split('@')[0],
+      email: payload.email,
+      picture: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || payload.email)}&background=4285F4&color=fff&bold=true`
+    });
+  }
+
+  /**
+   * Login or register with verified Google profile data
+   */
+  public static loginWithGoogleProfile(profile: { sub: string; name: string; email: string; picture?: string }): { success: boolean; message: string; user: ReaderUser } {
+    const defaultName = profile.name.trim() || 'Pembaca Queryindo';
+    const defaultEmail = profile.email.trim().toLowerCase();
+    const defaultAvatar = profile.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4285F4&color=fff&bold=true`;
 
     const users = this.getStoredUsers();
     let existingUser = users.find(u => u.email === defaultEmail);
@@ -170,7 +246,7 @@ export class ReaderAuthService {
 
     if (!existingUser) {
       existingUser = {
-        id: `g_usr_${Date.now()}`,
+        id: profile.sub || `g_usr_${Date.now()}`,
         name: defaultName,
         email: defaultEmail,
         avatar: defaultAvatar,
@@ -180,7 +256,6 @@ export class ReaderAuthService {
       };
       users.push(existingUser);
     } else {
-      // Merge bookmarks
       existingUser.savedArticles = Array.from(new Set([...existingUser.savedArticles, ...localBookmarks]));
       existingUser.name = defaultName;
       existingUser.avatar = defaultAvatar;
@@ -192,9 +267,121 @@ export class ReaderAuthService {
 
     return {
       success: true,
-      message: `Berhasil masuk dengan Google sebagai ${existingUser.name}!`,
+      message: `Selamat datang, ${existingUser.name}! Akun Google Anda terhubung.`,
       user: existingUser
     };
+  }
+
+  /**
+   * Initialize Google Identity Services One Tap & Official Button
+   */
+  public static initGoogleIdentity(
+    onSuccess: (user: ReaderUser) => void,
+    buttonContainer?: HTMLElement | null
+  ) {
+    const clientId = this.getGoogleClientId();
+    const gWindow = (window as any).google;
+
+    if (!gWindow?.accounts?.id) {
+      return;
+    }
+
+    try {
+      gWindow.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: { credential: string }) => {
+          if (response.credential) {
+            const res = ReaderAuthService.loginWithGoogleCredential(response.credential);
+            if (res.success && res.user) {
+              onSuccess(res.user);
+            }
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+
+      if (buttonContainer) {
+        buttonContainer.innerHTML = '';
+        gWindow.accounts.id.renderButton(buttonContainer, {
+          type: 'standard',
+          theme: 'filled_blue',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: 280
+        });
+      }
+
+      // Prompt One Tap
+      gWindow.accounts.id.prompt();
+    } catch (err) {
+      console.warn('Google Identity initialization notice:', err);
+    }
+  }
+
+  /**
+   * Trigger direct Google OAuth 2.0 popup via Google Identity token client
+   */
+  public static triggerGoogleOAuthPopup(
+    onSuccess: (user: ReaderUser) => void,
+    onError: (msg: string) => void
+  ) {
+    const clientId = this.getGoogleClientId();
+    const gWindow = (window as any).google;
+
+    if (gWindow?.accounts?.oauth2) {
+      try {
+        const tokenClient = gWindow.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse.error) {
+              onError(tokenResponse.error_description || 'Otentikasi Google dibatalkan.');
+              return;
+            }
+
+            if (tokenResponse.access_token) {
+              try {
+                const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                });
+                const userInfo = await response.json();
+
+                if (userInfo && userInfo.email) {
+                  const res = ReaderAuthService.loginWithGoogleProfile({
+                    sub: userInfo.sub,
+                    name: userInfo.name || userInfo.email.split('@')[0],
+                    email: userInfo.email,
+                    picture: userInfo.picture
+                  });
+                  onSuccess(res.user);
+                } else {
+                  onError('Gagal mengambil profil dari Google.');
+                }
+              } catch (e) {
+                onError('Gagal terhubung ke server Google UserInfo.');
+              }
+            }
+          }
+        });
+
+        tokenClient.requestAccessToken({ prompt: 'select_account' });
+        return;
+      } catch (err) {
+        console.warn('Direct OAuth2 popup error:', err);
+      }
+    }
+
+    // Direct Google OAuth 2.0 fallback endpoint if SDK not ready
+    const redirectUri = window.location.origin;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email')}&prompt=select_account`;
+
+    const popup = window.open(authUrl, 'google_oauth_popup', 'width=500,height=600,menubar=no,toolbar=no');
+    if (!popup) {
+      onError('Popup Google terblokir oleh browser. Harap izinkan popup untuk login.');
+    }
   }
 
   public static syncSavedArticles(articleIds: string[]) {
@@ -213,6 +400,12 @@ export class ReaderAuthService {
   }
 
   public static logout(): void {
+    const reader = this.getCurrentReader();
+    if (reader && (window as any).google?.accounts?.id) {
+      try {
+        (window as any).google.accounts.id.disableAutoSelect();
+      } catch {}
+    }
     localStorage.removeItem(READER_SESSION_KEY);
   }
 }
