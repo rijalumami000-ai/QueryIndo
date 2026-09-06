@@ -184,4 +184,72 @@ export class ApiService {
 
     return 'Terima kasih! Alamat email Anda berhasil terdaftar di newsletter harian QUERYINDO.';
   }
+
+  // Get list of newsletter subscribers (Protected)
+  public static async getSubscribers(): Promise<Array<{ id?: string | number; email: string; createdAt?: string; date?: string; is_active?: boolean }>> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/newsletter/subscribers`, {
+          headers: this.getAuthHeaders()
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch subscribers from backend, reading local storage.', err);
+      }
+    }
+
+    try {
+      const localSubs: Array<{ email: string; date: string }> = JSON.parse(localStorage.getItem('queryindo_newsletter_subscribers') || '[]');
+      return localSubs.map(s => ({
+        email: s.email,
+        createdAt: s.date,
+        is_active: true
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  // Send Broadcast Newsletter Blast (Protected)
+  public static async broadcastNewsletter(payload: {
+    subject?: string;
+    headline?: string;
+    articles: Array<{
+      title: string;
+      category: string;
+      excerpt?: string;
+      url: string;
+      imageUrl?: string;
+      readTime?: string;
+    }>;
+  }): Promise<{ success: boolean; message: string; recipients_count?: number }> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/newsletter/broadcast`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        return {
+          success: json.success ?? res.ok,
+          message: json.message || (res.ok ? 'Broadcast berhasil diproses.' : 'Gagal mengirim broadcast.'),
+          recipients_count: json.recipients_count
+        };
+      } catch (err) {
+        return { success: false, message: 'Gagal terhubung ke backend untuk pengiriman broadcast.' };
+      }
+    }
+    return {
+      success: true,
+      message: '[Simulasi Lokal] Broadcast disiapkan dan diproses secara virtual (koneksi backend offline).',
+      recipients_count: 1
+    };
+  }
 }
+

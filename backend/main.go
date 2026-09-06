@@ -115,8 +115,10 @@ func main() {
 	api.Post("/ai/summarize", aiLimiter, handlers.AISummarize)
 	api.Post("/ai/chat", aiLimiter, handlers.ChatAI)
 
-	// Newsletter Subscription Endpoint
+	// Newsletter Subscription & Redaksi Management Endpoints
 	api.Post("/newsletter/subscribe", handlers.SubscribeNewsletter)
+	api.Get("/newsletter/subscribers", middleware.Protected(), handlers.GetSubscribers)
+	api.Post("/newsletter/broadcast", middleware.Protected(), handlers.BroadcastNewsletter)
 
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap
 	app.Get("/rss.xml", handlers.GetRSSFeed)
