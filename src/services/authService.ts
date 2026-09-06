@@ -208,7 +208,7 @@ export class ReaderAuthService {
    * Open Official Google OAuth Popup Window
    */
   public static async signInWithGoogleOAuth(): Promise<{ success: boolean; message: string; user: ReaderUser }> {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '548981447021-u906t1p9g2l6d8q4m3g0h5q2c8p1k9a3.apps.googleusercontent.com';
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '360953158889-7tir7khes5s1epp6bo3hqencsghier5n.apps.googleusercontent.com';
 
     return new Promise((resolve, reject) => {
       const g = (window as any).google;
