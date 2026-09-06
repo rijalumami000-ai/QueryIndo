@@ -178,7 +178,7 @@ type BroadcastArticleItem struct {
 	Excerpt  string `json:"excerpt"`
 	URL      string `json:"url"`
 	ImageURL string `json:"imageUrl"`
-	ReadTime int    `json:"readTime"`
+	ReadTime string `json:"readTime"`
 }
 
 // SendWelcomeEmail sends a high-grade welcome letter to new subscribers
@@ -198,9 +198,11 @@ func SendWelcomeEmail(toEmail string) {
     .body { padding: 32px 24px; line-height: 1.6; color: #cbd5e1; font-size: 15px; }
     .body strong { color: #38bdf8; }
     .card { background: #161b26; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 18px 20px; margin: 20px 0; }
-    .card-title { font-weight: 700; font-size: 15px; color: #ffffff; margin-bottom: 6px; }
-    .btn { display: inline-block; background: linear-gradient(135deg, #38bdf8 0%%, #2563eb 100%%); color: #000000 !important; font-weight: 800; text-decoration: none; padding: 12px 28px; border-radius: 8px; margin-top: 16px; font-size: 14px; }
-    .footer { background: #090b10; border-top: 1px solid #1e2638; padding: 20px 24px; text-align: center; font-size: 12px; color: #64748b; }
+    .feature-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
+    .feature-item:last-child { margin-bottom: 0; }
+    .feature-icon { color: #0ea5e9; font-weight: bold; margin-right: 10px; font-size: 16px; }
+    .cta-btn { display: inline-block; background: linear-gradient(135deg, #0ea5e9 0%%, #2563eb 100%%); color: #ffffff !important; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 8px; margin-top: 10px; text-align: center; font-size: 15px; }
+    .footer { background: #090b10; border-top: 1px solid #1e2638; padding: 24px; text-align: center; font-size: 12px; color: #64748b; }
     .footer a { color: #38bdf8; text-decoration: none; }
   </style>
 </head>
@@ -208,34 +210,42 @@ func SendWelcomeEmail(toEmail string) {
   <div class="wrapper">
     <div class="header">
       <h1>QUERYINDO</h1>
-      <p>Jurnalisme Teknologi Terdepan & Terupdate</p>
+      <p>Jurnalisme Teknologi, Kecerdasan Buatan & Industri Digital</p>
     </div>
     <div class="body">
-      <h2 style="color:#ffffff; margin-top:0;">Halo Rekan Tekno,</h2>
-      <p>Terima kasih telah berlangganan <strong>Newsletter Harian QUERYINDO</strong>. Alamat email Anda (<code>%s</code>) kini resmi terdaftar di sistem redaksi kami.</p>
+      <h2 style="margin-top: 0; font-size: 18px; color: #ffffff;">Halo Pembaca Setia,</h2>
+      <p>Terima kasih telah bergabung dalam buletin harian resmi <strong>QUERYINDO</strong>. Anda kini menjadi bagian dari komunitas pembaca eksklusif yang memantau perkembangan teknologi, AI, cloud computing, semikonduktor, dan ekonomi digital Indonesia secara mendalam.</p>
       
       <div class="card">
-        <div class="card-title">✨ Wawasan Eksklusif yang Akan Anda Dapatkan:</div>
-        <ul style="margin: 0; padding-left: 20px; color: #94a3b8; font-size: 14px;">
-          <li>Rangkuman perkembangan <strong>Artificial Intelligence (AI) & Machine Learning</strong>.</li>
-          <li>Kebijakan digital nasional, keamanan siber, dan infrastruktur IKN.</li>
-          <li>Review mendalam gadget inovasi terkini dan analisis tren startup.</li>
-        </ul>
+        <div style="font-weight: 700; color: #ffffff; margin-bottom: 12px; font-size: 14px;">Apa yang Akan Anda Dapatkan:</div>
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <div><strong>Breaking News & Analisis Kilat</strong> — Liputan eksklusif mengenai terobosan teknologi dunia dan dampaknya ke tanah air.</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🧠</span>
+          <div><strong>Insight AI & Ekosistem Digital</strong> — Ulasan arsitektur AI, perkembangan startup, dan riset sains komputasi.</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🛡️</span>
+          <div><strong>Jurnalisme Terverifikasi Bebas Clickbait</strong> — Informasi akurat yang telah melalui proses kurasi dan fact-checking dewan redaksi.</div>
+        </div>
       </div>
 
-      <p>Kunjungi portal kami setiap saat untuk membaca analisis terkini secara lengkap:</p>
-      <div style="text-align: center; margin: 24px 0;">
-        <a href="https://www.queryindo.com" class="btn" target="_blank">Buka Portal Berita QUERYINDO →</a>
+      <p style="margin-bottom: 24px;">Buletin berita terkini akan dikirimkan langsung ke kotak masuk email Anda setiap pagi dan sore hari.</p>
+      
+      <div style="text-align: center;">
+        <a href="https://www.queryindo.com" class="cta-btn">Jelajahi Portal Berita QUERYINDO →</a>
       </div>
     </div>
     <div class="footer">
-      <p>© 2026 QUERYINDO Media Group. Wisma Nugra Santana, Jl Jend Sudirman, Jakarta Pusat.</p>
-      <p>Email ini dikirimkan otomatis karena Anda mendaftar melalui situs <a href="https://www.queryindo.com">www.queryindo.com</a>.</p>
+      <p style="margin: 0 0 8px 0;">&copy; %d QUERYINDO Media. Seluruh hak cipta dilindungi.</p>
+      <p style="margin: 0;">Email ini dikirimkan otomatis karena Anda mendaftarkan alamat <strong>%s</strong> di portal queryindo.com.</p>
     </div>
   </div>
 </body>
 </html>
-`, toEmail)
+`, time.Now().Year(), toEmail)
 
 	if err := SendHTMLEmail(toEmail, subject, html); err != nil {
 		log.Printf("⚠️ Could not send welcome email to %s: %v\n", toEmail, err)
@@ -250,11 +260,15 @@ func SendNewsBroadcastEmail(subscribers []string, subject string, headline strin
 
 	articlesHTML := ""
 	for _, art := range articles {
+		readTimeStr := art.ReadTime
+		if readTimeStr == "" {
+			readTimeStr = "3 mnt baca"
+		}
 		articlesHTML += fmt.Sprintf(`
       <div style="background: #161b26; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 16px; overflow: hidden;">
         %s
         <div style="padding: 16px;">
-          <span style="display:inline-block; font-size: 11px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">%s • %d MIN BACA</span>
+          <span style="display:inline-block; font-size: 11px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">%s • %s</span>
           <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; line-height: 1.4; color: #ffffff;"><a href="%s" style="color: #ffffff; text-decoration: none;">%s</a></h3>
           <p style="margin: 0 0 12px 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">%s</p>
           <a href="%s" style="font-size: 13px; font-weight: 700; color: #38bdf8; text-decoration: none;">Baca Selengkapnya →</a>
@@ -265,7 +279,7 @@ func SendNewsBroadcastEmail(subscribers []string, subject string, headline strin
 				return fmt.Sprintf(`<img src="%s" alt="%s" style="width: 100%%; max-height: 200px; object-fit: cover; display: block;" />`, art.ImageURL, art.Title)
 			}
 			return ""
-		}(), art.Category, art.ReadTime, art.URL, art.Title, art.Excerpt, art.URL)
+		}(), art.Category, readTimeStr, art.URL, art.Title, art.Excerpt, art.URL)
 	}
 
 	dateStr := time.Now().Format("2 January 2006")
