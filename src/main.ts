@@ -54,6 +54,10 @@ function t(key: keyof typeof UI_TRANSLATIONS['id']): string {
   return TranslationService.getLabel(key, preferences.language);
 }
 
+function escapeHtml(str: string): string {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Reading History System
 export interface ReadingHistoryItem {
   articleId: string;
@@ -191,7 +195,7 @@ const specsComparator = new SpecsComparator();
 const adminCMS = new AdminCMS(() => {
   renderBreakingBanner();
   renderHeroSection();
-  renderFeed();
+  renderAllNewsSections();
 });
 
 // Initialize Application
@@ -232,7 +236,7 @@ async function init() {
   renderCategories();
   renderBreakingBanner();
   renderHeroSection();
-  renderFeed();
+  renderAllNewsSections();
   renderFilterTags();
   renderPollWidget();
   renderByteShorts();
@@ -595,6 +599,295 @@ function renderHeroSection() {
       });
     });
   }
+}
+
+// --------------------------------------------------------------------------
+// Editorial Variety & Advertising Layout Renderers
+// --------------------------------------------------------------------------
+
+// Render Top Billboard Ad Banner
+function renderBillboardAd() {
+  const container = document.getElementById('top-billboard-ad-container');
+  if (!container) return;
+  container.innerHTML = AdBanner.renderBillboardHTML();
+  AdBanner.bindAdEvents(container);
+}
+
+// Render Editor's Pick Bento Showcase
+function renderEditorsPick() {
+  const container = document.getElementById('editors-pick-container');
+  if (!container) return;
+
+  const featured = ARTICLES.find(a => a.id === 'art-008') || ARTICLES[1] || ARTICLES[0];
+  const stackedArticles = [
+    ARTICLES.find(a => a.id === 'art-002'),
+    ARTICLES.find(a => a.id === 'art-005')
+  ].filter(Boolean) as Article[];
+
+  container.innerHTML = `
+    <!-- Bento Large Featured Card (60%) -->
+    <article class="bento-featured-card" data-article-id="${featured.id}">
+      <div class="bento-featured-img-wrap">
+        <img src="${featured.imageUrl}" alt="${escapeHtml(featured.title)}" class="bento-featured-img" loading="lazy" />
+      </div>
+      <div class="bento-featured-overlay"></div>
+      <div class="bento-featured-body">
+        <div class="bento-badges">
+          <span class="bento-tag bento-tag-curated">${preferences.language === 'en' ? 'SPECIAL REPORT' : 'LAPORAN KHUSUS'}</span>
+          <span class="bento-tag bento-tag-cat">${featured.category.toUpperCase()}</span>
+        </div>
+        <h3 class="bento-featured-title">${featured.title}</h3>
+        <p class="bento-featured-excerpt">${featured.subtitle}</p>
+        <div class="bento-meta-row">
+          <div class="bento-author">
+            <img src="${featured.author.avatar}" alt="${featured.author.name}" />
+            <span>${featured.author.name}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>${formatDate(featured.publishedAt)}</span>
+            <span>•</span>
+            <span>${featured.readTimeMinutes} ${preferences.language === 'en' ? 'min read' : 'menit'}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Bento Stacked Side Cards (40%) -->
+    <div class="bento-stacked-col">
+      ${stackedArticles.map(art => {
+        const isBookmarked = preferences.savedArticleIds.includes(art.id);
+        return `
+          <article class="bento-stacked-card" data-article-id="${art.id}">
+            <div class="bento-stacked-img-wrap">
+              <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="bento-stacked-img" loading="lazy" />
+            </div>
+            <div class="bento-stacked-body">
+              <div>
+                <span class="bento-tag bento-tag-cat" style="font-size:0.6rem; padding:0.15rem 0.4rem; margin-bottom:0.35rem; display:inline-block;">${art.category.toUpperCase()}</span>
+                <h4 class="bento-stacked-title">${art.title}</h4>
+              </div>
+              <div class="bento-stacked-meta">
+                <span>${art.author.name}</span>
+                <span>•</span>
+                <span>${art.readTimeMinutes}m</span>
+                <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}" style="margin-left: auto;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Bind click handlers
+  container.querySelectorAll('[data-article-id]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-bookmark')) return;
+      const id = card.getAttribute('data-article-id');
+      if (id) {
+        window.location.hash = `article/${id}`;
+        openArticleReader(id);
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-bookmark').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = (btn as HTMLElement).getAttribute('data-bookmark-id');
+      if (id) toggleBookmark(id);
+    });
+  });
+}
+
+// Render Mid-Stream Panoramic Interstitial Ad Banner
+function renderMidstreamAd() {
+  const container = document.getElementById('midstream-ad-container');
+  if (!container) return;
+  container.innerHTML = AdBanner.renderMidstreamHTML();
+  AdBanner.bindAdEvents(container);
+}
+
+// Render Deep Tech & AI Matrix (4-Column Multi-Card Grid)
+function renderDeepTechMatrix() {
+  const container = document.getElementById('deep-tech-matrix-container');
+  if (!container) return;
+
+  const targetIds = ['art-009', 'art-004', 'art-010', 'art-018'];
+  let matrixArticles = targetIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
+  if (matrixArticles.length < 4) {
+    matrixArticles = ARTICLES.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
+  }
+
+  container.innerHTML = matrixArticles.map(art => {
+    const isBookmarked = preferences.savedArticleIds.includes(art.id);
+    return `
+      <article class="matrix-card" data-article-id="${art.id}">
+        <div class="matrix-card-img-wrap">
+          <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="matrix-card-img" loading="lazy" />
+          <span class="matrix-badge-cat">${art.category.toUpperCase()}</span>
+        </div>
+        <div class="matrix-card-body">
+          <h4 class="matrix-card-title">${art.title}</h4>
+          <div class="matrix-card-footer">
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 1.25rem; height: 1.25rem; border-radius: 50%; object-fit: cover;" />
+              <span style="font-size: 0.72rem; color: var(--text-secondary);">${art.author.name}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${art.readTimeMinutes}m</span>
+              <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.matrix-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-bookmark')) return;
+      const id = card.getAttribute('data-article-id');
+      if (id) {
+        window.location.hash = `article/${id}`;
+        openArticleReader(id);
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-bookmark').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = (btn as HTMLElement).getAttribute('data-bookmark-id');
+      if (id) toggleBookmark(id);
+    });
+  });
+}
+
+// Render Opini & Wawasan Pakar (Executive Thought Leadership)
+function renderOpinionColumns() {
+  const container = document.getElementById('opinion-columns-container');
+  if (!container) return;
+
+  const targetIds = ['art-011', 'art-014', 'art-003'];
+  let opinionArticles = targetIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
+  if (opinionArticles.length < 3) {
+    opinionArticles = ARTICLES.slice(0, 3);
+  }
+
+  container.innerHTML = opinionArticles.map(art => `
+    <article class="opinion-card" data-article-id="${art.id}">
+      <div class="opinion-author-header">
+        <img src="${art.author.avatar}" alt="${art.author.name}" class="opinion-author-avatar" />
+        <div>
+          <h4 class="opinion-author-name">
+            ${art.author.name}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#0ea5e9" style="vertical-align: middle; margin-left: 2px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          </h4>
+          <p class="opinion-author-role">${art.author.role}</p>
+        </div>
+      </div>
+      <p class="opinion-quote-text">“${art.subtitle}”</p>
+      <div class="opinion-card-footer">
+        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Topik: ${art.category.toUpperCase()}</span>
+        <span style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">Baca Ulasan Penuh →</span>
+      </div>
+    </article>
+  `).join('');
+
+  container.querySelectorAll('.opinion-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-article-id');
+      if (id) {
+        window.location.hash = `article/${id}`;
+        openArticleReader(id);
+      }
+    });
+  });
+}
+
+// Render Kilas Cepat 24 Jam & Radar Industri / Sidebar Ad
+function renderRapidWire() {
+  const wireContainer = document.getElementById('rapid-wire-container');
+  const radarContainer = document.getElementById('radar-product-container');
+  const adContainer = document.getElementById('wire-sidebar-ad-container');
+
+  if (wireContainer) {
+    const wireIds = ['art-017', 'art-016', 'art-013', 'art-007'];
+    let wireArticles = wireIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
+    if (wireArticles.length < 4) {
+      wireArticles = ARTICLES.slice(4, 8);
+    }
+
+    const timePills = preferences.language === 'en'
+      ? ['12 MIN AGO', '34 MIN AGO', '1 HOUR AGO', '2 HOURS AGO']
+      : ['12 MENIT LALU', '34 MENIT LALU', '1 JAM LALU', '2 JAM LALU'];
+
+    wireContainer.innerHTML = wireArticles.map((art, idx) => `
+      <div class="wire-item" data-article-id="${art.id}">
+        <span class="wire-time-pill">${timePills[idx] || 'TERKINI'}</span>
+        <div class="wire-item-body">
+          <h4 class="wire-item-title">${art.title}</h4>
+          <p class="wire-item-desc">${art.subtitle}</p>
+        </div>
+      </div>
+    `).join('');
+
+    wireContainer.querySelectorAll('.wire-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.getAttribute('data-article-id');
+        if (id) {
+          window.location.hash = `article/${id}`;
+          openArticleReader(id);
+        }
+      });
+    });
+  }
+
+  if (radarContainer) {
+    const radarArt = ARTICLES.find(a => a.id === 'art-015') || ARTICLES[6] || ARTICLES[0];
+    radarContainer.innerHTML = `
+      <article class="radar-spotlight-card" data-article-id="${radarArt.id}">
+        <div class="radar-img-wrap">
+          <img src="${radarArt.imageUrl}" alt="${escapeHtml(radarArt.title)}" class="radar-img" loading="lazy" />
+          <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(9, 11, 16, 0.85); color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.3);">LAB QUERYINDO</span>
+        </div>
+        <div class="radar-body">
+          <h4 class="radar-title">${radarArt.title}</h4>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 0.65rem 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${radarArt.subtitle}</p>
+          <div class="radar-meta">
+            <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700;">NPU 52 TOPS • 28 Jam</span>
+            <span style="color: var(--text-muted);">${radarArt.readTimeMinutes} min baca</span>
+          </div>
+        </div>
+      </article>
+    `;
+
+    radarContainer.querySelector('.radar-spotlight-card')?.addEventListener('click', () => {
+      window.location.hash = `article/${radarArt.id}`;
+      openArticleReader(radarArt.id);
+    });
+  }
+
+  if (adContainer) {
+    adContainer.innerHTML = AdBanner.renderSidebarAdHTML();
+    AdBanner.bindAdEvents(adContainer);
+  }
+}
+
+// Render All Editorial Sections & Ad Spaces
+function renderAllNewsSections() {
+  renderBillboardAd();
+  renderEditorsPick();
+  renderMidstreamAd();
+  renderDeepTechMatrix();
+  renderOpinionColumns();
+  renderRapidWire();
+  renderFeed();
 }
 
 function renderFeed() {
@@ -1154,6 +1447,8 @@ function toggleBookmark(articleId: string) {
 
   updateBookmarkBadge();
   renderFeed();
+  renderEditorsPick();
+  renderDeepTechMatrix();
 }
 
 (window as any).openArticleReaderFromOutside = (articleId: string) => {
@@ -1478,9 +1773,6 @@ function closeSearchPreviewDropdown() {
   }
 }
 
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 // --------------------------------------------------------------------------
 // Reader / User Authentication & Profile Management System
@@ -2012,7 +2304,7 @@ function setupEventListeners() {
       renderCategories();
       renderBreakingBanner();
       renderHeroSection();
-      renderFeed();
+      renderAllNewsSections();
       updateFooterLabels();
       updateFilterLabels();
       renderFilterTags();

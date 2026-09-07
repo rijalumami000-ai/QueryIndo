@@ -363,5 +363,354 @@ export const ARTICLES: Article[] = [
 
       <p>Tahun ini, sinergi antara <strong>TypeScript</strong> di sisi antarmuka pengguna dan <strong>Go (Golang)</strong> di sisi layanan data backend mengukuhkan posisinya sebagai arsitektur pilihan utama para Tech Lead di Indonesia.</p>
     `
+  },
+  {
+    id: 'art-008',
+    title: 'Konsorsium Pabrik Semikonduktor 3nm Pertama ASEAN Resmi Dibangun di Batam',
+    slug: 'konsorsium-pabrik-semikonduktor-3nm-asean-batam',
+    subtitle: 'Investasi gabungan senilai US$ 8 Miliar menempatkan Indonesia di peta rantai pasok chip silikon global untuk komputasi AI dan otomotif listrik.',
+    category: 'gadget',
+    tags: ['Semikonduktor', 'Hardware', 'Batam', 'ChipSilikon', 'InvestasiTekno'],
+    author: {
+      name: 'Maya Indah',
+      role: 'Reviewer Gadget & Lab Hardware',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-08-01T05:20:00Z',
+    readTimeMinutes: 6,
+    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Fasilitas manufaktur wafer silikon fotolitografi generasi terkini di Kawasan Ekonomi Khusus Batam.',
+    isFeatured: true,
+    isTrending: true,
+    isBreaking: false,
+    viewsCount: 38400,
+    likesCount: 2750,
+    aiSummary: [
+      'Pabrik fabrikasi semikonduktor 3nm pertama di Asia Tenggara mulai dibangun di Kawasan Ekonomi Khusus Batam.',
+      'Fasilitas ini menargetkan produksi 40.000 wafer silikon per bulan untuk kebutuhan chip otomotif EV dan modul AI on-device.',
+      'Menyerap lebih dari 3.500 insinyur mikrolektronika lulusan perguruan tinggi nasional.'
+    ],
+    content: `
+      <p class="lead"><strong>BATAM, QUERYINDO</strong> — Tonggak sejarah baru industri manufaktur berteknologi tinggi Indonesia resmi dimulai. Konsorsium semikonduktor internasional bersama BUMN Industri Pertahanan dan Teknologi meresmikan peletakan batu pertama fasilitas manufaktur chip silikon berpresisi 3-nanometer di Batam, Kepulauan Riau.</p>
+      <p>Proyek berlabel <em>"Nusantara Silicon Foundry"</em> ini diproyeksikan mengamankan pasokan chip pemrosesan kritis bagi industri otomotif listrik nasional, satelit komunikasi, dan komponen komputasi edge di kawasan Indo-Pasifik.</p>
+    `
+  },
+  {
+    id: 'art-009',
+    title: 'Model AI Diagnostik Medis Pertama RI Lulus Uji Klinis Kemenkes: Deteksi Dini Kanker Paru Akurasi 98%',
+    slug: 'model-ai-diagnostik-medis-pertama-ri-lulus-uji-klinis',
+    subtitle: 'Dikembangkan dari 200 ribu data radiologi anonim pasien Indonesia, sistem AI ini siap diimplementasikan di 500 RSUD seluruh nusantara.',
+    category: 'ai',
+    tags: ['ArtificialIntelligence', 'HealthTech', 'Medis', 'Kemenkes', 'InovasiKesehatan'],
+    author: {
+      name: 'Raditya Pratama',
+      role: 'Editor Senior Teknologi & Kebijakan',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-08-01T04:45:00Z',
+    readTimeMinutes: 5,
+    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Pemindaian citra radiologi toraks menggunakan asisten visual kecerdasan buatan terverifikasi Kemenkes.',
+    isFeatured: true,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 27300,
+    likesCount: 2310,
+    aiSummary: [
+      'Sistem AI "MedisNusantara" resmi memperoleh sertifikasi kelayakan klinis dari Kementerian Kesehatan RI.',
+      'Akurasi deteksi nodul paru dini mencapai 98,2% dalam waktu pemrosesan kurang dari 10 detik per citra CT-Scan.',
+      'Sistem dapat bekerja secara offline di daerah pelosok tanpa memerlukan koneksi internet pita lebar.'
+    ],
+    content: `
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Revolusi pelayanan kesehatan berbasis kecerdasan artifisial mencatatkan pencapaian membanggakan. Kementerian Kesehatan RI secara resmi menerbitkan izin edar klinis bagi model AI pemindaian radiologi diagnostik pertama buatan konsorsium dokter spesialis dan pakar machine learning lokal.</p>
+      <p>Sistem cerdas bernama <em>MedisNusantara AI</em> ini dilatih menggunakan dataset gambar CT-Scan dan X-Ray toraks teranotasi lengkap, memungkinkan deteksi anomali jaringan paru pada stadium yang kerap terlewatkan mata manusia.</p>
+    `
+  },
+  {
+    id: 'art-010',
+    title: 'Kriptografi Pasca-Kuantum: Mempersiapkan Ketahanan Siber Nasional Menghadapi Era Komputer Qubit',
+    slug: 'kriptografi-pasca-kuantum-ketahanan-siber-nasional',
+    subtitle: 'Algoritma enkripsi RSA konvensional di ambang kepunahan. BSSN mulai menguji standar enkripsi berbasis kisi (lattice-based cryptography).',
+    category: 'cybersecurity',
+    tags: ['CyberSecurity', 'QuantumComputing', 'Kriptografi', 'BSSN', 'KeamananData'],
+    author: {
+      name: 'Raditya Pratama',
+      role: 'Editor Senior Teknologi & Kebijakan',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T20:10:00Z',
+    readTimeMinutes: 7,
+    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Visualisasi kisi matematis multi-dimensi sebagai fondasi algoritma enkripsi pasca-kuantum (Post-Quantum Cryptography).',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 19800,
+    likesCount: 1460,
+    aiSummary: [
+      'Komputer kuantum berskala ribuan Qubit diperkirakan mampu membobol enkripsi RSA standar dalam hitungan jam.',
+      'Indonesia melalui BSSN dan BRIN mulai memigrasikan protokol komunikasi perbankan ke standar Post-Quantum Cryptography (PQC).',
+      'Standar enkripsi berbasis kisi (Lattice) terbukti kebal terhadap serangan algoritma Shor kuantum.'
+    ],
+    content: `
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Di balik gegap gempita pengembangan komputer kuantum di dunia, ancaman senyap namun mematikan membayangi seluruh arsitektur keamanan internet: <em>"Q-Day"</em>, hari di mana enkripsi publik konvensional berhasil dipecahkan dalam hitungan detik.</p>
+      <p>Mengantisipasi ancaman tersebut, Badan Siber dan Sandi Negara (BSSN) mengumumkan peta jalan migrasi ke <strong>Kriptografi Pasca-Kuantum (Post-Quantum Cryptography)</strong> untuk seluruh simpul infrastruktur informasi vital nasional.</p>
+    `
+  },
+  {
+    id: 'art-011',
+    title: 'Opini: Mengapa Kedaulatan Data Adalah Benteng Geopolitik Terbesar Abad ke-21',
+    slug: 'opini-kedaulatan-data-benteng-geopolitik-abad-21',
+    subtitle: 'Bangsa yang menguasai pipa aliran data dan model kecerdasan buatannya sendiri adalah bangsa yang menentukan arah peradaban masa depan.',
+    category: 'policy',
+    tags: ['OpiniPakar', 'KedaulatanDigital', 'Geopolitik', 'Kebijakan', 'KecerdasanBuatan'],
+    author: {
+      name: 'Raditya Pratama',
+      role: 'Editor Senior Teknologi & Kebijakan',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T18:00:00Z',
+    readTimeMinutes: 5,
+    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Kedaulatan digital bukan slogan kosong, melainkan keharusan strategis pertahanan dan kemandirian ekonomi nasional.',
+    isFeatured: false,
+    isTrending: true,
+    isBreaking: false,
+    viewsCount: 31200,
+    likesCount: 3410,
+    aiSummary: [
+      'Data digital masyarakat kini memiliki nilai strategis yang setara dengan cadangan minyak bumi dan energi primer.',
+      'Ketergantungan pada model AI dan cloud asing menempatkan keamanan nasional dalam risiko intervensi algoritma.',
+      'Pembangunan superkomputer lokal dan regulasi privasi yang tegas adalah langkah awal kemandirian bangsa.'
+    ],
+    content: `
+      <p class="lead"><em>Oleh: Raditya Pratama (Editor Senior QUERYINDO)</em></p>
+      <p>Dalam kurun waktu lima abad terakhir, imperium dunia bertarung memperebutkan rempah-rempah, emas, jalur maritim, dan minyak bumi. Namun memasuki pertengahan dekade 2020-an, medan gravitasi kekuatan global berpindah ke substansi tak kasat mata: <strong>aliran data dan bobot parameter kecerdasan artifisial</strong>.</p>
+      <blockquote>
+        "Sebuah negara yang menyerahkan data warganya untuk dilatih di server negara lain sejatinya sedang menyewa kedaulatan berpikir bangsanya kepada kekuatan asing."
+      </blockquote>
+      <p>Maka dari itu, inisiatif pembangunan Pusat Data Nasional di IKN, regulasi perlindungan data pribadi yang tegas, serta kepemilikan pabrik semikonduktor bukan sekadar proyek teknologi biasa. Ini adalah pertaruhan eksistensial mengenai apakah Indonesia akan menjadi subjek pencipta masa depan atau sekadar konsumen pasif.</p>
+    `
+  },
+  {
+    id: 'art-012',
+    title: 'Peluncuran Satelit Pita Lebar Nusantara-4 Sukses Mengangkasa: Sinyal Terkoneksi ke 12.000 Desa Terpencil',
+    slug: 'peluncuran-satelit-pita-lebar-nusantara-4-sukses',
+    subtitle: 'Mengorbit di ketinggian geostasioner 146 Bujur Timur, satelit berkapasitas 180 Gbps ini menyuntikkan akses pendidikan digital dan telemedisin.',
+    category: 'telecom',
+    tags: ['Telekomunikasi', 'Satelit', 'InternetDesa', 'Nusantara4', 'Konektivitas'],
+    author: {
+      name: 'Nabila Hapsari',
+      role: 'Analis Telekomunikasi & Spektrum',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T15:30:00Z',
+    readTimeMinutes: 4,
+    imageUrl: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Roket peluncur satelit komunikasi Nusantara-4 saat menembus atmosfer bumi.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 18400,
+    likesCount: 1620,
+    aiSummary: [
+      'Satelit komunikasi Nusantara-4 berkapasitas 180 Gbps berhasil mencapai orbit kerja geostasioner.',
+      'Fokus utama penyediaan transmisi internet satelit untuk fasilitas puskesmas dan sekolah dasar di pedalaman.',
+      'Latensi koneksi dipangkas hingga 30% berkat pemancar teknologi High Throughput Satellite (HTS).'
+    ],
+    content: `
+      <p class="lead"><strong>KOUROU & JAKARTA, QUERYINDO</strong> — Gemuruh roket pengusung satelit Nusantara-4 di Pusat Antariksa Guiana menandai babak baru pemerataan konektivitas nusantara. Satelit komunikasi berkapasitas 180 Gbps ini resmi menempati slot orbit 146 derajat Bujur Timur.</p>
+      <p>Satelit ini secara spesifik dialokasikan untuk menyediakan layanan internet pita lebar bagi lebih dari 12.000 fasilitas layanan publik, sekolah, dan pos kesehatan di wilayah terluar Indonesia.</p>
+    `
+  },
+  {
+    id: 'art-013',
+    title: 'Venture Capital Kucurkan $35 Juta ke Startup Agrotech Robotika Pemetik Buah Berbasis Computer Vision',
+    slug: 'venture-capital-kucurkan-35-juta-startup-agrotech-robotika',
+    subtitle: 'Armada robot autonomous mampu membedakan tingkat kematangan komoditas ekspor secara presisi tinggi tanpa merusak tangkai buah.',
+    category: 'startup',
+    tags: ['Startup', 'Agrotech', 'Robotika', 'Pendanaan', 'ComputerVision'],
+    author: {
+      name: 'Nabila Hapsari',
+      role: 'Analis Telekomunikasi & Spektrum',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T13:00:00Z',
+    readTimeMinutes: 4,
+    imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Lengan robotika otonom berbekal sensor Computer Vision multi-spektral di perkebunan modern.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 15900,
+    likesCount: 1280,
+    aiSummary: [
+      'Startup asal Malang "AgroBotika" mengantongi pendanaan Seri B senilai $35 Juta.',
+      'Robot otonom pemetik komoditas kopi dan buah tropis mampu memangkas waktu pascapanen hingga 50%.',
+      'Teknologi computer vision dilatih mengenali lebih dari 80 varietas komoditas hortikultura tropis.'
+    ],
+    content: `
+      <p class="lead"><strong>MALANG, QUERYINDO</strong> — Sektor pertanian pangan nasional kian agresif mengadopsi kecerdasan buatan dan robotika mekanik. Startup agrotech asal Malang, AgroBotika, mengumumkan perolehan pendanaan Seri B senilai US$ 35 Juta (sekitar Rp 570 Miliar).</p>
+      <p>Suntikan modal ini akan digunakan untuk melipatgandakan lini perakitan robot pemetik otomatis yang dilengkapi kamera kedalaman lidar dan sistem navigasi GPS Real-Time Kinematic (RTK).</p>
+    `
+  },
+  {
+    id: 'art-014',
+    title: 'Opini: Dilema Etik Agentic AI dalam Otomasi Sistem Hukum & Peradilan Masa Depan',
+    slug: 'opini-dilema-etik-agentic-ai-sistem-hukum-peradilan',
+    subtitle: 'Ketika algoritma mulai menyusun putusan yudisial, di manakah letak empati, keadilan nurani, dan akuntabilitas moral manusia?',
+    category: 'policy',
+    tags: ['OpiniPakar', 'EtikaAI', 'HukumDigital', 'AgenticAI', 'FilsafatTekno'],
+    author: {
+      name: 'Bima Sakti',
+      role: 'Jurnalis Hukum & Regulasi Digital',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T10:15:00Z',
+    readTimeMinutes: 6,
+    imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Timbangan keadilan dan algoritma: Tantangan terbesar filsafat hukum abad kecerdasan buatan.',
+    isFeatured: false,
+    isTrending: true,
+    isBreaking: false,
+    viewsCount: 24500,
+    likesCount: 2890,
+    aiSummary: [
+      'Penggunaan agen AI otonom dalam audit pembuktian perkara hukum memunculkan risiko bias data masa lalu.',
+      'Prinsip keadilan sejati membutuhkan pertimbangan konteks moral manusia yang mustahil dikuantifikasi biner.',
+      'Sistem hukum Indonesia harus membatasi AI sebatas asisten penelusuran yurisprudensi, bukan penentu vonis.'
+    ],
+    content: `
+      <p class="lead"><em>Oleh: Bima Sakti (Pemerhati Hukum Digital QUERYINDO)</em></p>
+      <p>Kecepatan model agen kecerdasan buatan (Agentic AI) dalam menelaah ribuan berkas yurisprudensi dalam hitungan detik kerap dipuji sebagai solusi atas lambatnya tumpukan perkara peradilan di banyak negara. Namun, di balik efisiensi kalkulatif tersebut tersimpan perangkap etika yang mengerikan.</p>
+      <blockquote>
+        "Hukum bukanlah sekadar komputasi statistik kalkulasi pasal. Keadilan sejati bernapas melalui nurani, pemahaman trauma sosial, dan kesempatan bertobat—hal yang tak pernah dapat dirasakan oleh deretan transistor silikon."
+      </blockquote>
+      <p>Para hakim dan pembuat undang-undang harus menarik garis batas merah yang tegas: AI boleh merangkum fakta persidangan, namun palu vonis keadilan harus selamanya digenggam oleh manusia yang memiliki tanggung jawab moral di hadapan Tuhan dan sesamanya.</p>
+    `
+  },
+  {
+    id: 'art-015',
+    title: 'Review Laptop Flagship ARM 64-bit Karya Insinyur Lokal: Daya Baterai 28 Jam & Pendingin Tanpa Kipas',
+    slug: 'review-laptop-flagship-arm-64bit-lokal-baterai-28-jam',
+    subtitle: 'Laptop bertenaga prosesor silikon custom dengan performa multitasking tinggi yang menepis anggapan bahwa produk hardware lokal selalu tertinggal.',
+    category: 'gadget',
+    tags: ['Gadget', 'ReviewLaptop', 'ARM64', 'HardwareLokal', 'TeknologiPC'],
+    author: {
+      name: 'Maya Indah',
+      role: 'Reviewer Gadget & Lab Hardware',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-31T08:00:00Z',
+    readTimeMinutes: 7,
+    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Pengujian ketahanan baterai dan suhu sasis aluminium laptop ARM buatan industri lokal di Lab QUERYINDO.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 33700,
+    likesCount: 3050,
+    aiSummary: [
+      'Laptop ultra-tipis "Garuda-Book Pro" mengusung prosesor arsitektur ARM 64-bit 12-core dengan konsumsi daya hanya 9 Watt.',
+      'Daya tahan baterai nyata menembus 28 jam pemakaian browsing dan pemutaran video 4K.',
+      'Sistem pendingin berbasis grafit vapor-chamber bekerja tanpa kipas (zero-noise) dengan suhu stabil di 36°C.'
+    ],
+    content: `
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Laboratorium uji coba perangkat QUERYINDO selama dua pekan terakhir menguji secara intensif produk komputasi personal yang menyita perhatian: <strong>Garuda-Book Pro</strong>, laptop berarsitektur ARM 64-bit karya rancang insinyur dalam negeri.</p>
+      <p>Ditenagai prosesor berbasis efisiensi ekstrem dengan proses fabrikasi mutakhir, laptop ini membuktikan bahwa era dominasi chip bertenaga boros telah berakhir. Bahkan saat dipacu melakukan kompilasi kode besar dan pengeditan video simultan, perangkat tetap hening tanpa desau kipas pendingin.</p>
+    `
+  },
+  {
+    id: 'art-016',
+    title: 'Menguak WebAssembly (Wasm) & Rust: Menghadirkan Eksekusi Komputasi Edge Kecepatan Mikrodetik',
+    slug: 'webassembly-wasm-rust-komputasi-edge-kecepatan-mikrodetik',
+    subtitle: 'Arsitektur cloud modern mulai meninggalkan container Docker berat demi modul Wasm ringan berukuran kilobyte dengan waktu startup instan.',
+    category: 'developer',
+    tags: ['Developer', 'WebAssembly', 'Rust', 'CloudNative', 'EdgeComputing'],
+    author: {
+      name: 'Bima Sakti',
+      role: 'Jurnalis Hukum & Regulasi Digital',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-30T22:15:00Z',
+    readTimeMinutes: 6,
+    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Arsitektur modul WebAssembly (Wasm) terdistribusi pada server edge cloud berkecepatan tinggi.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 16100,
+    likesCount: 1780,
+    aiSummary: [
+      'WebAssembly (Wasm) kini keluar dari browser dan menjadi standar runtime mikroserver di edge cloud.',
+      'Bahasa Rust menjadi padanan ideal berkat jaminan keamanan memori (memory safety) tanpa garbage collector.',
+      'Waktu cold-start modul Wasm rata-rata di bawah 5 milidetik, 100x lebih gesit dibandingkan kontainer tradisional.'
+    ],
+    content: `
+      <p class="lead"><strong>BANDUNG, QUERYINDO</strong> — Bagi para arsitek sistem komputasi cloud berskala jutaan request per detik, pertempuran memperebutkan latensi ultra-rendah memasuki babak baru: migrasi dari virtualisasi kontainer ke lingkungan eksekusi <strong>WebAssembly (Wasm)</strong>.</p>
+      <p>Dengan mengompilasi kode bahasa Rust langsung ke biner portabel Wasm, microservice kini dapat didistribusikan ke ratusan titik CDN edge di seluruh kepulauan Indonesia hanya dalam ukuran file beberapa ratus kilobyte.</p>
+    `
+  },
+  {
+    id: 'art-017',
+    title: 'Kilas Regulasi: Bank Indonesia Terbitkan Kerangka Mata Uang Digital "Digital Rupiah" Fase Pilot',
+    slug: 'kilas-regulasi-bank-indonesia-digital-rupiah-fase-pilot',
+    subtitle: 'Arsitektur Central Bank Digital Currency (CBDC) memanfaatkan Distributed Ledger Technology terenkripsi antar-bank sentral.',
+    category: 'policy',
+    tags: ['KilasBerita', 'DigitalRupiah', 'BankIndonesia', 'Fintech', 'CBDC'],
+    author: {
+      name: 'Bima Sakti',
+      role: 'Jurnalis Hukum & Regulasi Digital',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-30T19:30:00Z',
+    readTimeMinutes: 3,
+    imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Ilustrasi sistem moneter digital terenkripsi Bank Indonesia.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 21300,
+    likesCount: 1540,
+    aiSummary: [
+      'Bank Indonesia memulai fase uji coba terbatas (Pilot Project) penerbitan Digital Rupiah wholesale.',
+      'Sistem menggunakan teknologi buku besar terdistribusi dengan kemampuan settlement antar-bank dalam hitungan detik.',
+      'Mendukung interoperabilitas pembayaran lintas negara ASEAN secara langsung tanpa perantara mata uang ketiga.'
+    ],
+    content: `
+      <p class="lead"><strong>JAKARTA, QUERYINDO</strong> — Langkah konkret digitalisasi sistem moneter nasional kian nyata. Bank Indonesia secara resmi meluncurkan uji coba terbatas tahap pertama implementasi <em>Digital Rupiah</em> (Wholesale Central Bank Digital Currency).</p>
+      <p>Platform ini dirancang khusus untuk memfasilitasi transfer dana antar-perbankan nasional dan transaksi pasar modal secara aman, cepat, dan dengan biaya administrasi minimal.</p>
+    `
+  },
+  {
+    id: 'art-018',
+    title: 'Jaringan 6G Eksperimental Pertama Nusantara Tembus Kecepatan 1 Terabit per Detik di Laboratorium ITB',
+    slug: 'jaringan-6g-eksperimental-nusantara-tembus-1-terabit-itb',
+    subtitle: 'Memanfaatkan spektrum gelombang Terahertz (THz), teknologi ini disiapkan untuk telepresence holografik dan komunikasi otonom instan.',
+    category: 'telecom',
+    tags: ['InovasiNasional', '6G', 'Telekomunikasi', 'RisetITB', 'Terahertz'],
+    author: {
+      name: 'Nabila Hapsari',
+      role: 'Analis Telekomunikasi & Spektrum',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80'
+    },
+    publishedAt: '2026-07-30T17:00:00Z',
+    readTimeMinutes: 5,
+    imageUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'Pengujian antena array pemancar gelombang Terahertz pada ruang anechoic laboratorium riset telekomunikasi.',
+    isFeatured: false,
+    isTrending: false,
+    isBreaking: false,
+    viewsCount: 29800,
+    likesCount: 2640,
+    aiSummary: [
+      'Peneliti telekomunikasi nasional sukses melakukan transmisi data nirkabel berkecepatan 1,2 Terabit per detik.',
+      'Eksperimen memanfaatkan pita frekuensi 300 GHz (Terahertz) dengan jarak jangkauan transmisi uji 500 meter.',
+      'Membuka jalan bagi penerapan teknologi komunikasi holografik 3D tanpa latensi indrawi.'
+    ],
+    content: `
+      <p class="lead"><strong>BANDUNG, QUERYINDO</strong> — Di saat adopsi 5G komersial tengah diperluas ke seluruh nusantara, para peneliti telekomunikasi di Bandung telah menatap satu dekade ke depan. Tim gabungan laboratorium riset frekuensi tinggi berhasil mencatatkan rekor transmisi data eksperimental generasi keenam (6G) menembus angka <strong>1,2 Terabit per detik (Tbps)</strong>.</p>
+      <p>Menggunakan modulasi canggih pada gelombang sub-Terahertz, kecepatan ini setara dengan mengunduh 50 film beresolusi 8K dalam sekejap mata. Keberhasilan ini membuktikan kapasitas riset dasar insinyur Indonesia dalam merintis standar komunikasi global masa depan.</p>
+    `
   }
 ];
