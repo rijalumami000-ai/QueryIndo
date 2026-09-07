@@ -1,8 +1,18 @@
+export type AdPlacement = 
+  | 'leaderboard' 
+  | 'in_article' 
+  | 'sidebar' 
+  | 'midstream' 
+  | 'billboard' 
+  | 'skyscraper_left' 
+  | 'skyscraper_right' 
+  | 'in_feed';
+
 export interface AdCampaign {
   id: string;
   sponsorName: string;
   tagline: string;
-  placement: 'leaderboard' | 'in_article' | 'sidebar' | 'midstream' | 'billboard';
+  placement: AdPlacement;
   imageUrl: string;
   targetUrl: string;
   ctaText: string;
@@ -11,8 +21,23 @@ export interface AdCampaign {
   clicks: number;
 }
 
+export interface GoogleAdSenseConfig {
+  enabled: boolean;
+  client: string; // e.g. "ca-pub-1234567890123456"
+  slots: {
+    billboard?: string;
+    in_article?: string;
+    in_feed?: string;
+    sidebar?: string;
+    midstream?: string;
+    skyscraper_left?: string;
+    skyscraper_right?: string;
+  };
+}
+
 export class AdBanner {
   private static STORAGE_KEY = 'byte_ad_campaigns';
+  private static ADSENSE_KEY = 'byte_adsense_config';
 
   private static DEFAULT_ADS: AdCampaign[] = [
     {
@@ -74,6 +99,42 @@ export class AdBanner {
       isActive: true,
       impressions: 3890,
       clicks: 295
+    },
+    {
+      id: 'ad-06',
+      sponsorName: 'Microsoft Azure AI',
+      tagline: 'Akselerasi Transformasi Copilot Enterprise & Agentic AI Terintegrasi.',
+      placement: 'skyscraper_left',
+      imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+      targetUrl: 'https://azure.microsoft.com',
+      ctaText: 'Eksplorasi Azure →',
+      isActive: true,
+      impressions: 1980,
+      clicks: 142
+    },
+    {
+      id: 'ad-07',
+      sponsorName: 'CyberArk Zero Trust',
+      tagline: 'Perlindungan Identitas Mesin & Akses Istimewa Standar Perbankan.',
+      placement: 'skyscraper_right',
+      imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80',
+      targetUrl: 'https://cyberark.com',
+      ctaText: 'Audit Privilese →',
+      isActive: true,
+      impressions: 2140,
+      clicks: 168
+    },
+    {
+      id: 'ad-08',
+      sponsorName: 'Lenovo ThinkSystem AI',
+      tagline: 'Server Berpendingin Cair Neptune™ untuk Komputasi AI Skala Data Center Nasional.',
+      placement: 'in_feed',
+      imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
+      targetUrl: 'https://lenovo.com',
+      ctaText: 'Lihat Spesifikasi Server →',
+      isActive: true,
+      impressions: 3410,
+      clicks: 260
     }
   ];
 
@@ -84,7 +145,16 @@ export class AdBanner {
       return this.DEFAULT_ADS;
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // Merge any new default placements if missing in stored data
+      if (Array.isArray(parsed) && parsed.length < this.DEFAULT_ADS.length) {
+        const ids = new Set(parsed.map((a: any) => a.id));
+        const missing = this.DEFAULT_ADS.filter(a => !ids.has(a.id));
+        const merged = [...parsed, ...missing];
+        this.saveCampaigns(merged);
+        return merged;
+      }
+      return parsed;
     } catch {
       return this.DEFAULT_ADS;
     }
@@ -94,7 +164,7 @@ export class AdBanner {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(campaigns));
   }
 
-  public static getActiveAd(placement: 'leaderboard' | 'in_article' | 'sidebar' | 'midstream' | 'billboard'): AdCampaign | null {
+  public static getActiveAd(placement: AdPlacement): AdCampaign | null {
     const list = this.getCampaigns();
     const matches = list.filter(a => a.placement === placement && a.isActive);
     if (matches.length === 0) return null;
@@ -118,6 +188,52 @@ export class AdBanner {
       this.saveCampaigns(list);
     }
   }
+
+  // --------------------------------------------------------------------------
+  // Google AdSense Integration Architecture
+  // --------------------------------------------------------------------------
+  public static getAdSenseConfig(): GoogleAdSenseConfig {
+    const raw = localStorage.getItem(this.ADSENSE_KEY);
+    if (raw) {
+      try { return JSON.parse(raw); } catch {}
+    }
+    return {
+      enabled: false,
+      client: '', // e.g. "ca-pub-XXXXXXXXXXXXXXXX"
+      slots: {}
+    };
+  }
+
+  public static saveAdSenseConfig(config: GoogleAdSenseConfig) {
+    localStorage.setItem(this.ADSENSE_KEY, JSON.stringify(config));
+  }
+
+  public static isAdSenseEnabled(): boolean {
+    const cfg = this.getAdSenseConfig();
+    return cfg.enabled && Boolean(cfg.client);
+  }
+
+  public static renderGoogleAdSenseHTML(slotId: string, format: 'auto' | 'rectangle' | 'vertical' = 'auto'): string {
+    const cfg = this.getAdSenseConfig();
+    return `
+      <div class="google-adsense-wrap" style="text-align:center; margin:1rem 0; overflow:hidden;">
+        <span style="display:block; font-size:0.6rem; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:0.25rem;">ADVERTISEMENT • GOOGLE ADS</span>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="${cfg.client}"
+             data-ad-slot="${slotId}"
+             data-ad-format="${format}"
+             data-full-width-responsive="true"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+    `;
+  }
+
+  // --------------------------------------------------------------------------
+  // Renderers for Direct Sponsor Banners
+  // --------------------------------------------------------------------------
 
   // Render Top Billboard Banner
   public static renderBillboardHTML(): string {
@@ -269,6 +385,80 @@ export class AdBanner {
     `;
   }
 
+  // Render Skyscraper Left / Right Gutters (Fixed Rails for >= 1400px Desktop)
+  public static renderSkyscraperHTML(side: 'left' | 'right'): string {
+    const isDismissed = sessionStorage.getItem(`byte_dismiss_skyscraper_${side}`);
+    if (isDismissed) return '';
+
+    const placement: AdPlacement = side === 'left' ? 'skyscraper_left' : 'skyscraper_right';
+    const ad = this.getActiveAd(placement);
+
+    if (!ad) {
+      return `
+        <div class="skyscraper-card skyscraper-fallback" data-skyscraper-side="${side}">
+          <button class="btn-dismiss-skyscraper" data-dismiss-side="${side}" title="Tutup Iklan">✕</button>
+          <div class="skyscraper-header-tag">IKLAN SPONSOR</div>
+          <div class="skyscraper-content-wrap">
+            <span class="skyscraper-icon">📢</span>
+            <div class="skyscraper-title">Ruang Iklan Vertikal</div>
+            <p class="skyscraper-desc">Jangkau audiens eksekutif secara eksklusif di sisi halaman.</p>
+            <a href="#page/info-iklan" class="skyscraper-btn">Pasang Iklan →</a>
+          </div>
+        </div>
+      `;
+    }
+
+    this.trackImpression(ad.id);
+
+    return `
+      <div class="skyscraper-card" data-ad-id="${ad.id}" data-skyscraper-side="${side}">
+        <button class="btn-dismiss-skyscraper" data-dismiss-side="${side}" title="Tutup Iklan">✕</button>
+        <div class="skyscraper-header-tag">SPONSORED RAIL</div>
+        <div class="skyscraper-content-wrap">
+          <img src="${ad.imageUrl}" alt="${ad.sponsorName}" class="skyscraper-img" />
+          <div class="skyscraper-sponsor-badge">${ad.sponsorName}</div>
+          <p class="skyscraper-desc">${ad.tagline}</p>
+          <a href="${ad.targetUrl}" target="_blank" rel="noopener sponsored" class="btn-ad-cta skyscraper-btn" data-ad-id="${ad.id}">
+            ${ad.ctaText}
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  // Render Native In-Feed Sponsored Card (Blends directly into News Grid)
+  public static renderInFeedAdHTML(): string {
+    const ad = this.getActiveAd('in_feed');
+    if (!ad) return '';
+
+    this.trackImpression(ad.id);
+
+    return `
+      <article class="article-card sponsored-feed-card" data-ad-id="${ad.id}">
+        <div class="card-img-wrap">
+          <img src="${ad.imageUrl}" alt="${ad.sponsorName}" class="card-img" loading="lazy" />
+          <span class="card-category-badge sponsored-badge">SPONSORED</span>
+        </div>
+        <div class="card-body">
+          <div class="sponsored-card-header">
+            <span class="sponsored-sponsor-name">${ad.sponsorName}</span>
+            <span class="sponsored-chip">MITRA RESMI</span>
+          </div>
+          <h3 class="card-title">${ad.tagline}</h3>
+          <p class="card-excerpt">Solusi komputasi dan teknologi generasi terbaru untuk mendukung efisiensi operasional industri modern Indonesia.</p>
+          <div class="card-footer" style="margin-top:auto; padding-top:0.75rem; border-top:1px solid var(--border-subtle);">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+              Promosi Terverifikasi
+            </div>
+            <a href="${ad.targetUrl}" target="_blank" rel="noopener sponsored" class="btn-ad-cta btn-sponsored-action" data-ad-id="${ad.id}">
+              ${ad.ctaText}
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
   // Render In-Article Sponsored Box
   public static renderInArticleHTML(): string {
     const ad = this.getActiveAd('in_article');
@@ -302,12 +492,26 @@ export class AdBanner {
     `;
   }
 
-  // Bind click tracking on all rendered ads
+  // Bind click tracking & dismiss on all rendered ads
   public static bindAdEvents(container: HTMLElement = document.body) {
+    // Click Tracking
     container.querySelectorAll('.btn-ad-cta').forEach(btn => {
       btn.addEventListener('click', () => {
         const adId = btn.getAttribute('data-ad-id');
         if (adId) this.trackClick(adId);
+      });
+    });
+
+    // Dismiss Skyscraper
+    container.querySelectorAll('.btn-dismiss-skyscraper').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const side = btn.getAttribute('data-dismiss-side');
+        if (side) {
+          sessionStorage.setItem(`byte_dismiss_skyscraper_${side}`, 'true');
+          const rail = document.getElementById(`skyscraper-${side}-ad`);
+          if (rail) rail.innerHTML = '';
+        }
       });
     });
   }
