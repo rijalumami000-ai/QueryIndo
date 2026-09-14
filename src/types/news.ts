@@ -17,6 +17,8 @@ export interface AuthorProfile {
   id: string;
   name: string;
   role: string;
+  division?: string;
+  order?: number;
   email: string;
   avatar: string;
   bio: string;

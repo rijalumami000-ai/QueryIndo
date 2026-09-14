@@ -1,3 +1,5 @@
+import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
+
 export type InstitutionalPageId =
   | 'tentang-kami'
   | 'hubungi-kami'
@@ -33,16 +35,26 @@ function infoCard(label: string, value: string, accent: string = 'var(--accent-c
   </div>`;
 }
 
-function staffCard(role: string, name: string, desc: string): string {
-  return `<div style="background:var(--bg-tertiary); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); transition:transform 0.2s, border-color 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(0,242,254,0.3)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)'" onmouseleave="this.style.transform='';this.style.borderColor='var(--border-color)';this.style.boxShadow=''">
-    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
-      <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(139,92,246,0.2)); border:1px solid var(--accent-cyan); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent-cyan); font-size:1.05rem; flex-shrink:0;">${name.charAt(0)}</div>
-      <div>
-        <span style="font-size:0.68rem; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-mono); font-weight:700; display:block;">${role}</span>
-        <strong style="font-size:0.95rem; color:var(--text-primary); display:block;">${name}</strong>
+function staffCard(role: string, name: string, desc: string, avatar?: string, email?: string): string {
+  const avatarHtml = avatar
+    ? `<img src="${avatar}" alt="${name}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--accent-cyan); flex-shrink:0;" />`
+    : `<div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(139,92,246,0.2)); border:1px solid var(--accent-cyan); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent-cyan); font-size:1.05rem; flex-shrink:0;">${name.charAt(0)}</div>`;
+
+  return `<div style="background:var(--bg-tertiary); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem; transition:transform 0.2s, border-color 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(0,242,254,0.3)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)'" onmouseleave="this.style.transform='';this.style.borderColor='var(--border-color)';this.style.boxShadow=''">
+    <div>
+      <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+        ${avatarHtml}
+        <div style="min-width:0; flex:1;">
+          <span style="font-size:0.68rem; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-mono); font-weight:700; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${role}</span>
+          <strong style="font-size:0.95rem; color:var(--text-primary); display:block; line-height:1.3;">${name}</strong>
+        </div>
       </div>
+      <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5; margin:0;">${desc}</p>
     </div>
-    <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5; margin:0;">${desc}</p>
+    ${email ? `<div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); border-top:1px solid var(--border-color); padding-top:0.5rem; display:flex; align-items:center; gap:0.35rem;">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>
+      <span>${email}</span>
+    </div>` : ''}
   </div>`;
 }
 
@@ -258,50 +270,53 @@ function renderKodeEtik(): string {
 
 
 function renderRedaksi(): string {
+  const allAuthors = AuthorService.getAuthors();
+  
+  // Group authors by division
+  const divisionsMap: Record<string, typeof allAuthors> = {};
+  
+  // Initialize standard divisions in desired display order
+  EDITORIAL_DIVISIONS.forEach(div => {
+    divisionsMap[div] = [];
+  });
+
+  allAuthors.forEach(author => {
+    const div = author.division || 'Redaktur Pelaksana & Koordinator Desk';
+    if (!divisionsMap[div]) {
+      divisionsMap[div] = [];
+    }
+    divisionsMap[div].push(author);
+  });
+
+  // Sort each group by order
+  Object.keys(divisionsMap).forEach(key => {
+    divisionsMap[key].sort((a, b) => (a.order || 99) - (b.order || 99));
+  });
+
+  // Render HTML for each division that has members
+  const divisionSections = Object.entries(divisionsMap)
+    .filter(([_, authors]) => authors.length > 0)
+    .map(([divName, authors]) => `
+      ${sectionTitle(divName)}
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+        ${authors.map(a => staffCard(a.role, a.name, a.bio || 'Jurnalis redaksi teknologi QUERYINDO.', a.avatar, a.email)).join('')}
+      </div>
+    `).join('');
+
   return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
-        <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Susunan redaksi QUERYINDO disusun berdasarkan <strong style="color:var(--text-primary);">UU Pers No. 40 Tahun 1999</strong> dan Standar Perusahaan Pers Dewan Pers Republik Indonesia.
-        </p>
+    <section style="display:flex; flex-direction:column; gap:1.75rem;">
+      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0 0 0.35rem 0;">
+            Susunan redaksi QUERYINDO disusun berdasarkan <strong style="color:var(--text-primary);">UU Pers No. 40 Tahun 1999</strong> dan Standar Perusahaan Pers Dewan Pers Republik Indonesia.
+          </p>
+          <span style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono);">
+            Terintegrasi Realtime dengan Sistem Editorial CMS • Total Personel: ${allAuthors.length}
+          </span>
+        </div>
       </div>
 
-      <!-- Pimpinan Utama -->
-      ${sectionTitle('Pimpinan & Penanggung Jawab')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${staffCard('Direktur Utama / CEO', 'Rijal Umami', 'Pendiri QUERYINDO. Lulusan Teknik Informatika dengan pengalaman 12 tahun di industri media digital.')}
-        ${staffCard('Pemimpin Redaksi', 'Dian Prasetyo, M.T.', 'Mantan Redaktur Senior TechScape. 15 tahun pengalaman jurnalisme teknologi investigatif.')}
-        ${staffCard('Wakil Pemimpin Redaksi', 'Sari Wulandari, M.Kom.', 'Spesialis liputan AI & Big Data. Fellow Knight-Wallace Journalism, Univ. of Michigan 2023.')}
-      </div>
-
-      <!-- Dewan Redaksi & Penasihat -->
-      ${sectionTitle('Dewan Redaksi & Penasihat Hukum')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${staffCard('Dewan Penasihat AI', 'Prof. Dr. Irwan Hakim', 'Guru Besar Ilmu Komputer UI. Pakar etika AI dan regulasi kecerdasan buatan.')}
-        ${staffCard('Penasihat Hukum Media', 'Dr. Hendra Kurniawan, S.H.', 'Advokat senior spesialis hukum pers dan siber. Partner KHK Law Firm.')}
-        ${staffCard('Penasihat Keamanan Siber', 'Ir. Teguh Aprianto, CISSP', 'Praktisi keamanan siber nasional dan penasihat independen proteksi data.')}
-      </div>
-
-      <!-- Redaktur Desk -->
-      ${sectionTitle('Redaktur Pelaksana & Koordinator Desk')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
-        ${staffCard('Redaktur Pelaksana', 'Ahmad Fauzi', 'Mengelola alur berita harian dan koordinasi newsroom digital.')}
-        ${staffCard('Desk AI & Data', 'Rina Maharani, M.Sc.', 'Lulusan Data Science ETH Zürich. Mengampu liputan machine learning & LLM.')}
-        ${staffCard('Desk Gadget & Hardware', 'Bayu Setiawan', 'Reviewer perangkat keras 8 tahun. Sertifikasi CompTIA A+.')}
-        ${staffCard('Desk Fintech & Crypto', 'Dewi Anggraeni, MBA', 'Mantan analis OJK. Mengulas regulasi keuangan digital dan aset kripto.')}
-        ${staffCard('Desk Cybersecurity', 'Fajar Nugroho, CEH', 'Ethical hacker bersertifikat. Menginvestigasi insiden kebocoran data.')}
-        ${staffCard('Desk Startup & VC', 'Laras Permata', '7 tahun meliput industri ventura Asia Tenggara. Kontributor TechCrunch SEA.')}
-      </div>
-
-      <!-- Tim Reporter & Teknologi -->
-      ${sectionTitle('Tim Teknologi & Engineering')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
-        ${staffCard('CTO / Lead Engineer', 'Hasan Maulana', 'Arsitek platform QUERYINDO. 10 tahun pengalaman cloud architecture.')}
-        ${staffCard('Backend Engineer', 'Arif Hidayat', 'Spesialis Go, PostgreSQL, dan arsitektur microservices.')}
-        ${staffCard('Frontend Engineer', 'Putri Ayu', 'Spesialis TypeScript, React, dan optimasi Core Web Vitals.')}
-        ${staffCard('UI/UX Designer', 'Galih Pramono', 'Desainer antarmuka platform berbasis Stanford HCI guidelines.')}
-      </div>
+      ${divisionSections}
     </section>
   `;
 }

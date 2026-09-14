@@ -189,6 +189,49 @@ export class AdBanner {
     }
   }
 
+  public static getCampaignById(id: string): AdCampaign | undefined {
+    return this.getCampaigns().find(a => a.id === id);
+  }
+
+  public static addCampaign(data: Omit<AdCampaign, 'id' | 'impressions' | 'clicks'>): AdCampaign {
+    const list = this.getCampaigns();
+    const newAd: AdCampaign = {
+      ...data,
+      id: `ad-${Date.now().toString().slice(-4)}`,
+      impressions: 0,
+      clicks: 0
+    };
+    list.unshift(newAd);
+    this.saveCampaigns(list);
+    return newAd;
+  }
+
+  public static updateCampaign(id: string, updated: Partial<AdCampaign>): boolean {
+    const list = this.getCampaigns();
+    const idx = list.findIndex(a => a.id === id);
+    if (idx === -1) return false;
+    list[idx] = { ...list[idx], ...updated };
+    this.saveCampaigns(list);
+    return true;
+  }
+
+  public static deleteCampaign(id: string): boolean {
+    const list = this.getCampaigns();
+    const filtered = list.filter(a => a.id !== id);
+    if (filtered.length === list.length) return false;
+    this.saveCampaigns(filtered);
+    return true;
+  }
+
+  public static toggleCampaign(id: string): boolean {
+    const list = this.getCampaigns();
+    const ad = list.find(a => a.id === id);
+    if (!ad) return false;
+    ad.isActive = !ad.isActive;
+    this.saveCampaigns(list);
+    return true;
+  }
+
   // --------------------------------------------------------------------------
   // Google AdSense Integration Architecture
   // --------------------------------------------------------------------------

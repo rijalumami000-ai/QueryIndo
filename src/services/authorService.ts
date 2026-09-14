@@ -1,23 +1,111 @@
 import type { AuthorProfile } from '../types/news';
 
-const AUTHORS_STORAGE_KEY = 'query_editorial_authors_v1';
+export const EDITORIAL_DIVISIONS = [
+  'Pimpinan & Penanggung Jawab',
+  'Dewan Redaksi & Penasihat',
+  'Redaktur Pelaksana & Koordinator Desk',
+  'Tim Teknologi & Engineering'
+] as const;
 
-const DEFAULT_AUTHORS: AuthorProfile[] = [
+export type EditorialDivision = typeof EDITORIAL_DIVISIONS[number];
+
+const AUTHORS_STORAGE_KEY = 'query_editorial_authors_v2';
+
+export const DEFAULT_AUTHORS: AuthorProfile[] = [
+  // 1. Pimpinan & Penanggung Jawab
   {
     id: 'author-001',
     name: 'Rijal Umami',
-    role: 'Editor in Chief (Pemred)',
+    role: 'Direktur Utama / CEO',
+    division: 'Pimpinan & Penanggung Jawab',
+    order: 1,
     email: 'rijal@queryindo.id',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-    bio: 'Pendiri QUERYINDO dengan pengalaman 12 tahun memimpin newsroom teknologi dan rekayasa perangkat lunak skala tinggi.',
+    bio: 'Pendiri QUERYINDO. Lulusan Teknik Informatika dengan pengalaman 12 tahun di industri media digital dan komputasi awan.',
     socialTwitter: '@rijalumami',
     socialLinkedin: 'https://linkedin.com/in/rijalumami',
+    joinedAt: '2025-01-01'
+  },
+  {
+    id: 'author-006',
+    name: 'Dian Prasetyo, M.T.',
+    role: 'Pemimpin Redaksi',
+    division: 'Pimpinan & Penanggung Jawab',
+    order: 2,
+    email: 'dian@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
+    bio: 'Mantan Redaktur Senior TechScape. 15 tahun pengalaman jurnalisme teknologi investigatif dan kebijakan siber.',
+    socialTwitter: '@dianprasetyo',
+    socialLinkedin: 'https://linkedin.com/in/dianprasetyo',
+    joinedAt: '2025-01-15'
+  },
+  {
+    id: 'author-007',
+    name: 'Sari Wulandari, M.Kom.',
+    role: 'Wakil Pemimpin Redaksi',
+    division: 'Pimpinan & Penanggung Jawab',
+    order: 3,
+    email: 'sari@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
+    bio: 'Spesialis liputan AI & Big Data. Fellow Knight-Wallace Journalism, Univ. of Michigan 2023.',
+    socialTwitter: '@sariwulandari',
+    socialLinkedin: 'https://linkedin.com/in/sariwulandari',
+    joinedAt: '2025-02-01'
+  },
+
+  // 2. Dewan Redaksi & Penasihat
+  {
+    id: 'author-101',
+    name: 'Prof. Dr. Irwan Hakim',
+    role: 'Dewan Penasihat AI',
+    division: 'Dewan Redaksi & Penasihat',
+    order: 4,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+    bio: 'Guru Besar Ilmu Komputer UI. Pakar etika AI dan regulasi kecerdasan buatan nasional.',
+    joinedAt: '2025-02-15'
+  },
+  {
+    id: 'author-102',
+    name: 'Dr. Hendra Kurniawan, S.H.',
+    role: 'Penasihat Hukum Media',
+    division: 'Dewan Redaksi & Penasihat',
+    order: 5,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
+    bio: 'Advokat senior spesialis hukum pers dan siber. Partner KHK Law Firm.',
+    joinedAt: '2025-02-15'
+  },
+  {
+    id: 'author-103',
+    name: 'Ir. Teguh Aprianto, CISSP',
+    role: 'Penasihat Keamanan Siber',
+    division: 'Dewan Redaksi & Penasihat',
+    order: 6,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=250&q=80',
+    bio: 'Praktisi keamanan siber nasional dan penasihat independen proteksi data.',
+    joinedAt: '2025-02-20'
+  },
+
+  // 3. Redaktur Pelaksana & Koordinator Desk
+  {
+    id: 'author-201',
+    name: 'Ahmad Fauzi',
+    role: 'Redaktur Pelaksana',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 7,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=250&q=80',
+    bio: 'Mengelola alur berita harian dan koordinasi newsroom digital.',
     joinedAt: '2025-03-01'
   },
   {
     id: 'author-002',
     name: 'Raditya Pratama',
     role: 'Editor Senior Teknologi & Kebijakan',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 8,
     email: 'raditya@queryindo.id',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
     bio: 'Spesialis investigasi keamanan siber, arsitektur cloud sovereign, dan regulasi infrastruktur digital Indonesia.',
@@ -26,9 +114,35 @@ const DEFAULT_AUTHORS: AuthorProfile[] = [
     joinedAt: '2025-03-15'
   },
   {
+    id: 'author-202',
+    name: 'Rina Maharani, M.Sc.',
+    role: 'Desk AI & Data',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 9,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+    bio: 'Lulusan Data Science ETH Zürich. Mengampu liputan machine learning & LLM.',
+    joinedAt: '2025-03-15'
+  },
+  {
+    id: 'author-005',
+    name: 'Maya Indah',
+    role: 'Desk Gadget & Hardware Lab',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 10,
+    email: 'maya@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80',
+    bio: 'Penguji performa chipset, display panel, efisiensi termal smartphone, dan ekosistem perangkat pintar.',
+    socialTwitter: '@mayaindah',
+    socialLinkedin: 'https://linkedin.com/in/mayaindah',
+    joinedAt: '2025-04-01'
+  },
+  {
     id: 'author-003',
     name: 'Nabila Hapsari',
-    role: 'Analis Telekomunikasi & Spektrum',
+    role: 'Desk Telekomunikasi & Spektrum',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 11,
     email: 'nabila@queryindo.id',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80',
     bio: 'Pakar jaringan nirkabel, satelit orbit rendah LEO, serta ekonomi broadband daerah 3T di Asia Tenggara.',
@@ -39,46 +153,83 @@ const DEFAULT_AUTHORS: AuthorProfile[] = [
   {
     id: 'author-004',
     name: 'Bima Sakti',
-    role: 'Jurnalis Hukum & Regulasi Digital',
+    role: 'Desk Regulasi Digital & UU PDP',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 12,
     email: 'bima@queryindo.id',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
-    bio: 'Mengupas aspek hukum kecerdasan buatan, etika komputasi, perlindungan hak cipta digital, dan UU PDP.',
+    bio: 'Mengupas aspek hukum kecerdasan buatan, etika komputasi, perlindungan hak cipta digital, dan kepatuhan UU PDP.',
     socialTwitter: '@bimasakti',
     socialLinkedin: 'https://linkedin.com/in/bimasakti',
     joinedAt: '2025-04-10'
   },
   {
-    id: 'author-005',
-    name: 'Maya Indah',
-    role: 'Reviewer Gadget & Lab Hardware',
-    email: 'maya@queryindo.id',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80',
-    bio: 'Penguji performa chipset, display panel, efisiensi termal smartphone, dan ekosistem perangkat pintar terdepan.',
-    socialTwitter: '@mayaindah',
-    socialLinkedin: 'https://linkedin.com/in/mayaindah',
-    joinedAt: '2025-05-01'
+    id: 'author-203',
+    name: 'Fajar Nugroho, CEH',
+    role: 'Desk Cybersecurity & Forensik',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 13,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=250&q=80',
+    bio: 'Ethical hacker bersertifikat. Menginvestigasi insiden kebocoran data dan ancaman siber enterprise.',
+    joinedAt: '2025-04-15'
   },
   {
-    id: 'author-006',
-    name: 'Dian Prasetyo, M.T.',
-    role: 'Wakil Pemimpin Redaksi',
-    email: 'dian@queryindo.id',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
-    bio: 'Mantan Redaktur Senior TechScape dengan 15 tahun dedikasi liputan jurnalisme sains dan teknologi investigatif.',
-    socialTwitter: '@dianprasetyo',
-    socialLinkedin: 'https://linkedin.com/in/dianprasetyo',
-    joinedAt: '2025-03-01'
-  },
-  {
-    id: 'author-007',
-    name: 'Sari Wulandari, M.Kom.',
-    role: 'Redaktur Khusus AI & Big Data',
-    email: 'sari@queryindo.id',
+    id: 'author-204',
+    name: 'Laras Permata',
+    role: 'Desk Startup & Modal Ventura',
+    division: 'Redaktur Pelaksana & Koordinator Desk',
+    order: 14,
+    email: 'redaksi@queryindo.id',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
-    bio: 'Fellow Knight-Wallace Journalism. Mengampu riset komprehensif model LLM Nusantara dan superkomputer nasional.',
-    socialTwitter: '@sariwulandari',
-    socialLinkedin: 'https://linkedin.com/in/sariwulandari',
-    joinedAt: '2025-03-10'
+    bio: '7 tahun meliput industri ventura Asia Tenggara. Analis valuasi dan dinamika pendanaan startup.',
+    joinedAt: '2025-04-20'
+  },
+
+  // 4. Tim Teknologi & Engineering
+  {
+    id: 'author-301',
+    name: 'Hasan Maulana',
+    role: 'CTO / Lead Engineer',
+    division: 'Tim Teknologi & Engineering',
+    order: 15,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
+    bio: 'Arsitek platform QUERYINDO. 10 tahun pengalaman cloud architecture, high-availability, dan DevOps.',
+    joinedAt: '2025-01-10'
+  },
+  {
+    id: 'author-302',
+    name: 'Arif Hidayat',
+    role: 'Backend & Infrastructure Engineer',
+    division: 'Tim Teknologi & Engineering',
+    order: 16,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=250&q=80',
+    bio: 'Spesialis Go, PostgreSQL, redis caching, dan arsitektur microservices performa tinggi.',
+    joinedAt: '2025-01-20'
+  },
+  {
+    id: 'author-303',
+    name: 'Putri Ayu',
+    role: 'Frontend & UI Performance Engineer',
+    division: 'Tim Teknologi & Engineering',
+    order: 17,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80',
+    bio: 'Spesialis TypeScript, CSS arsitektur modern, dan optimasi Core Web Vitals 100/100.',
+    joinedAt: '2025-02-01'
+  },
+  {
+    id: 'author-304',
+    name: 'Galih Pramono',
+    role: 'Product & UI/UX Designer',
+    division: 'Tim Teknologi & Engineering',
+    order: 18,
+    email: 'redaksi@queryindo.id',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
+    bio: 'Desainer antarmuka platform digital berorientasi pembaca berita teknologi dan aksesibilitas.',
+    joinedAt: '2025-02-15'
   }
 ];
 
@@ -86,13 +237,35 @@ export class AuthorService {
   public static getAuthors(): AuthorProfile[] {
     const raw = localStorage.getItem(AUTHORS_STORAGE_KEY);
     if (!raw) {
+      // Migrate from old storage key if exists
+      const oldRaw = localStorage.getItem('query_editorial_authors_v1');
+      if (oldRaw) {
+        try {
+          const oldList: AuthorProfile[] = JSON.parse(oldRaw);
+          // Merge old list with default divisions
+          const merged = DEFAULT_AUTHORS.map(def => {
+            const found = oldList.find(o => o.id === def.id || o.name.toLowerCase() === def.name.toLowerCase());
+            return found ? { ...def, ...found, division: found.division || def.division } : def;
+          });
+          this.saveAuthors(merged);
+          return merged;
+        } catch {
+          // fall through
+        }
+      }
       this.saveAuthors(DEFAULT_AUTHORS);
       return DEFAULT_AUTHORS;
     }
+
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        // Ensure every author has a division
+        return parsed.map((a: AuthorProfile, idx: number) => ({
+          ...a,
+          division: a.division || 'Redaktur Pelaksana & Koordinator Desk',
+          order: a.order !== undefined ? a.order : (idx + 1)
+        }));
       }
       return DEFAULT_AUTHORS;
     } catch {
@@ -116,6 +289,8 @@ export class AuthorService {
     const authors = this.getAuthors();
     const newAuthor: AuthorProfile = {
       ...data,
+      division: data.division || 'Redaktur Pelaksana & Koordinator Desk',
+      order: data.order !== undefined ? data.order : authors.length + 1,
       id: `author-${Date.now().toString().slice(-4)}`,
       joinedAt: new Date().toISOString().split('T')[0]
     };
@@ -144,5 +319,9 @@ export class AuthorService {
 
     this.saveAuthors(filtered);
     return true;
+  }
+
+  public static resetToDefault(): void {
+    this.saveAuthors(DEFAULT_AUTHORS);
   }
 }
