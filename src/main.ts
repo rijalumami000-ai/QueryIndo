@@ -14,6 +14,7 @@ import { FocusMode } from './components/FocusMode';
 import { SeoService } from './utils/seoService';
 import { ShareModal } from './components/ShareModal';
 import { AdBanner } from './components/AdBanner';
+import { ShoppingCarousel } from './components/ShoppingCarousel';
 import Lenis from 'lenis';
 
 // English Names for Categories
@@ -663,6 +664,14 @@ function renderEditorsPick() {
   });
 }
 
+// Render Shopping Recommendation Carousel Banner (Affiliate / Liputan6 style)
+function renderShoppingCarousel() {
+  const container = document.getElementById('shopping-carousel-container');
+  if (!container) return;
+  container.innerHTML = ShoppingCarousel.renderWidgetHTML();
+  ShoppingCarousel.bindEvents(container);
+}
+
 // Render Mid-Stream Panoramic Interstitial Ad Banner
 function renderMidstreamAd() {
   const container = document.getElementById('midstream-ad-container');
@@ -796,29 +805,14 @@ function renderRapidWire() {
   }
 }
 
-// Render Fixed Skyscraper Ads (Left & Right Rails on >= 1440px)
-function renderSkyscrapers() {
-  const leftRail = document.getElementById('skyscraper-left-ad');
-  const rightRail = document.getElementById('skyscraper-right-ad');
-
-  if (leftRail) {
-    leftRail.innerHTML = AdBanner.renderSkyscraperHTML('left');
-    AdBanner.bindAdEvents(leftRail);
-  }
-  if (rightRail) {
-    rightRail.innerHTML = AdBanner.renderSkyscraperHTML('right');
-    AdBanner.bindAdEvents(rightRail);
-  }
-}
-
 // Render All Editorial Sections & Ad Spaces
 function renderAllNewsSections() {
   renderBillboardAd();
   renderEditorsPick();
+  renderShoppingCarousel();
   renderMidstreamAd();
   renderDeepTechMatrix();
   renderRapidWire();
-  renderSkyscrapers();
   renderFeed();
 }
 
