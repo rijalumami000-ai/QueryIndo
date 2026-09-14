@@ -181,7 +181,7 @@ export class CompanyModal {
               <div>
                 <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Kontak Kemitraan Bisnis</h3>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">partnership@queryindo.id</code>.
+                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">redaksi@queryindo.id</code>.
                 </p>
               </div>
             </div>
@@ -202,19 +202,11 @@ export class CompanyModal {
             <div style="display: flex; flex-direction: column; gap: 1.5rem; font-size: 0.95rem; line-height: 1.7;">
               <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius-md);">
                 <span style="font-size: 0.65rem; font-weight: 800; background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan); padding: 0.2rem 0.55rem; border-radius: 4px; font-family: var(--font-mono); text-transform: uppercase;">Headquarters</span>
-                <h4 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-top: 0.5rem; margin-bottom: 0.25rem;">Kantor Pusat Redaksi Jakarta</h4>
+                <h4 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-top: 0.5rem; margin-bottom: 0.25rem;">QueryIndo Office</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Gedung Cyber 2 Tower, Lt. 18, Kav. X-5 No. 13, Jl. H.R. Rasuna Said, Kuningan, Jakarta Selatan 12950<br />
+                  Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan Lampung<br />
                   Email Utama: <code style="color:var(--accent-cyan);">redaksi@queryindo.id</code><br />
-                  Telepon Hubungan Media: (021) 555-8900
-                </p>
-              </div>
-
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius-md);">
-                <span style="font-size: 0.65rem; font-weight: 800; background: rgba(139, 92, 246, 0.1); color: var(--accent-violet); padding: 0.2rem 0.55rem; border-radius: 4px; font-family: var(--font-mono); text-transform: uppercase;">IKN Bureau</span>
-                <h4 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-top: 0.5rem; margin-bottom: 0.25rem;">Biro Perwakilan Pusat Data Nasional (IKN)</h4>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Pusat Data Nasional (PDN) Hub, Kawasan Inti Pusat Pemerintahan (KIPP), Sepaku, Kabupaten Penajam Paser Utara, Ibu Kota Nusantara (IKN).
+                  Telepon Hubungan Media: +62895323861966
                 </p>
               </div>
             </div>

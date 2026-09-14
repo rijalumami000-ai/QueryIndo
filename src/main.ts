@@ -5,7 +5,6 @@ import { AdminCMS } from './components/AdminCMS';
 import { ReaderAuthService, type ReaderUser } from './services/authService';
 import { ApiService } from './services/apiService';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
-import { ReaderPoll } from './components/ReaderPoll';
 import { ByteShorts } from './components/ByteShorts';
 import { Toast } from './utils/toast';
 import { TranslationService, UI_TRANSLATIONS } from './utils/translationService';
@@ -39,7 +38,7 @@ let selectedFilterDateRange = 'all';
 let selectedFilterTag = '';
 
 const preferences: UserPreferences = {
-  theme: (localStorage.getItem('byte_theme') as 'dark' | 'light') || 'dark',
+  theme: (localStorage.getItem('byte_theme') as 'dark' | 'light') || 'light',
   savedArticleIds: JSON.parse(localStorage.getItem('byte_bookmarks') || '[]'),
   likedArticleIds: JSON.parse(localStorage.getItem('byte_likes') || '[]'),
   fontSize: (localStorage.getItem('byte_font_size') as 'normal' | 'large' | 'xlarge') || 'normal',
@@ -141,7 +140,6 @@ const filterToggleBtn = document.getElementById('btn-filter-toggle');
 const filterSortBy = document.getElementById('filter-sort-by') as HTMLSelectElement;
 const filterDateRange = document.getElementById('filter-date-range') as HTMLSelectElement;
 const filterTagChips = document.getElementById('filter-tag-chips');
-const pollWidgetContainer = document.getElementById('reader-poll-widget');
 const byteShortsContainer = document.getElementById('byteshorts-bar-container');
 
 // Institutional Pages Container
@@ -190,7 +188,6 @@ async function init() {
   renderHeroSection();
   renderAllNewsSections();
   renderFilterTags();
-  renderPollWidget();
   renderByteShorts();
 
   setupEventListeners();
@@ -731,46 +728,6 @@ function renderDeepTechMatrix() {
   });
 }
 
-// Render Opini & Wawasan Pakar (Executive Thought Leadership)
-function renderOpinionColumns() {
-  const container = document.getElementById('opinion-columns-container');
-  if (!container) return;
-
-  const targetIds = ['art-011', 'art-014', 'art-003'];
-  let opinionArticles = targetIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
-  if (opinionArticles.length < 3) {
-    opinionArticles = ARTICLES.slice(0, 3);
-  }
-
-  container.innerHTML = opinionArticles.map(art => `
-    <article class="opinion-card" data-article-id="${art.id}">
-      <div class="opinion-author-header">
-        <img src="${art.author.avatar}" alt="${art.author.name}" class="opinion-author-avatar" />
-        <div>
-          <h4 class="opinion-author-name">
-            ${art.author.name}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#0ea5e9" style="vertical-align: middle; margin-left: 2px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-          </h4>
-          <p class="opinion-author-role">${art.author.role}</p>
-        </div>
-      </div>
-      <p class="opinion-quote-text">“${art.subtitle}”</p>
-      <div class="opinion-card-footer">
-        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Topik: ${art.category.toUpperCase()}</span>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">Baca Ulasan Penuh →</span>
-      </div>
-    </article>
-  `).join('');
-
-  container.querySelectorAll('.opinion-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const id = card.getAttribute('data-article-id');
-      if (id) {
-        openArticleReader(id, true);
-      }
-    });
-  });
-}
 
 // Render Kilas Cepat 24 Jam & Radar Industri / Sidebar Ad
 function renderRapidWire() {
@@ -860,7 +817,6 @@ function renderAllNewsSections() {
   renderEditorsPick();
   renderMidstreamAd();
   renderDeepTechMatrix();
-  renderOpinionColumns();
   renderRapidWire();
   renderSkyscrapers();
   renderFeed();
@@ -2192,7 +2148,6 @@ function setupEventListeners() {
       updateFooterLabels();
       updateFilterLabels();
       renderFilterTags();
-      renderPollWidget();
       renderByteShorts();
 
       Toast.show(lang === 'en' ? 'Language switched to English' : 'Bahasa diubah ke Indonesia');
@@ -2236,7 +2191,6 @@ function updateFooterLabels() {
   const linkCyber = document.getElementById('link-cyber-guidelines');
   const linkDisclaimer = document.getElementById('link-disclaimer');
   const linkAds = document.getElementById('link-ads');
-  const linkCareers = document.getElementById('link-careers');
 
   if (companyTitle) companyTitle.textContent = t('companyText');
   if (linkAbout) linkAbout.textContent = t('aboutUs');
@@ -2246,7 +2200,6 @@ function updateFooterLabels() {
   if (linkCyber) linkCyber.textContent = t('cyberGuidelines');
   if (linkDisclaimer) linkDisclaimer.textContent = t('disclaimerText');
   if (linkAds) linkAds.textContent = t('adsText');
-  if (linkCareers) linkCareers.textContent = t('careersText');
 }
 
 // Update labels & option text for Advanced Filter Panel
@@ -2344,15 +2297,6 @@ function renderFilterTags() {
   });
 }
 
-// Render Reader Poll Widget
-function renderPollWidget() {
-  if (!pollWidgetContainer) return;
-  pollWidgetContainer.innerHTML = ReaderPoll.renderHTML(preferences.language);
-  ReaderPoll.bindEvents(pollWidgetContainer, () => {
-    Toast.show(preferences.language === 'en' ? 'Thank you for participating in QUERYINDO editorial poll!' : 'Terima kasih telah berpartisipasi dalam jajak pendapat QUERYINDO!');
-    renderPollWidget();
-  });
-}
 
 // Render ByteShorts Visual Stories Bar
 function renderByteShorts() {

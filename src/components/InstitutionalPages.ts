@@ -5,8 +5,7 @@ export type InstitutionalPageId =
   | 'redaksi'
   | 'pedoman-media-siber'
   | 'disclaimer'
-  | 'info-iklan'
-  | 'karir';
+  | 'info-iklan';
 
 const PAGE_TITLES: Record<InstitutionalPageId, { id: string; en: string }> = {
   'tentang-kami': { id: 'Tentang Kami', en: 'About Us' },
@@ -16,7 +15,6 @@ const PAGE_TITLES: Record<InstitutionalPageId, { id: string; en: string }> = {
   'pedoman-media-siber': { id: 'Pedoman Media Siber', en: 'Cyber Media Guidelines' },
   'disclaimer': { id: 'Disclaimer', en: 'Disclaimer' },
   'info-iklan': { id: 'Info Iklan & Kemitraan', en: 'Advertising & Partnerships' },
-  'karir': { id: 'Karir & Magang', en: 'Careers & Internships' },
 };
 
 // ──────────────────────────────────────────────
@@ -55,20 +53,7 @@ function ethicsArticle(num: number, title: string, body: string, accent: string)
   </div>`;
 }
 
-function jobCard(title: string, type: string, location: string, desc: string): string {
-  return `<div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); transition:transform 0.2s, border-color 0.2s;" onmouseenter="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(0,242,254,0.3)'" onmouseleave="this.style.transform='';this.style.borderColor='var(--border-color)'">
-    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
-      <h4 style="font-size:0.98rem; font-weight:800; color:var(--text-primary); margin:0;">${title}</h4>
-      <span style="font-size:0.65rem; font-weight:700; padding:0.2rem 0.55rem; border-radius:100px; background:rgba(0,242,254,0.12); color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.06em; font-family:var(--font-mono);">${type}</span>
-    </div>
-    <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.6rem; display:flex; align-items:center; gap:0.35rem; font-family:var(--font-mono);">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      ${location}
-    </div>
-    <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.55; margin:0 0 1rem 0;">${desc}</p>
-    <a href="mailto:karir@queryindo.id?subject=Lamaran: ${title}" style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan); text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">Lamar Posisi Ini →</a>
-  </div>`;
-}
+
 
 
 // ──────────────────────────────────────────────
@@ -168,13 +153,13 @@ function renderHubungiKami(): string {
         <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
           <h4 style="font-size:0.9rem; font-weight:800; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem; text-transform:uppercase; font-family:var(--font-mono); letter-spacing:0.05em;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Kantor Pusat Redaksi
+            Kantor Redaksi
           </h4>
           <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.65; margin:0;">
-            <strong style="color:var(--text-primary);">Wisma Nugra Santana, Lantai 12</strong><br/>
-            Jl. Jend. Sudirman Kav. 7-8<br/>
-            Jakarta Pusat 10220<br/>
-            DKI Jakarta, Indonesia
+            <strong style="color:var(--text-primary);">QueryIndo Office</strong><br/>
+            Jl. S. Parman No 07 Cintamulya<br/>
+            Candipuro, Lampung Selatan<br/>
+            Lampung, Indonesia
           </p>
         </div>
         <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
@@ -183,31 +168,17 @@ function renderHubungiKami(): string {
             Layanan Komunikasi
           </h4>
           <div style="display:flex; flex-direction:column; gap:0.65rem; font-size:0.88rem; color:var(--text-secondary);">
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Telepon Kantor</strong><br/><span style="color:var(--text-primary);">+62 21 5790 1234</span></div>
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">WhatsApp Redaksi</strong><br/><span style="color:var(--text-primary);">+62 812-7093-9344</span></div>
+            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Kontak / WhatsApp</strong><br/><span style="color:var(--text-primary);">+62895323861966</span></div>
+            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Email Resmi</strong><br/><span style="color:var(--text-primary);">redaksi@queryindo.id</span></div>
             <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Jam Operasional</strong><br/><span style="color:var(--text-primary);">Senin – Jumat, 08.00 – 17.00 WIB</span></div>
           </div>
         </div>
       </div>
 
-      <!-- Email Per Divisi -->
-      ${sectionTitle('Email Departemen')}
+      <!-- Email Korespondensi -->
+      ${sectionTitle('Email Korespondensi')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Redaksi & Newsroom', 'redaksi@queryindo.id')}
-        ${infoCard('Iklan & Kemitraan Bisnis', 'iklan@queryindo.id', 'var(--accent-violet)')}
-        ${infoCard('Humas & Media Relations', 'humas@queryindo.id', 'var(--accent-emerald)')}
-        ${infoCard('Teknologi & Pengembangan', 'tech@queryindo.id')}
-        ${infoCard('Ombudsman & Pengaduan', 'ombudsman@queryindo.id', 'var(--accent-violet)')}
-        ${infoCard('Karir & Rekrutmen', 'karir@queryindo.id', 'var(--accent-emerald)')}
-      </div>
-
-      <!-- Jaringan Biro -->
-      ${sectionTitle('Jaringan Biro Daerah')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
-        ${infoCard('Biro Jawa Barat', 'Bandung Digital Valley, Jl. Asia Afrika No. 65')}
-        ${infoCard('Biro Jawa Timur', 'Surabaya Tech Hub, Jl. Pemuda No. 31', 'var(--accent-violet)')}
-        ${infoCard('Biro Bali & Nusa Tenggara', 'Denpasar Innovation Center, Jl. Teuku Umar No. 12', 'var(--accent-emerald)')}
-        ${infoCard('Biro Kalimantan (IKN)', 'IKN Media Center, Penajam Paser Utara')}
+        ${infoCard('Redaksi & Korespondensi Utama', 'redaksi@queryindo.id', 'var(--accent-cyan)')}
       </div>
 
       <!-- Formulir Kontak -->
@@ -230,7 +201,6 @@ function renderHubungiKami(): string {
             <option>Hak Jawab / Klarifikasi Berita</option>
             <option>Kerjasama Iklan & Sponsorship</option>
             <option>Laporan Kesalahan Teknis</option>
-            <option>Pertanyaan Karir & Magang</option>
           </select>
         </div>
         <div>
@@ -251,7 +221,7 @@ function renderKodeEtik(): string {
     { title: 'Uji Informasi', body: 'Wartawan Indonesia selalu menguji informasi, memberitakan secara berimbang, tidak mencampurkan fakta dan opini yang menghakimi, serta menerapkan asas praduga tak bersalah. Berita dipublikasikan wajib diverifikasi minimal tiga sumber.' },
     { title: 'Larangan Berita Bohong', body: 'Wartawan Indonesia tidak membuat berita bohong, fitnah, sadis, dan cabul. Redaksi menerapkan sistem pemeriksaan berlapis sebelum artikel dipublikasikan.' },
     { title: 'Perlindungan Identitas', body: 'Wartawan Indonesia tidak menyebutkan identitas korban kejahatan susila dan anak pelaku kejahatan. Prinsip perlindungan identitas diterapkan ketat.' },
-    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi ombudsman@queryindo.id.' },
+    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi redaksi@queryindo.id.' },
     { title: 'Perlindungan Sumber', body: 'Wartawan Indonesia memiliki Hak Tolak untuk melindungi narasumber rahasia yang tidak bersedia diketahui identitasnya demi alasan keamanan.' },
     { title: 'Embargo & Ralat Berita', body: 'Wartawan Indonesia menghormati embargo informasi dan segera mengoreksi berita yang keliru dengan pencantuman stempel waktu revisi yang transparan.' },
     { title: 'Larangan Plagiarisme', body: 'Orisinalitas konten dijaga ketat. Setiap pengutipan karya pihak lain wajib mencantumkan atribusi dan tautan balik secara eksplisit.' },
@@ -278,8 +248,8 @@ function renderKodeEtik(): string {
       <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
         <p style="margin:0 0 0.75rem 0;">Laporan pelanggaran etik atau permohonan Hak Jawab disampaikan melalui:</p>
         <ul style="padding-left:1.15rem; display:flex; flex-direction:column; gap:0.4rem; margin:0; font-family:var(--font-mono);">
-          <li>Email Ombudsman: ombudsman@queryindo.id</li>
-          <li>WhatsApp Pengaduan: +62 812-7093-9344</li>
+          <li>Email: redaksi@queryindo.id</li>
+          <li>WhatsApp Pengaduan: +62895323861966</li>
         </ul>
       </div>
     </section>
@@ -393,7 +363,7 @@ function renderDisclaimer(): string {
 
       ${sectionTitle('Privasi Data (UU PDP)')}
       <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel dpo@queryindo.id.</p>
+        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel redaksi@queryindo.id.</p>
       </div>
     </section>
   `;
@@ -441,42 +411,12 @@ function renderInfoIklan(): string {
       <!-- Kontak -->
       ${sectionTitle('Kontak Tim Iklan')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Email Iklan', 'iklan@queryindo.id')}
-        ${infoCard('WhatsApp Commercial', '+62 813-2000-8899', 'var(--accent-violet)')}
+        ${infoCard('Email Iklan & Kemitraan', 'redaksi@queryindo.id')}
+        ${infoCard('WhatsApp Komersial', '+62895323861966', 'var(--accent-cyan)')}
       </div>
     </section>
   `;
 }
-
-
-function renderKarir(): string {
-  return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
-        <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Bergabunglah bersama QUERYINDO untuk membangun media teknologi terbaik di Indonesia.
-        </p>
-      </div>
-
-      <!-- Lowongan Aktif -->
-      ${sectionTitle('Lowongan Aktif')}
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        ${jobCard('Reporter Teknologi Senior', 'Full-Time', 'Jakarta / Remote', 'Meliput AI, cloud, dan transformasi digital. Minimal 3 tahun pengalaman di media teknologi.')}
-        ${jobCard('Data Journalist', 'Full-Time', 'Jakarta', 'Mengolah data menjadi visualisasi interaktif. Menguasai Python, R, atau Tableau.')}
-        ${jobCard('UI/UX Designer', 'Full-Time', 'Jakarta / Remote', 'Merancang antarmuka platform berita berbasis design system modern.')}
-        ${jobCard('Backend Engineer (Go)', 'Full-Time', 'Jakarta / Remote', 'Mengembangkan arsitektur backend platform berita skala tinggi.')}
-      </div>
-
-      <!-- Cara Melamar -->
-      ${sectionTitle('Prosedur Lamaran')}
-      <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        Kirimkan CV dan portofolio ke <code style="color:var(--accent-cyan); font-family:var(--font-mono);">karir@queryindo.id</code> dengan subjek <code style="color:var(--accent-cyan); font-family:var(--font-mono);">[Posisi] — Nama Lengkap</code>.
-      </div>
-    </section>
-  `;
-}
-
 
 // ──────────────────────────────────────────────
 // Main Exported Class
@@ -502,7 +442,6 @@ export class InstitutionalPages {
       case 'pedoman-media-siber': contentHTML = renderPedomanMediaSiber(); break;
       case 'disclaimer': contentHTML = renderDisclaimer(); break;
       case 'info-iklan': contentHTML = renderInfoIklan(); break;
-      case 'karir': contentHTML = renderKarir(); break;
     }
 
     return `
