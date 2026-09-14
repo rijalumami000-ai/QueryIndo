@@ -1,4 +1,5 @@
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
+import { ImageUtils } from '../utils/imageUtils';
 
 export type InstitutionalPageId =
   | 'tentang-kami'
@@ -36,8 +37,10 @@ function infoCard(label: string, value: string, accent: string = 'var(--accent-c
 }
 
 function staffCard(role: string, name: string, desc: string, avatar?: string, email?: string): string {
-  const avatarHtml = avatar
-    ? `<img src="${avatar}" alt="${name}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--accent-cyan); flex-shrink:0;" />`
+  const normalizedAvatar = avatar ? ImageUtils.normalizeImageUrl(avatar) : '';
+  const fallbackAvatar = ImageUtils.getInitialsAvatar(name);
+  const avatarHtml = normalizedAvatar
+    ? `<img src="${normalizedAvatar}" alt="${name}" onerror="this.onerror=null;this.src='${fallbackAvatar}';" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--accent-cyan); flex-shrink:0; background:var(--bg-secondary);" />`
     : `<div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(139,92,246,0.2)); border:1px solid var(--accent-cyan); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent-cyan); font-size:1.05rem; flex-shrink:0;">${name.charAt(0)}</div>`;
 
   return `<div style="background:var(--bg-tertiary); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem; transition:transform 0.2s, border-color 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(0,242,254,0.3)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)'" onmouseleave="this.style.transform='';this.style.borderColor='var(--border-color)';this.style.boxShadow=''">

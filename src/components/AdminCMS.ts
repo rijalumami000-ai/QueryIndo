@@ -4,6 +4,7 @@ import { AuthService } from '../services/authService';
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
 import { ApiService } from '../services/apiService';
 import { Toast } from '../utils/toast';
+import { ImageUtils } from '../utils/imageUtils';
 import { AdBanner, type AdCampaign, type AdPlacement } from './AdBanner';
 import { ReaderPoll, type PollData } from './ReaderPoll';
 
@@ -970,10 +971,24 @@ export class AdminCMS {
           </div>
 
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">URL Foto Profil Avatar (HD Image)</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">
+                Foto Profil Avatar *
+              </label>
+              <label for="form-author-file-input" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload dari Perangkat (Galeri/File)</span>
+              </label>
+              <input type="file" id="form-author-file-input" accept="image/*" style="display: none;" />
+            </div>
+
             <div style="display: flex; gap: 0.75rem; align-items: center;">
-              <img id="form-author-avatar-preview" src="${author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-cyan); flex-shrink: 0;" />
-              <input type="url" id="form-author-avatar" required value="${author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}" style="flex: 1; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+              <img id="form-author-avatar-preview" src="${author?.avatar ? ImageUtils.normalizeImageUrl(author.avatar) : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-cyan); flex-shrink: 0; background: var(--bg-tertiary);" />
+              <input type="text" id="form-author-avatar" required value="${author?.avatar ? ImageUtils.normalizeImageUrl(author.avatar) : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}" placeholder="Tempel URL gambar atau Google Drive..." style="flex: 1; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+
+            <div id="author-avatar-help" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.4;">
+              💡 <em>Mendukung link Google Drive, Unsplash, atau upload foto langsung dari perangkat Anda. (Link Google Drive otomatis dikonversi).</em>
             </div>
           </div>
 
@@ -1016,9 +1031,61 @@ export class AdminCMS {
 
     const avatarInput = overlay.querySelector('#form-author-avatar') as HTMLInputElement;
     const avatarPreview = overlay.querySelector('#form-author-avatar-preview') as HTMLImageElement;
+    const fileInput = overlay.querySelector('#form-author-file-input') as HTMLInputElement;
+    const helpMsg = overlay.querySelector('#author-avatar-help') as HTMLElement;
+
+    const updateAvatarPreview = (rawUrl: string) => {
+      const normalized = ImageUtils.normalizeImageUrl(rawUrl);
+      if (normalized !== rawUrl && avatarInput) {
+        avatarInput.value = normalized;
+      }
+      if (avatarPreview) {
+        avatarPreview.src = normalized;
+      }
+    };
+
     if (avatarInput && avatarPreview) {
-      avatarInput.addEventListener('input', () => {
-        if (avatarInput.value) avatarPreview.src = avatarInput.value;
+      avatarInput.addEventListener('input', () => updateAvatarPreview(avatarInput.value));
+      avatarInput.addEventListener('change', () => updateAvatarPreview(avatarInput.value));
+      avatarInput.addEventListener('paste', () => setTimeout(() => updateAvatarPreview(avatarInput.value), 40));
+
+      avatarPreview.onerror = () => {
+        const nameVal = (overlay.querySelector('#form-author-name') as HTMLInputElement)?.value || 'User';
+        const currentSrc = avatarPreview.src;
+        // If Google Drive link failed on lh3, try Google thumbnail endpoint
+        if (currentSrc.includes('lh3.googleusercontent.com/d/')) {
+          const id = currentSrc.split('/d/')[1];
+          if (id) {
+            avatarPreview.src = `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+            return;
+          }
+        }
+        // Fallback to initials avatar
+        avatarPreview.src = ImageUtils.getInitialsAvatar(nameVal);
+        if (helpMsg) {
+          helpMsg.innerHTML = `<span style="color:var(--accent-rose);">⚠️ Gambar Google Drive tidak dapat dimuat. Pastikan izin berbagi file disetel ke <strong>"Siapa saja yang memiliki tautan" (Public)</strong>, atau klik <strong>"Upload dari Perangkat"</strong> di atas.</span>`;
+        }
+      };
+
+      avatarPreview.onload = () => {
+        if (helpMsg && !avatarPreview.src.startsWith('data:image/svg')) {
+          helpMsg.innerHTML = `<span style="color:var(--accent-emerald);">✓ Foto profil berhasil dimuat.</span>`;
+        }
+      };
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (file) {
+          ImageUtils.processImageFile(file, 400, 0.85, (dataUrl) => {
+            if (avatarInput) avatarInput.value = dataUrl;
+            if (avatarPreview) avatarPreview.src = dataUrl;
+            Toast.show('Foto berhasil dipilih dari perangkat!');
+          }, (err) => {
+            alert(err);
+          });
+        }
       });
     }
 
@@ -1139,10 +1206,20 @@ export class AdminCMS {
           </div>
 
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">URL Banner Gambar (Image URL) *</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">
+                URL Banner Gambar (Image URL) *
+              </label>
+              <label for="form-ad-file-input" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload dari Perangkat</span>
+              </label>
+              <input type="file" id="form-ad-file-input" accept="image/*" style="display: none;" />
+            </div>
+
             <div style="display: flex; gap: 0.75rem; align-items: center;">
-              <img id="form-ad-img-preview" src="${ad?.imageUrl || 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=80'}" style="width: 68px; height: 44px; border-radius: 6px; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;" />
-              <input type="url" id="form-ad-image" required value="${ad?.imageUrl || 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=80'}" placeholder="https://..." style="flex: 1; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+              <img id="form-ad-img-preview" src="${ad?.imageUrl ? ImageUtils.normalizeImageUrl(ad.imageUrl) : 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=80'}" style="width: 68px; height: 44px; border-radius: 6px; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0; background: var(--bg-tertiary);" />
+              <input type="text" id="form-ad-image" required value="${ad?.imageUrl ? ImageUtils.normalizeImageUrl(ad.imageUrl) : 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=80'}" placeholder="https://... atau Google Drive link" style="flex: 1; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
             </div>
           </div>
 
@@ -1178,9 +1255,36 @@ export class AdminCMS {
 
     const imgInput = overlay.querySelector('#form-ad-image') as HTMLInputElement;
     const imgPreview = overlay.querySelector('#form-ad-img-preview') as HTMLImageElement;
+    const adFileInput = overlay.querySelector('#form-ad-file-input') as HTMLInputElement;
+
+    const updateAdPreview = (rawUrl: string) => {
+      const normalized = ImageUtils.normalizeImageUrl(rawUrl);
+      if (normalized !== rawUrl && imgInput) {
+        imgInput.value = normalized;
+      }
+      if (imgPreview) {
+        imgPreview.src = normalized;
+      }
+    };
+
     if (imgInput && imgPreview) {
-      imgInput.addEventListener('input', () => {
-        if (imgInput.value) imgPreview.src = imgInput.value;
+      imgInput.addEventListener('input', () => updateAdPreview(imgInput.value));
+      imgInput.addEventListener('change', () => updateAdPreview(imgInput.value));
+      imgInput.addEventListener('paste', () => setTimeout(() => updateAdPreview(imgInput.value), 40));
+    }
+
+    if (adFileInput) {
+      adFileInput.addEventListener('change', () => {
+        const file = adFileInput.files?.[0];
+        if (file) {
+          ImageUtils.processImageFile(file, 1200, 0.85, (dataUrl) => {
+            if (imgInput) imgInput.value = dataUrl;
+            if (imgPreview) imgPreview.src = dataUrl;
+            Toast.show('Banner berhasil dipilih dari perangkat!');
+          }, (err) => {
+            alert(err);
+          });
+        }
       });
     }
 
