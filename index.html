@@ -109,13 +109,6 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Pasang App</span>
           </button>
-          <button id="glossary-btn" class="btn-action nav-feature-btn" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; color: var(--text-secondary);" title="Pustaka Glosarium Tekno">
-            Glosarium
-          </button>
-          <button id="specs-btn" class="btn-action nav-feature-btn" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; color: var(--text-secondary);" title="Bandingkan Spesifikasi">
-            Bandingkan Spek
-          </button>
-          
           <!-- Reader Auth & User Profile Button -->
           <button id="user-auth-btn" class="btn-action nav-auth-btn" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: var(--radius-md); font-weight: 700; color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 0.4rem;" title="Akun Pembaca QUERYINDO">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -134,15 +127,7 @@
 
       <!-- Mobile Feature Quick-Bar (Visible on mobile/tablet) -->
       <div class="mobile-subnav">
-        <div class="container mobile-subnav-content">
-          <button id="m-glossary-btn" class="mobile-subnav-pill">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <span>Glosarium</span>
-          </button>
-          <button id="m-specs-btn" class="mobile-subnav-pill">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-            <span>Bandingkan Spek</span>
-          </button>
+        <div class="container mobile-subnav-content" style="justify-content: flex-end;">
           <button id="m-user-auth-btn" class="mobile-subnav-pill highlight">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="m-user-auth-btn-text">Masuk / Akun</span>
@@ -467,27 +452,6 @@
       </div>
     </div>
 
-    <!-- Glosarium Modal Overlay -->
-    <div class="modal-overlay" id="glossary-modal" data-lenis-prevent>
-      <div class="modal-container" id="glossary-modal-container" style="max-width: 680px;">
-        <div class="modal-header-bar">
-          <h3 style="font-weight:800;">Glosarium Istilah</h3>
-          <button class="btn-close" id="glossary-close-btn" aria-label="Close Glossary">✕</button>
-        </div>
-        <div id="glossary-content-body"></div>
-      </div>
-    </div>
-
-    <!-- Specs Comparator Modal Overlay -->
-    <div class="modal-overlay" id="specs-modal" data-lenis-prevent>
-      <div class="modal-container" id="specs-modal-container" style="max-width: 840px;">
-        <div class="modal-header-bar">
-          <h3 style="font-weight:800;">Pembanding Spesifikasi</h3>
-          <button class="btn-close" id="specs-close-btn" aria-label="Close Specs">✕</button>
-        </div>
-        <div id="specs-content-body"></div>
-      </div>
-    </div>
 
     <!-- Reader User Authentication & Profile Modal -->
     <div class="modal-overlay" id="user-auth-modal" data-lenis-prevent>

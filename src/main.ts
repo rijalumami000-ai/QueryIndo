@@ -3,10 +3,7 @@ import { ARTICLES, CATEGORIES, TECH_INDEXES } from './data/mockNews';
 import type { Article, CategoryId, UserPreferences, TechIndexItem } from './types/news';
 import { AdminCMS } from './components/AdminCMS';
 import { ReaderAuthService, type ReaderUser } from './services/authService';
-import { ByteAIChatbot } from './components/ByteAIChatbot';
 import { ApiService } from './services/apiService';
-import { TechGlossary } from './components/TechGlossary';
-import { SpecsComparator } from './components/SpecsComparator';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
 import { ReaderPoll } from './components/ReaderPoll';
 import { ByteShorts } from './components/ByteShorts';
@@ -107,53 +104,6 @@ function addReadingHistory(article: Article) {
   }
 }
 
-// Multi-Reactions System
-type ReactionType = 'insight' | 'fire' | 'bullish' | 'critical';
-interface ArticleReactions {
-  insight: number;
-  fire: number;
-  bullish: number;
-  critical: number;
-}
-
-function getArticleReactions(articleId: string): ArticleReactions {
-  try {
-    const saved = localStorage.getItem(`byte_reactions_${articleId}`);
-    if (saved) return JSON.parse(saved);
-  } catch {}
-  const seed = articleId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return {
-    insight: 18 + (seed % 15),
-    fire: 24 + (seed % 20),
-    bullish: 12 + (seed % 10),
-    critical: 6 + (seed % 8)
-  };
-}
-
-function getUserReaction(articleId: string): ReactionType | null {
-  return (localStorage.getItem(`byte_user_reaction_${articleId}`) as ReactionType) || null;
-}
-
-function toggleUserReaction(articleId: string, reaction: ReactionType): { reactions: ArticleReactions; active: ReactionType | null } {
-  const reactions = getArticleReactions(articleId);
-  const current = getUserReaction(articleId);
-  
-  if (current === reaction) {
-    reactions[reaction] = Math.max(0, reactions[reaction] - 1);
-    localStorage.removeItem(`byte_user_reaction_${articleId}`);
-    localStorage.setItem(`byte_reactions_${articleId}`, JSON.stringify(reactions));
-    return { reactions, active: null };
-  }
-
-  if (current) {
-    reactions[current] = Math.max(0, reactions[current] - 1);
-  }
-
-  reactions[reaction] = (reactions[reaction] || 0) + 1;
-  localStorage.setItem(`byte_user_reaction_${articleId}`, reaction);
-  localStorage.setItem(`byte_reactions_${articleId}`, JSON.stringify(reactions));
-  return { reactions, active: reaction };
-}
 
 
 // DOM Elements
@@ -198,20 +148,7 @@ const byteShortsContainer = document.getElementById('byteshorts-bar-container');
 const institutionalPageContainer = document.getElementById('institutional-page-container');
 const mainContent = document.querySelector('main.container') as HTMLElement | null;
 
-// New Modals for Glossary & Specs
-const glossaryBtn = document.getElementById('glossary-btn');
-const glossaryModal = document.getElementById('glossary-modal');
-const glossaryCloseBtn = document.getElementById('glossary-close-btn');
-const glossaryBody = document.getElementById('glossary-content-body');
-
-const specsBtn = document.getElementById('specs-btn');
-const specsModal = document.getElementById('specs-modal');
-const specsCloseBtn = document.getElementById('specs-close-btn');
-const specsBody = document.getElementById('specs-content-body');
-
 // Instances
-const chatbot = new ByteAIChatbot();
-const specsComparator = new SpecsComparator();
 const adminCMS = new AdminCMS(() => {
   renderBreakingBanner();
   renderHeroSection();
@@ -240,12 +177,6 @@ async function init() {
   updateBookmarkBadge();
   updateUserNavbarState();
 
-  // Mount Floating AI Chatbot Widget
-  const chatbotWrapper = document.createElement('div');
-  chatbotWrapper.id = 'chatbot-mount-point';
-  chatbotWrapper.innerHTML = chatbot.renderChatbotHTML();
-  document.body.appendChild(chatbotWrapper);
-  chatbot.bindEvents(chatbotWrapper);
   
   // Async Health check & load live financial indexes
   const isBackendLive = await ApiService.checkBackendHealth();
@@ -1089,18 +1020,14 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
   // Dynamic SEO Meta Tags & Schema.org JSON-LD NewsArticle
   SeoService.setArticleSEO(article);
 
-  const isLiked = preferences.likedArticleIds.includes(article.id);
   const isBookmarked = preferences.savedArticleIds.includes(article.id);
-  const reactions = getArticleReactions(article.id);
-  const userReaction = getUserReaction(article.id);
 
-  // Apply Auto Tech Glossary Highlights
-  const highlightedContent = TechGlossary.highlightTermsInHTML(article.content);
+  // Article Content Body
+  const articleBody = article.content;
 
   // Prepare text & duration for Text-to-Speech Engine
-  const plainBody = TextToSpeechService.extractPlainTextFromHTML(highlightedContent);
-  const summaryText = article.aiSummary.join('. ');
-  currentArticleSpeechText = `${article.title}. ${article.subtitle}. ${summaryText}. ${plainBody}`;
+  const plainBody = TextToSpeechService.extractPlainTextFromHTML(articleBody);
+  currentArticleSpeechText = `${article.title}. ${article.subtitle}. ${plainBody}`;
   const totalWords = currentArticleSpeechText.split(/\s+/).length;
   const initialDurationStr = TextToSpeechService.formatTime(Math.ceil(totalWords / 2.2));
 
@@ -1130,20 +1057,8 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
         </div>
         <div style="font-size: 0.825rem; color: var(--text-muted); text-align: right;">
           <div>${preferences.language === 'en' ? 'Date' : 'Tanggal'}: ${formatDate(article.publishedAt)}</div>
-          <div>${preferences.language === 'en' ? 'Total' : 'Total'}: ${(article.viewsCount).toLocaleString('id-ID')} ${preferences.language === 'en' ? 'Readers' : 'Pembaca'}</div>
         </div>
       </div>
-    </div>
-
-    <!-- Executive AI Summary Box -->
-    <div class="ai-summary-box">
-      <div class="ai-summary-header">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/></svg>
-        ${t('aiSummaryHeader')}
-      </div>
-      <ul class="ai-summary-list" id="reader-ai-summary-list">
-        ${article.aiSummary.map(item => `<li>${item}</li>`).join('')}
-      </ul>
     </div>
 
     <!-- Audio Player, Focus Mode & Text Size Toolbar -->
@@ -1201,7 +1116,7 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
     ${article.imageCaption ? `<div class="image-caption">${article.imageCaption}</div>` : ''}
 
     <div class="article-rich-content size-${preferences.fontSize || 'normal'}" id="article-content-wrapper">
-      ${highlightedContent}
+      ${articleBody}
     </div>
 
     <!-- Dynamic In-Article Sponsor Ad Placement -->
@@ -1221,33 +1136,9 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
       </div>
     ` : ''}
 
-    <!-- Interactive Multi-Reactions Bar -->
-    <div class="reader-reactions-bar">
-      <span class="reactions-label">${preferences.language === 'en' ? 'Article Reactions:' : 'Respon Pembaca:'}</span>
-      <button class="btn-reaction-pill ${userReaction === 'insight' ? 'active' : ''}" data-reaction="insight">
-        💡 <span>${preferences.language === 'en' ? 'Insightful' : 'Wawasan Baru'}</span>
-        <span class="reaction-count-chip" id="reaction-count-insight">${reactions.insight}</span>
-      </button>
-      <button class="btn-reaction-pill ${userReaction === 'fire' ? 'active' : ''}" data-reaction="fire">
-        🔥 <span>${preferences.language === 'en' ? 'Hot Story' : 'Topik Hangat'}</span>
-        <span class="reaction-count-chip" id="reaction-count-fire">${reactions.fire}</span>
-      </button>
-      <button class="btn-reaction-pill ${userReaction === 'bullish' ? 'active' : ''}" data-reaction="bullish">
-        🚀 <span>${preferences.language === 'en' ? 'Bullish Tech' : 'Optimis Tech'}</span>
-        <span class="reaction-count-chip" id="reaction-count-bullish">${reactions.bullish}</span>
-      </button>
-      <button class="btn-reaction-pill ${userReaction === 'critical' ? 'active' : ''}" data-reaction="critical">
-        🧠 <span>${preferences.language === 'en' ? 'Critical' : 'Kritis'}</span>
-        <span class="reaction-count-chip" id="reaction-count-critical">${reactions.critical}</span>
-      </button>
-    </div>
-
-    <!-- Action Bar (Likes, Bookmarks, Share) -->
+    <!-- Action Bar (Bookmarks, Share) -->
     <div class="reader-action-bar">
       <div style="display:flex; gap:0.75rem;">
-        <button class="btn-action ${isLiked ? 'liked' : ''}" id="btn-like-article">
-          <span id="like-count">${article.likesCount + (isLiked ? 1 : 0)} ${t('likeBtn')}</span>
-        </button>
         <button class="btn-action" id="btn-bookmark-article">
           <span>${isBookmarked ? t('bookmarkedBtn') : t('bookmarkBtn')}</span>
         </button>
@@ -1282,8 +1173,7 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
   readerModal.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 
-  const contentWrapper = document.getElementById('article-content-wrapper');
-  if (contentWrapper) TechGlossary.bindTermEvents(contentWrapper);
+
 
   // Reading Progress Bar Scroll Handler
   const progressBar = document.getElementById('reader-progress-bar');
@@ -1314,15 +1204,9 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
   if (preferences.language === 'en') {
     const titleEl = document.getElementById('reader-article-title');
     const subtitleEl = document.getElementById('reader-article-subtitle');
-    const summaryListEl = document.getElementById('reader-ai-summary-list');
-    if (summaryListEl) summaryListEl.style.opacity = '0.5';
     TranslationService.translateArticle(article, 'en').then(translated => {
       if (titleEl) titleEl.textContent = translated.title;
       if (subtitleEl) subtitleEl.textContent = translated.subtitle;
-      if (summaryListEl) {
-        summaryListEl.innerHTML = translated.aiSummary.map(item => `<li>${item}</li>`).join('');
-        summaryListEl.style.opacity = '1';
-      }
     });
   }
 
@@ -1360,46 +1244,7 @@ function setupReaderControls(article: Article) {
     });
   });
 
-  // Multi-Reactions Handler
-  modalReaderContent.querySelectorAll('.btn-reaction-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const reaction = btn.getAttribute('data-reaction') as ReactionType;
-      if (reaction) {
-        const result = toggleUserReaction(article.id, reaction);
-        
-        modalReaderContent?.querySelectorAll('.btn-reaction-pill').forEach(b => {
-          const rType = b.getAttribute('data-reaction') as ReactionType;
-          b.classList.toggle('active', result.active === rType);
-          const counter = b.querySelector('.reaction-count-chip');
-          if (counter) counter.textContent = String(result.reactions[rType]);
-        });
 
-        if (result.active === reaction) {
-          Toast.show(preferences.language === 'en' ? 'Reaction recorded! Thank you for your feedback.' : 'Respon Anda tercatat! Terima kasih.');
-        }
-      }
-    });
-  });
-
-  // Like Button Handler
-  const likeBtn = document.getElementById('btn-like-article');
-  if (likeBtn) {
-    likeBtn.addEventListener('click', () => {
-      const isLiked = preferences.likedArticleIds.includes(article.id);
-      if (isLiked) {
-        preferences.likedArticleIds = preferences.likedArticleIds.filter(id => id !== article.id);
-      } else {
-        preferences.likedArticleIds.push(article.id);
-      }
-      localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
-      
-      likeBtn.classList.toggle('liked', !isLiked);
-      const likeCountElem = document.getElementById('like-count');
-      if (likeCountElem) {
-        likeCountElem.textContent = `${article.likesCount + (!isLiked ? 1 : 0)} ${t('likeBtn')}`;
-      }
-    });
-  }
 
   // Bookmark Button Handler
   const bookmarkBtn = document.getElementById('btn-bookmark-article');
@@ -1726,23 +1571,7 @@ function closeInstitutionalPage() {
   mainContent.style.display = '';
 }
 
-// Open Glossary Modal
-function openGlossaryModal() {
-  if (!glossaryModal || !glossaryBody) return;
-  glossaryBody.innerHTML = TechGlossary.renderGlossaryModalHTML();
-  glossaryModal.classList.add('open');
-}
 
-// Open Specs Comparator Modal
-function openSpecsModal() {
-  if (!specsModal || !specsBody) return;
-  const renderSpecs = () => {
-    specsBody.innerHTML = specsComparator.renderComparatorHTML();
-    specsComparator.bindEvents(specsBody, renderSpecs);
-  };
-  renderSpecs();
-  specsModal.classList.add('open');
-}
 
 // --------------------------------------------------------------------------
 // Instant Live Search Preview & Quick Shortcuts System
@@ -2138,31 +1967,13 @@ function setupEventListeners() {
   // Footer links now use hash routes (#page/xxx) — no manual event listeners needed
   document.getElementById('link-sitemap')?.addEventListener('click', (e) => { e.preventDefault(); Toast.show(preferences.language === 'en' ? 'QUERYINDO Sitemap 2026.' : 'Peta Situs QUERYINDO 2026.'); });
 
-  // Glossary & Specs Buttons
-  glossaryBtn?.addEventListener('click', () => {
-    lenisInstance?.stop();
-    openGlossaryModal();
+  // Global Reader Auth Event Listeners
+  window.addEventListener('open-reader-auth-modal', () => {
+    openUserAuthModal();
   });
-  document.getElementById('m-glossary-btn')?.addEventListener('click', () => {
-    lenisInstance?.stop();
-    openGlossaryModal();
-  });
-  glossaryCloseBtn?.addEventListener('click', () => {
-    glossaryModal?.classList.remove('open');
-    lenisInstance?.start();
-  });
-
-  specsBtn?.addEventListener('click', () => {
-    lenisInstance?.stop();
-    openSpecsModal();
-  });
-  document.getElementById('m-specs-btn')?.addEventListener('click', () => {
-    lenisInstance?.stop();
-    openSpecsModal();
-  });
-  specsCloseBtn?.addEventListener('click', () => {
-    specsModal?.classList.remove('open');
-    lenisInstance?.start();
+  window.addEventListener('reader-auth-change', () => {
+    updateUserNavbarState();
+    updateBookmarkBadge();
   });
 
   // Reader Auth & User Profile Modals
@@ -2260,14 +2071,6 @@ function setupEventListeners() {
         bookmarksModal.classList.remove('open');
         lenisInstance?.start();
       }
-      if (glossaryModal?.classList.contains('open')) {
-        glossaryModal.classList.remove('open');
-        lenisInstance?.start();
-      }
-      if (specsModal?.classList.contains('open')) {
-        specsModal.classList.remove('open');
-        lenisInstance?.start();
-      }
       if (adminCmsModal?.classList.contains('open')) {
         window.location.hash = '';
         adminCmsModal.classList.remove('open');
@@ -2308,19 +2111,6 @@ function setupEventListeners() {
     }
   });
 
-  glossaryModal?.addEventListener('click', (e) => {
-    if (e.target === glossaryModal) {
-      glossaryModal.classList.remove('open');
-      lenisInstance?.start();
-    }
-  });
-
-  specsModal?.addEventListener('click', (e) => {
-    if (e.target === specsModal) {
-      specsModal.classList.remove('open');
-      lenisInstance?.start();
-    }
-  });
 
   adminCmsModal?.addEventListener('click', (e) => {
     if (e.target === adminCmsModal) {
