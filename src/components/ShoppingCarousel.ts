@@ -15,38 +15,26 @@ export interface ShoppingProduct {
 
 export interface ShoppingWidgetConfig {
   enabled: boolean;
-  badgeText: string; // e.g. "LAGI DISKON"
-  partnerText: string; // e.g. "Powered by QUERYINDO"
-  mainTitle: string; // e.g. "REKOMENDASI BARANG PILIHANMU"
+  badgeText: string; // e.g. "⚡ QUERY PICKS"
+  partnerText: string; // e.g. "Kurasi Lab Redaksi"
+  mainTitle: string; // e.g. "RADAR GADGET & HARDWARE PILIHAN"
 }
 
 export class ShoppingCarousel {
-  private static STORAGE_KEY_PRODUCTS = 'queryindo_shopping_products';
-  private static STORAGE_KEY_CONFIG = 'queryindo_shopping_config';
+  private static STORAGE_KEY_PRODUCTS = 'queryindo_shopping_products_v2';
+  private static STORAGE_KEY_CONFIG = 'queryindo_shopping_config_v2';
 
   private static DEFAULT_CONFIG: ShoppingWidgetConfig = {
     enabled: true,
-    badgeText: 'LAGI DISKON',
-    partnerText: 'Powered by QUERYINDO',
-    mainTitle: 'REKOMENDASI BARANG PILIHANMU'
+    badgeText: '⚡ QUERY PICKS',
+    partnerText: 'Kurasi Lab Redaksi',
+    mainTitle: 'RADAR GADGET & HARDWARE PILIHAN'
   };
 
   private static DEFAULT_PRODUCTS: ShoppingProduct[] = [
     {
       id: 'shop-01',
-      title: 'COSI ACTIVE Baju Olahraga Wanita DryFit QuickDry',
-      imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 168.086',
-      discountPrice: 'Rp 79.000',
-      discountPercent: '53%',
-      targetUrl: 'https://shopee.co.id',
-      category: 'Fashion & Sport',
-      isActive: true,
-      clicks: 124
-    },
-    {
-      id: 'shop-02',
-      title: 'POCO C65 (6/128 GB) Baterai 5000mAh Layar 90Hz',
+      title: 'POCO C65 (6/128 GB) 90Hz Display 5000mAh Garansi Resmi',
       imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=400&q=80',
       originalPrice: 'Rp 2.240.000',
       discountPrice: 'Rp 1.899.000',
@@ -57,43 +45,7 @@ export class ShoppingCarousel {
       clicks: 310
     },
     {
-      id: 'shop-03',
-      title: 'Bendera HUT RI 81 Merah Putih Agustusan Satin Super',
-      imageUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 271.107',
-      discountPrice: 'Rp 178.990',
-      discountPercent: '34%',
-      targetUrl: 'https://shopee.co.id',
-      category: 'Peralatan & Dekorasi',
-      isActive: true,
-      clicks: 87
-    },
-    {
-      id: 'shop-04',
-      title: 'Anker Soundcore R50i TWS Bluetooth 5.3 BassBoost IPX5',
-      imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 399.000',
-      discountPrice: 'Rp 195.000',
-      discountPercent: '51%',
-      targetUrl: 'https://tokopedia.com',
-      category: 'Audio & Gadget',
-      isActive: true,
-      clicks: 254
-    },
-    {
-      id: 'shop-05',
-      title: 'ACOME Smartwatch IP68 Waterproof Heart Rate Monitor',
-      imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 599.000',
-      discountPrice: 'Rp 279.000',
-      discountPercent: '53%',
-      targetUrl: 'https://shopee.co.id',
-      category: 'Wearable Tech',
-      isActive: true,
-      clicks: 168
-    },
-    {
-      id: 'shop-06',
+      id: 'shop-02',
       title: 'Keychron K2 V2 Wireless Mechanical Keyboard RGB Hot-Swap',
       imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80',
       originalPrice: 'Rp 1.450.000',
@@ -105,16 +57,52 @@ export class ShoppingCarousel {
       clicks: 195
     },
     {
-      id: 'shop-07',
-      title: 'Baseus Powerbank 20.000mAh 65W Fast Charging PD Laptop',
+      id: 'shop-03',
+      title: 'Anker Soundcore R50i TWS Earbuds Bluetooth 5.3 BassBoost IPX5',
+      imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 399.000',
+      discountPrice: 'Rp 195.000',
+      discountPercent: '51%',
+      targetUrl: 'https://tokopedia.com',
+      category: 'Audio & Gadget',
+      isActive: true,
+      clicks: 254
+    },
+    {
+      id: 'shop-04',
+      title: 'Baseus GaN 65W Fast Charger Multi-Port Laptop & Smartphone',
       imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80',
       originalPrice: 'Rp 650.000',
       discountPrice: 'Rp 389.000',
       discountPercent: '40%',
       targetUrl: 'https://shopee.co.id',
-      category: 'Aksesoris Mobile',
+      category: 'Aksesoris Daya',
       isActive: true,
       clicks: 142
+    },
+    {
+      id: 'shop-05',
+      title: 'ACOME Smartwatch AMOLED Always-On IP68 Waterproof Sport',
+      imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 599.000',
+      discountPrice: 'Rp 279.000',
+      discountPercent: '53%',
+      targetUrl: 'https://shopee.co.id',
+      category: 'Wearable Tech',
+      isActive: true,
+      clicks: 168
+    },
+    {
+      id: 'shop-06',
+      title: 'Logitech MX Master 3S Wireless Ergonomic Mouse Darkfield 8K',
+      imageUrl: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 1.890.000',
+      discountPrice: 'Rp 1.490.000',
+      discountPercent: '21%',
+      targetUrl: 'https://tokopedia.com',
+      category: 'Produktivitas',
+      isActive: true,
+      clicks: 182
     }
   ];
 
@@ -203,81 +191,85 @@ export class ShoppingCarousel {
   }
 
   /**
-   * SVG Mascot Illustration: Cool Blue Smartphone wearing sunglasses, smiling,
-   * carrying bright orange shopping bags with dynamic energy lines.
+   * Original High-Tech Artwork: Holographic Quantum Tech Core & Circuitry Seal.
+   * Completely unique and bespoke for QUERYINDO, eliminating any cartoon resemblance.
    */
-  private static getMascotSVG(): string {
+  private static getTechCoreSVG(): string {
     return `
-      <svg class="shopping-mascot-svg" viewBox="0 0 200 220" width="160" height="175" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Drop Shadow / Glow -->
-        <ellipse cx="105" cy="205" rx="55" ry="9" fill="rgba(0,0,0,0.25)" />
-        
-        <!-- Left Arm Carrying Shopping Bag -->
-        <path d="M60 115 C40 120 28 140 38 160" stroke="#f1f5f9" stroke-width="8" stroke-linecap="round"/>
-        <path d="M38 160 C38 152 48 152 48 160 L54 195 C54 198 48 200 32 200 C26 200 22 198 22 195 L28 160 Z" fill="#ff6b00" />
-        <path d="M30 160 Q38 146 46 160" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <text x="38" y="184" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle" font-family="Arial, sans-serif">Q</text>
-        
-        <!-- Right Leg -->
-        <path d="M125 170 L140 195" stroke="#f1f5f9" stroke-width="8" stroke-linecap="round"/>
-        <!-- Right Shoe (Sneaker) -->
-        <ellipse cx="148" cy="200" rx="14" ry="7" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
-        <path d="M137 200 C137 194 148 194 160 200 L158 203 L137 203 Z" fill="#ff5722"/>
-
-        <!-- Left Leg -->
-        <path d="M85 170 L78 196" stroke="#f1f5f9" stroke-width="8" stroke-linecap="round"/>
-        <!-- Left Shoe (Sneaker) -->
-        <ellipse cx="73" cy="202" rx="14" ry="7" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
-        <path d="M62 202 C62 196 73 196 85 202 L83 205 L62 205 Z" fill="#ff5722"/>
-
-        <!-- Smartphone Body -->
-        <rect x="55" y="30" width="95" height="150" rx="20" fill="url(#phoneGrad)" stroke="#60a5fa" stroke-width="3.5" />
-        <!-- Screen Bezel / Glass Reflection -->
-        <rect x="62" y="38" width="81" height="134" rx="14" fill="#0f172a" />
-        <path d="M64 40 L135 40 L64 120 Z" fill="rgba(255,255,255,0.08)" />
-
-        <!-- Camera Notch / Speaker -->
-        <rect x="90" y="44" width="25" height="4" rx="2" fill="#334155" />
-        <circle cx="102" cy="53" r="2.5" fill="#38bdf8" />
-
-        <!-- Cool Sunglasses -->
-        <!-- Left Lens -->
-        <path d="M68 82 C68 76 83 74 97 78 C97 94 85 98 71 94 C68 91 68 86 68 82 Z" fill="#090d16" stroke="#1e293b" stroke-width="1.5" />
-        <!-- Right Lens -->
-        <path d="M106 79 C120 75 136 78 136 84 C136 88 135 93 131 96 C118 100 106 94 106 79 Z" fill="#090d16" stroke="#1e293b" stroke-width="1.5" />
-        <!-- Sunglasses Bridge -->
-        <path d="M97 80 Q101.5 76 106 81" stroke="#090d16" stroke-width="3.5" stroke-linecap="round" />
-        <!-- Lens Shine / Highlight Reflection -->
-        <path d="M72 82 L86 78 L80 90 Z" fill="rgba(255,255,255,0.4)" />
-        <path d="M110 82 L124 78 L118 90 Z" fill="rgba(255,255,255,0.4)" />
-
-        <!-- Big Happy Mouth with Smile -->
-        <path d="M85 110 Q102 128 120 110" stroke="#f1f5f9" stroke-width="3.5" stroke-linecap="round" fill="#b91c1c" />
-        <path d="M95 118 Q102 125 110 118" fill="#f43f5e" />
-
-        <!-- Rosy Cheeks -->
-        <circle cx="75" cy="112" r="5" fill="rgba(251,113,133,0.6)" />
-        <circle cx="128" cy="112" r="5" fill="rgba(251,113,133,0.6)" />
-
-        <!-- Right Arm Waving Cheerfully -->
-        <path d="M148 105 Q172 90 168 72" stroke="#f1f5f9" stroke-width="8" stroke-linecap="round" />
-        <!-- White Glove Hand -->
-        <circle cx="168" cy="70" r="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-        <circle cx="162" cy="65" r="4.5" fill="#ffffff" />
-        <circle cx="170" cy="62" r="4" fill="#ffffff" />
-
-        <!-- Floating Shopping Badge/Stars -->
-        <path d="M175 42 L178 49 L185 50 L180 55 L181 62 L175 58 L169 62 L170 55 L165 50 L172 49 Z" fill="#fbbf24" />
-        <circle cx="28" cy="95" r="4" fill="#38bdf8" />
-        <circle cx="185" cy="120" r="3" fill="#f43f5e" />
-
+      <svg class="shopping-tech-core-svg" viewBox="0 0 200 180" width="165" height="150" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="phoneGrad" x1="55" y1="30" x2="150" y2="180" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#3b82f6" />
-            <stop offset="50%" stop-color="#1d4ed8" />
-            <stop offset="100%" stop-color="#1e3a8a" />
+          <!-- Core Radial Glow -->
+          <radialGradient id="qCoreGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.4" />
+            <stop offset="60%" stop-color="#3b82f6" stop-opacity="0.15" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+          </radialGradient>
+
+          <!-- Hologram Hex Core Gradient -->
+          <linearGradient id="qHexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00f2fe" />
+            <stop offset="50%" stop-color="#3b82f6" />
+            <stop offset="100%" stop-color="#8b5cf6" />
+          </linearGradient>
+
+          <!-- Plate Gradient -->
+          <linearGradient id="qPlateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1e293b" />
+            <stop offset="100%" stop-color="#0f172a" />
           </linearGradient>
         </defs>
+
+        <!-- Ambient Glow -->
+        <circle cx="100" cy="90" r="75" fill="url(#qCoreGlow)" />
+
+        <!-- Circuit Trace Lines -->
+        <g stroke="rgba(0, 242, 254, 0.4)" stroke-width="1.5" stroke-linecap="round">
+          <!-- Left circuits -->
+          <path d="M20 90 L60 90 L75 75" />
+          <circle cx="20" cy="90" r="3" fill="#00f2fe" />
+          <path d="M35 120 L65 120 L80 105" />
+          <circle cx="35" cy="120" r="2.5" fill="#38bdf8" />
+          <path d="M30 60 L60 60 L75 75" />
+          <circle cx="30" cy="60" r="2.5" fill="#38bdf8" />
+
+          <!-- Right circuits -->
+          <path d="M180 90 L140 90 L125 105" />
+          <circle cx="180" cy="90" r="3" fill="#00f2fe" />
+          <path d="M165 60 L135 60 L120 75" />
+          <circle cx="165" cy="60" r="2.5" fill="#38bdf8" />
+          <path d="M170 120 L140 120 L125 105" />
+          <circle cx="170" cy="120" r="2.5" fill="#38bdf8" />
+        </g>
+
+        <!-- Outer Tech Ring -->
+        <circle cx="100" cy="90" r="54" stroke="rgba(0, 242, 254, 0.3)" stroke-width="1.5" stroke-dasharray="4 6" />
+        <circle cx="100" cy="90" r="46" stroke="rgba(59, 130, 246, 0.5)" stroke-width="2" />
+
+        <!-- Isometric Quantum Tech Hexagon Platform -->
+        <polygon points="100,50 135,70 135,110 100,130 65,110 65,70" fill="url(#qPlateGrad)" stroke="url(#qHexGrad)" stroke-width="2.5" />
+
+        <!-- Inner Chip Die Core -->
+        <rect x="84" y="74" width="32" height="32" rx="6" fill="#090d16" stroke="#00f2fe" stroke-width="2" />
+        
+        <!-- QueryIndo Tech "Q" Hologram Emblem -->
+        <path d="M100 81 C94.5 81 90 85.5 90 91 C90 96.5 94.5 101 100 101 C102.2 101 104.2 100.2 105.8 99 L109 103 L111 101 L108 97 C109.2 95.3 110 93.2 110 91 C110 85.5 105.5 81 100 81 Z M100 85 C103.3 85 106 87.7 106 91 C106 94.3 103.3 97 100 97 C96.7 97 94 94.3 94 91 C94 87.7 96.7 85 100 85 Z" fill="#00f2fe" />
+
+        <!-- Floating Pulse Nodes -->
+        <circle cx="100" cy="42" r="3.5" fill="#00f2fe">
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="145" cy="90" r="3.5" fill="#3b82f6">
+          <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="55" cy="90" r="3.5" fill="#3b82f6">
+          <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+
+        <!-- Laser Scan Line -->
+        <line x1="72" y1="90" x2="128" y2="90" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" opacity="0.8">
+          <animate attributeName="y1" values="65;115;65" dur="3s" repeatCount="indefinite" />
+          <animate attributeName="y2" values="65;115;65" dur="3s" repeatCount="indefinite" />
+        </line>
       </svg>
     `;
   }
@@ -297,24 +289,26 @@ export class ShoppingCarousel {
         <div class="shopping-banner-wrapper">
           <!-- Ambient Background Effects -->
           <div class="shopping-bg-glow"></div>
-          <div class="shopping-bg-stripes"></div>
+          <div class="shopping-bg-grid"></div>
 
-          <!-- Left Column: Branding, Title & Mascot -->
+          <!-- Left Column: Tech Branding, Title & Holographic Core -->
           <div class="shopping-brand-col">
             <div class="shopping-tag-badge">
-              <span class="shopping-tag-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.79 2.29a2.5 2.5 0 0 0-3.54 0L2.29 9.25a2.5 2.5 0 0 0 0 3.54l6.96 6.96a2.5 2.5 0 0 0 3.54 0l6.96-6.96a2.5 2.5 0 0 0 0-3.54l-6.96-6.96zM7.5 9A1.5 1.5 0 1 1 9 7.5 1.5 1.5 0 0 1 7.5 9z"/></svg>
-              </span>
-              <span class="shopping-tag-label">${config.badgeText || 'LAGI DISKON'}</span>
-              <span class="shopping-powered-by">${config.partnerText || 'Powered by QUERYINDO'}</span>
+              <span class="shopping-tag-icon">⚡</span>
+              <span class="shopping-tag-label">${config.badgeText || 'QUERY PICKS'}</span>
+              <span class="shopping-powered-by">${config.partnerText || 'Kurasi Lab Redaksi'}</span>
             </div>
 
             <h3 class="shopping-main-title">
-              ${config.mainTitle || 'REKOMENDASI BARANG PILIHANMU'}
+              ${config.mainTitle || 'RADAR GADGET & HARDWARE PILIHAN'}
             </h3>
 
-            <div class="shopping-mascot-container">
-              ${this.getMascotSVG()}
+            <p class="shopping-main-desc">
+              Kurasi perangkat cerdas, aksesoris produktivitas, dan penawaran terverifikasi oleh lab QueryIndo.
+            </p>
+
+            <div class="shopping-tech-core-container">
+              ${this.getTechCoreSVG()}
             </div>
           </div>
 
@@ -322,7 +316,7 @@ export class ShoppingCarousel {
           <div class="shopping-slider-col">
             <!-- Navigation Left Button -->
             <button class="shopping-nav-btn shopping-nav-prev" id="btn-shop-prev" aria-label="Geser ke kiri" title="Produk Sebelumnya">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
@@ -334,7 +328,7 @@ export class ShoppingCarousel {
 
             <!-- Navigation Right Button -->
             <button class="shopping-nav-btn shopping-nav-next" id="btn-shop-next" aria-label="Geser ke kanan" title="Produk Selanjutnya">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
@@ -349,18 +343,21 @@ export class ShoppingCarousel {
    */
   private static renderProductCardHTML(product: ShoppingProduct): string {
     const directUrl = ImageUtils.normalizeImageUrl(product.imageUrl);
-    const fallbackSvg = ImageUtils.getInitialsAvatar(product.title, '#ff9800');
+    const fallbackSvg = ImageUtils.getInitialsAvatar(product.title, '#00f2fe');
 
     return `
       <div class="shopping-product-card" data-product-id="${product.id}">
-        <!-- Discount Tag Badge -->
-        ${product.discountPercent ? `
-          <div class="shop-badge-discount">
-            ${product.discountPercent.includes('%') ? product.discountPercent : `${product.discountPercent}%`}
-          </div>
-        ` : ''}
+        <!-- Category Pill & Discount Tag -->
+        <div class="shop-card-top-row">
+          <span class="shop-card-category-tag">${product.category || 'GEAR'}</span>
+          ${product.discountPercent ? `
+            <span class="shop-badge-discount">
+              ${product.discountPercent.includes('%') ? product.discountPercent : `${product.discountPercent}%`}
+            </span>
+          ` : ''}
+        </div>
 
-        <!-- Product Image -->
+        <!-- Product Image Frame -->
         <div class="shop-card-img-wrap">
           <img 
             src="${directUrl || fallbackSvg}" 
@@ -392,7 +389,8 @@ export class ShoppingCarousel {
             class="btn-shop-buy"
             data-product-id="${product.id}"
           >
-            Beli
+            <span>Cek Promo</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
           </a>
         </div>
       </div>
@@ -408,7 +406,7 @@ export class ShoppingCarousel {
     const btnNext = container.querySelector('#btn-shop-next') as HTMLButtonElement;
 
     if (track && btnPrev && btnNext) {
-      const scrollStep = 240;
+      const scrollStep = 220;
 
       btnPrev.addEventListener('click', () => {
         track.scrollBy({ left: -scrollStep, behavior: 'smooth' });
@@ -420,8 +418,8 @@ export class ShoppingCarousel {
 
       // Update button visibility based on scroll position
       const updateNavVisibility = () => {
-        const atStart = track.scrollLeft <= 10;
-        const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+        const atStart = track.scrollLeft <= 8;
+        const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
         
         btnPrev.style.opacity = atStart ? '0.3' : '1';
         btnPrev.style.pointerEvents = atStart ? 'none' : 'auto';
@@ -431,7 +429,6 @@ export class ShoppingCarousel {
       };
 
       track.addEventListener('scroll', updateNavVisibility, { passive: true });
-      // Trigger once on init
       setTimeout(updateNavVisibility, 150);
     }
 
