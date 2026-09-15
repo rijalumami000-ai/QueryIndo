@@ -36,73 +36,73 @@ export class ShoppingCarousel {
   private static DEFAULT_PRODUCTS: ShoppingProduct[] = [
     {
       id: 'shop-01',
-      title: 'POCO C65 (6/128 GB) 90Hz Display 5000mAh Garansi Resmi',
-      imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 2.240.000',
-      discountPrice: 'Rp 1.899.000',
-      discountPercent: '15%',
-      targetUrl: 'https://tokopedia.com',
-      category: 'Gadget & Smartphone',
+      title: 'EMBA Perfume - Reef EDP 30ml',
+      imageUrl: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 199.000',
+      discountPrice: 'Rp 79.900',
+      discountPercent: '60%',
+      targetUrl: 'https://shopee.co.id',
+      category: 'BEAUTY & PERSONAL CARE',
       isActive: true,
       clicks: 310
     },
     {
       id: 'shop-02',
+      title: 'MODOFO Tumbler Stainless 710ml Botol Minum Termos',
+      imageUrl: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 98.000',
+      discountPrice: 'Rp 37.385',
+      discountPercent: '61%',
+      targetUrl: 'https://shopee.co.id',
+      category: 'HOME & LIVING',
+      isActive: true,
+      clicks: 195
+    },
+    {
+      id: 'shop-03',
+      title: 'Sepatu Reebok classic premium sepatu sneakers',
+      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 310.000',
+      discountPrice: 'Rp 150.351',
+      discountPercent: '51%',
+      targetUrl: 'https://tokopedia.com',
+      category: 'FASHION',
+      isActive: true,
+      clicks: 254
+    },
+    {
+      id: 'shop-04',
+      title: 'KING LUCKY M11 Portable Fan Turbo Kipas USB Mini',
+      imageUrl: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 90.000',
+      discountPrice: 'Rp 39.004',
+      discountPercent: '56%',
+      targetUrl: 'https://shopee.co.id',
+      category: 'GADGET & TECH',
+      isActive: true,
+      clicks: 142
+    },
+    {
+      id: 'shop-05',
+      title: 'IP13 256GB FULLSET MULUS Garansi Resmi',
+      imageUrl: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?auto=format&fit=crop&w=400&q=80',
+      originalPrice: 'Rp 3.999.000',
+      discountPrice: 'Rp 2.999.000',
+      discountPercent: '25%',
+      targetUrl: 'https://tokopedia.com',
+      category: 'GADGET & TECH',
+      isActive: true,
+      clicks: 168
+    },
+    {
+      id: 'shop-06',
       title: 'Keychron K2 V2 Wireless Mechanical Keyboard RGB Hot-Swap',
       imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80',
       originalPrice: 'Rp 1.450.000',
       discountPrice: 'Rp 1.087.000',
       discountPercent: '25%',
       targetUrl: 'https://tokopedia.com',
-      category: 'PC & Peripherals',
-      isActive: true,
-      clicks: 195
-    },
-    {
-      id: 'shop-03',
-      title: 'Anker Soundcore R50i TWS Earbuds Bluetooth 5.3 BassBoost IPX5',
-      imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 399.000',
-      discountPrice: 'Rp 195.000',
-      discountPercent: '51%',
-      targetUrl: 'https://tokopedia.com',
-      category: 'Audio & Gadget',
-      isActive: true,
-      clicks: 254
-    },
-    {
-      id: 'shop-04',
-      title: 'Baseus GaN 65W Fast Charger Multi-Port Laptop & Smartphone',
-      imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 650.000',
-      discountPrice: 'Rp 389.000',
-      discountPercent: '40%',
-      targetUrl: 'https://shopee.co.id',
-      category: 'Aksesoris Daya',
-      isActive: true,
-      clicks: 142
-    },
-    {
-      id: 'shop-05',
-      title: 'ACOME Smartwatch AMOLED Always-On IP68 Waterproof Sport',
-      imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 599.000',
-      discountPrice: 'Rp 279.000',
-      discountPercent: '53%',
-      targetUrl: 'https://shopee.co.id',
-      category: 'Wearable Tech',
-      isActive: true,
-      clicks: 168
-    },
-    {
-      id: 'shop-06',
-      title: 'Logitech MX Master 3S Wireless Ergonomic Mouse Darkfield 8K',
-      imageUrl: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=400&q=80',
-      originalPrice: 'Rp 1.890.000',
-      discountPrice: 'Rp 1.490.000',
-      discountPercent: '21%',
-      targetUrl: 'https://tokopedia.com',
-      category: 'Produktivitas',
+      category: 'PC & PERIPHERALS',
       isActive: true,
       clicks: 182
     }
@@ -133,7 +133,7 @@ export class ShoppingCarousel {
         if (serverData.config) {
           localStorage.setItem(this.STORAGE_KEY_CONFIG, JSON.stringify(serverData.config));
         }
-        if (Array.isArray(serverData.products)) {
+        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
           localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(serverData.products));
         }
       }
@@ -145,20 +145,22 @@ export class ShoppingCarousel {
   public static getProducts(): ShoppingProduct[] {
     const raw = localStorage.getItem(this.STORAGE_KEY_PRODUCTS);
     if (raw === null) {
-      return [];
+      this.saveProducts(this.DEFAULT_PRODUCTS);
+      return this.DEFAULT_PRODUCTS;
     }
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-      return [];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      return this.DEFAULT_PRODUCTS;
     } catch {
-      return [];
+      return this.DEFAULT_PRODUCTS;
     }
   }
 
   public static saveProducts(products: ShoppingProduct[]): void {
     localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(products));
   }
+
 
   public static addProduct(data: Omit<ShoppingProduct, 'id' | 'clicks'>): ShoppingProduct {
     const products = this.getProducts();
@@ -385,6 +387,7 @@ export class ShoppingCarousel {
             alt="${product.title}" 
             class="shop-card-img"
             loading="lazy"
+            referrerpolicy="no-referrer"
             onerror="this.onerror=null; this.src='${fallbackSvg}';"
           />
         </div>

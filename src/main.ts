@@ -1329,26 +1329,32 @@ function setupReaderControls(article: Article) {
 
 
 
-  // Article Like Button Handler (Enforces Logged-in Reader)
-  const likeBtn = document.getElementById('btn-like-article');
+  // Article Like Button Handler (Enforces Strict 1-Account 1-Like Toggle)
+  const likeBtn = document.getElementById('btn-like-article') as HTMLButtonElement | null;
   if (likeBtn) {
-    likeBtn.addEventListener('click', () => {
+    likeBtn.addEventListener('click', async () => {
       // Must be logged in as reader to like articles
       if (!ReaderAuthService.isReaderLoggedIn()) {
-        Toast.show(preferences.language === 'en' ? 'Please log in to like this article.' : 'Silakan login terlebih dahulu untuk menyukai artikel ini.', 'warning');
+        Toast.show(preferences.language === 'en' ? 'Please sign in with Google to like this article.' : 'Silakan login dengan Akun Google terlebih dahulu untuk menyukai artikel ini.', 'warning');
         openUserAuthModal();
         return;
       }
 
+      const currentReader = ReaderAuthService.getCurrentReader();
+      const readerId = currentReader?.email || currentReader?.id;
+
+      likeBtn.disabled = true;
+
       const isCurrentlyLiked = preferences.likedArticleIds.includes(article.id);
       if (!isCurrentlyLiked) {
-        preferences.likedArticleIds.push(article.id);
+        // 1. LIKE ARTICLE
+        preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, article.id]));
         localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
         ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
 
         likeBtn.classList.add('active');
-        (likeBtn as HTMLElement).style.color = 'var(--accent-red)';
-        (likeBtn as HTMLElement).style.borderColor = 'var(--accent-red)';
+        likeBtn.style.color = 'var(--accent-red)';
+        likeBtn.style.borderColor = 'var(--accent-red)';
         const svg = likeBtn.querySelector('svg');
         if (svg) svg.setAttribute('fill', 'currentColor');
 
@@ -1356,28 +1362,45 @@ function setupReaderControls(article: Article) {
         const counter = document.getElementById('reader-like-counter');
         if (counter) counter.textContent = String(article.likesCount);
 
-        ApiService.likeArticle(article.id).then(newCount => {
+        try {
+          const newCount = await ApiService.likeArticle(article.id, 'like', readerId);
           if (typeof newCount === 'number') {
             article.likesCount = newCount;
             if (counter) counter.textContent = String(newCount);
           }
-        });
-        Toast.show(preferences.language === 'en' ? 'Article liked! Thank you.' : 'Artikel disukai! Terima kasih atas apresiasi Anda.');
+        } catch {}
+
+        Toast.show(preferences.language === 'en' ? 'Article liked! Thank you for your support.' : 'Artikel disukai! Terima kasih atas apresiasi Anda.');
       } else {
+        // 2. UNLIKE ARTICLE (Single Like Removal)
         preferences.likedArticleIds = preferences.likedArticleIds.filter(id => id !== article.id);
         localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
         ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
 
         likeBtn.classList.remove('active');
-        (likeBtn as HTMLElement).style.color = '';
-        (likeBtn as HTMLElement).style.borderColor = '';
+        likeBtn.style.color = '';
+        likeBtn.style.borderColor = '';
         const svg = likeBtn.querySelector('svg');
         if (svg) svg.setAttribute('fill', 'none');
 
         article.likesCount = Math.max(0, (article.likesCount || 0) - 1);
         const counter = document.getElementById('reader-like-counter');
         if (counter) counter.textContent = String(article.likesCount);
+
+        try {
+          const newCount = await ApiService.likeArticle(article.id, 'unlike', readerId);
+          if (typeof newCount === 'number') {
+            article.likesCount = newCount;
+            if (counter) counter.textContent = String(newCount);
+          }
+        } catch {}
+
+        Toast.show(preferences.language === 'en' ? 'Like removed.' : 'Apresiasi suka dibatalkan.');
       }
+
+      setTimeout(() => {
+        if (likeBtn) likeBtn.disabled = false;
+      }, 350);
     });
   }
 
@@ -1990,7 +2013,7 @@ function renderGoogleAuthModalHTML() {
       <button 
         id="btn-google-oauth-launch"
         type="button"
-        style="width: 100%; padding: 0.85rem 1.25rem; background: #ffffff; color: #1f2937; font-weight: 700; font-size: 0.95rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;"
+        style="width: 100%; padding: 0.9rem 1.25rem; background: #ffffff; color: #1f2937; font-weight: 700; font-size: 0.95rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;"
       >
         <svg width="20" height="20" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -2001,67 +2024,14 @@ function renderGoogleAuthModalHTML() {
         <span id="btn-google-oauth-text">Lanjutkan dengan Google</span>
       </button>
 
-      <!-- Instant Login Fallback Option -->
-      <div style="margin-top: 1rem;">
-        <button 
-          id="btn-toggle-instant-email" 
-          type="button" 
-          style="background: none; border: none; color: var(--text-muted); font-size: 0.78rem; text-decoration: underline; cursor: pointer; padding: 0.25rem 0.5rem;"
-        >
-          Masuk cepat dengan alamat email →
-        </button>
-      </div>
-
-      <div id="instant-email-box" style="display: none; margin-top: 0.85rem; padding: 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: left;">
-        <form id="form-instant-email" style="display: flex; flex-direction: column; gap: 0.6rem;">
-          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Masukkan Email Akun Google:</label>
-          <input type="email" id="input-instant-email" required placeholder="nama@gmail.com" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.825rem; box-sizing: border-box;" />
-          <button type="submit" style="padding: 0.55rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.8rem; border: none; border-radius: var(--radius-sm); cursor: pointer;">
-            Masuk Langsung Sekarang
-          </button>
-        </form>
-      </div>
-
       <!-- Google Policy Disclosure -->
-      <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">
-        Dengan melanjutkan, preferensi baca dan artikel tersimpan Anda akan disinkronkan secara otomatis di akun Anda.
+      <div style="margin-top: 1.5rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">
+        Dengan melanjutkan, preferensi baca, apresiasi suka, dan artikel tersimpan Anda akan disinkronkan secara otomatis dan aman di akun Google Anda.
       </div>
     </div>
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
-
-  // Toggle Instant Email Form
-  const toggleInstant = userAuthContainer.querySelector('#btn-toggle-instant-email');
-  const instantBox = userAuthContainer.querySelector('#instant-email-box') as HTMLElement;
-  toggleInstant?.addEventListener('click', () => {
-    if (instantBox) {
-      const isHidden = instantBox.style.display === 'none';
-      instantBox.style.display = isHidden ? 'block' : 'none';
-      if (isHidden) {
-        (instantBox.querySelector('#input-instant-email') as HTMLInputElement)?.focus();
-      }
-    }
-  });
-
-  // Handle Instant Email Form Submit
-  const instantForm = userAuthContainer.querySelector('#form-instant-email') as HTMLFormElement;
-  instantForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = (instantForm.querySelector('#input-instant-email') as HTMLInputElement)?.value.trim();
-    if (!email) return;
-
-    const res = ReaderAuthService.loginWithGoogle(email);
-    preferences.savedArticleIds = res.user.savedArticles || [];
-    if (res.user.likedArticles) {
-      preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, ...res.user.likedArticles]));
-      localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
-    }
-    updateBookmarkBadge();
-    updateUserNavbarState();
-    Toast.show(res.message);
-    closeUserAuthModal();
-  });
 
   // Bind 1-Click Launch Button
   const launchBtn = userAuthContainer.querySelector('#btn-google-oauth-launch') as HTMLButtonElement;
@@ -2085,9 +2055,6 @@ function renderGoogleAuthModalHTML() {
       closeUserAuthModal();
     } catch (err: any) {
       Toast.show(err.message || 'Gagal login dengan Google.');
-      if (instantBox) {
-        instantBox.style.display = 'block';
-      }
     } finally {
       if (launchBtn) launchBtn.disabled = false;
       if (launchText) launchText.textContent = 'Lanjutkan dengan Google';

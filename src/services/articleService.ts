@@ -1,4 +1,5 @@
 import type { Article } from '../types/news';
+import { ARTICLES } from '../data/mockNews';
 import { ApiService } from './apiService';
 import { ImageUtils } from '../utils/imageUtils';
 
@@ -19,34 +20,38 @@ export class ArticleService {
   private static cachedArticles: Article[] | null = null;
 
   public static getArticles(): Article[] {
-    if (this.cachedArticles !== null) {
+    if (this.cachedArticles !== null && this.cachedArticles.length > 0) {
       return this.cachedArticles;
     }
 
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) {
-      this.cachedArticles = [];
+      this.cachedArticles = [...ARTICLES];
+      this.saveArticles(this.cachedArticles);
       return this.cachedArticles;
     }
 
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         this.cachedArticles = parsed
           .filter(a => a && a.id && !DUMMY_IDS.has(a.id))
           .map(a => ({
             ...a,
             imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
           }));
-        return this.cachedArticles;
+        if (this.cachedArticles.length > 0) {
+          return this.cachedArticles;
+        }
       }
-      this.cachedArticles = [];
+      this.cachedArticles = [...ARTICLES];
       return this.cachedArticles;
     } catch {
-      this.cachedArticles = [];
+      this.cachedArticles = [...ARTICLES];
       return this.cachedArticles;
     }
   }
+
 
   public static saveArticles(articles: Article[]): void {
     const cleanArticles = (articles || [])

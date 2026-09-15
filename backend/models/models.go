@@ -190,4 +190,10 @@ type SocialLink struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-
+// ArticleLike Model (Tracks reader likes to enforce exactly 1 like per account/device)
+type ArticleLike struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	ArticleID string    `gorm:"index;not null" json:"articleId"`
+	ReaderID  string    `gorm:"index;not null" json:"readerId"`
+	CreatedAt time.Time `json:"createdAt"`
+}

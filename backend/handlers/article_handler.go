@@ -204,13 +204,42 @@ func LikeArticle(c *fiber.Ctx) error {
 		})
 	}
 
+	type LikePayload struct {
+		Action   string `json:"action"`   // "like" or "unlike"
+		ReaderID string `json:"readerId"` // Reader email / Google ID
+	}
+
+	var payload LikePayload
+	_ = c.BodyParser(&payload)
+
+	readerID := payload.ReaderID
+	if readerID == "" {
+		readerID = c.IP()
+	}
+
+	action := payload.Action
+	if action == "" {
+		action = "like"
+	}
+
 	if database.DB != nil {
-		if err := database.DB.Model(&models.Article{}).Where("id = ?", id).UpdateColumn("likes_count", gorm.Expr("likes_count + ?", 1)).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"success": false,
-				"message": "Gagal menyukai artikel",
-				"error":   err.Error(),
-			})
+		var existingLike models.ArticleLike
+		err := database.DB.Where("article_id = ? AND reader_id = ?", id, readerID).First(&existingLike).Error
+
+		if action == "like" {
+			if err != nil { // Not liked yet by this reader -> record like and increment
+				database.DB.Create(&models.ArticleLike{
+					ArticleID: id,
+					ReaderID:  readerID,
+					CreatedAt: time.Now(),
+				})
+				database.DB.Model(&models.Article{}).Where("id = ?", id).UpdateColumn("likes_count", gorm.Expr("likes_count + ?", 1))
+			}
+		} else if action == "unlike" {
+			if err == nil { // Already liked by this reader -> remove like and decrement
+				database.DB.Where("article_id = ? AND reader_id = ?", id, readerID).Delete(&models.ArticleLike{})
+				database.DB.Model(&models.Article{}).Where("id = ? AND likes_count > 0", id).UpdateColumn("likes_count", gorm.Expr("likes_count - ?", 1))
+			}
 		}
 	}
 
@@ -221,7 +250,7 @@ func LikeArticle(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success":    true,
-		"message":    "Artikel berhasil disukai",
+		"message":    "Status apresiasi artikel berhasil diperbarui",
 		"likesCount": article.LikesCount,
 	})
 }

@@ -540,10 +540,14 @@ export class ApiService {
   // =========================================================================
   // Article Engagement (Likes & Views Counter)
   // =========================================================================
-  public static async likeArticle(id: string): Promise<number | null> {
+  public static async likeArticle(id: string, action: 'like' | 'unlike' = 'like', readerId?: string): Promise<number | null> {
     if (this.isBackendAvailable) {
       try {
-        const res = await fetch(`${API_BASE_URL}/articles/${id}/like`, { method: 'POST' });
+        const res = await fetch(`${API_BASE_URL}/articles/${id}/like`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, readerId })
+        });
         if (res.ok) {
           const json = await res.json();
           if (json.success && typeof json.likesCount === 'number') {
@@ -556,6 +560,7 @@ export class ApiService {
     }
     return null;
   }
+
 
   public static async viewArticle(id: string): Promise<number | null> {
     if (this.isBackendAvailable) {
