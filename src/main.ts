@@ -988,6 +988,10 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
   SeoService.setArticleSEO(article);
 
   const isBookmarked = preferences.savedArticleIds.includes(article.id);
+  const isLiked = preferences.likedArticleIds.includes(article.id);
+
+  // Record article view counter to PostgreSQL server in background
+  ApiService.viewArticle(article.id).catch(() => {});
 
   // Article Content Body
   const articleBody = article.content;
@@ -1103,9 +1107,13 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
       </div>
     ` : ''}
 
-    <!-- Action Bar (Bookmarks, Share) -->
+    <!-- Action Bar (Likes, Bookmarks, Share) -->
     <div class="reader-action-bar">
-      <div style="display:flex; gap:0.75rem;">
+      <div style="display:flex; gap:0.75rem; align-items:center;">
+        <button class="btn-action ${isLiked ? 'active' : ''}" id="btn-like-article" style="display:flex; align-items:center; gap:0.45rem; ${isLiked ? 'color:var(--accent-red); border-color:var(--accent-red);' : ''}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span id="reader-like-counter">${article.likesCount || 0}</span>
+        </button>
         <button class="btn-action" id="btn-bookmark-article">
           <span>${isBookmarked ? t('bookmarkedBtn') : t('bookmarkBtn')}</span>
         </button>
@@ -1212,6 +1220,47 @@ function setupReaderControls(article: Article) {
   });
 
 
+
+  // Article Like Button Handler (with Server Sync)
+  const likeBtn = document.getElementById('btn-like-article');
+  if (likeBtn) {
+    likeBtn.addEventListener('click', () => {
+      const isCurrentlyLiked = preferences.likedArticleIds.includes(article.id);
+      if (!isCurrentlyLiked) {
+        preferences.likedArticleIds.push(article.id);
+        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+        likeBtn.classList.add('active');
+        (likeBtn as HTMLElement).style.color = 'var(--accent-red)';
+        (likeBtn as HTMLElement).style.borderColor = 'var(--accent-red)';
+        const svg = likeBtn.querySelector('svg');
+        if (svg) svg.setAttribute('fill', 'currentColor');
+
+        article.likesCount = (article.likesCount || 0) + 1;
+        const counter = document.getElementById('reader-like-counter');
+        if (counter) counter.textContent = String(article.likesCount);
+
+        ApiService.likeArticle(article.id).then(newCount => {
+          if (typeof newCount === 'number') {
+            article.likesCount = newCount;
+            if (counter) counter.textContent = String(newCount);
+          }
+        });
+        Toast.show(preferences.language === 'en' ? 'Article liked! Thank you.' : 'Artikel disukai! Terima kasih atas apresiasi Anda.');
+      } else {
+        preferences.likedArticleIds = preferences.likedArticleIds.filter(id => id !== article.id);
+        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+        likeBtn.classList.remove('active');
+        (likeBtn as HTMLElement).style.color = '';
+        (likeBtn as HTMLElement).style.borderColor = '';
+        const svg = likeBtn.querySelector('svg');
+        if (svg) svg.setAttribute('fill', 'none');
+
+        article.likesCount = Math.max(0, (article.likesCount || 0) - 1);
+        const counter = document.getElementById('reader-like-counter');
+        if (counter) counter.textContent = String(article.likesCount);
+      }
+    });
+  }
 
   // Bookmark Button Handler
   const bookmarkBtn = document.getElementById('btn-bookmark-article');

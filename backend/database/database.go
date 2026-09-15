@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"byteindonesia/backend/models"
 
@@ -69,6 +70,7 @@ func ConnectDB() (*gorm.DB, error) {
 		&models.ShoppingProduct{},
 		&models.ShoppingConfig{},
 		&models.PollData{},
+		&models.Comment{},
 	)
 	if err != nil {
 		log.Printf("⚠️ AutoMigrate Error: %v", err)
@@ -342,6 +344,53 @@ func seedDefaultCMSData(db *gorm.DB) {
 		} else {
 			log.Printf("⚠️ Gagal unmarshal default articles JSON: %v\n", err)
 		}
+	}
+
+	// 7. Seed Default Comments
+	var commentCount int64
+	db.Model(&models.Comment{}).Count(&commentCount)
+	if commentCount == 0 {
+		pid1 := "cmt-1"
+		defaultComments := []models.Comment{
+			{
+				ID:         "cmt-1",
+				ArticleID:  "art-001",
+				AuthorName: "Dr. Irvan Kurniawan",
+				AuthorRole: "AI Infrastructure Researcher",
+				Avatar:     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+				Content:    "Pembangunan superkomputer AI di IKN ini adalah tonggak besar kedaulatan komputasi nasional. Yang krusial sekarang adalah kesiapan talenta lokal dan keterbukaan akses API untuk kampus riset dan startup dalam negeri.",
+				LikesCount: 14,
+				CreatedAt:  time.Now().Add(-2 * time.Hour),
+				UpdatedAt:  time.Now().Add(-2 * time.Hour),
+			},
+			{
+				ID:         "cmt-1-1",
+				ArticleID:  "art-001",
+				AuthorName: "Dimas Wicaksono",
+				AuthorRole: "Cloud Architect",
+				Avatar:     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
+				Content:    "Sepakat Pak Irvan. Efisiensi PUE data center hijau IKN dengan sumber hidro dan surya juga akan menekan OPEX pelatihan model LLM Bahasa Indonesia.",
+				LikesCount: 6,
+				ParentID:   &pid1,
+				CreatedAt:  time.Now().Add(-45 * time.Minute),
+				UpdatedAt:  time.Now().Add(-45 * time.Minute),
+			},
+			{
+				ID:         "cmt-2",
+				ArticleID:  "art-001",
+				AuthorName: "Sarah Alatas",
+				AuthorRole: "Tech VC Partner",
+				Avatar:     "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80",
+				Content:    "Investasi kluster GPU H200 di Asia Tenggara sedang sangat kompetitif. Langkah Indonesia ini tepat waktu sebelum tertinggal dari Singapura dan Malaysia.",
+				LikesCount: 9,
+				CreatedAt:  time.Now().Add(-4 * time.Hour),
+				UpdatedAt:  time.Now().Add(-4 * time.Hour),
+			},
+		}
+		for _, cmt := range defaultComments {
+			db.Create(&cmt)
+		}
+		log.Println("🌱 Seed Komentar Pembaca default berhasil!")
 	}
 }
 

@@ -1,5 +1,6 @@
 import { Toast } from '../utils/toast';
 import { ReaderAuthService } from '../services/authService';
+import { ApiService } from '../services/apiService';
 
 export interface CommentItem {
   id: string;
@@ -156,6 +157,10 @@ export class ReaderComments {
     findAndUpdate(comments);
     this.saveComments(articleId, comments);
 
+    if (newIsLiked) {
+      ApiService.likeComment(commentId).catch(() => {});
+    }
+
     return { isLiked: newIsLiked, newCount: updatedCount };
   }
 
@@ -205,6 +210,23 @@ export class ReaderComments {
     }
 
     this.saveComments(articleId, comments);
+
+    // Persist to PostgreSQL backend in background
+    ApiService.postComment(articleId, {
+      authorName: newComment.authorName,
+      authorRole: newComment.authorRole,
+      avatar: newComment.avatar,
+      content: newComment.content,
+      parentId: newComment.parentId
+    }).then(serverComment => {
+      if (serverComment && serverComment.id) {
+        newComment.id = serverComment.id;
+        this.saveComments(articleId, comments);
+      }
+    }).catch(err => {
+      console.warn('Gagal sinkronisasi komentar ke server:', err);
+    });
+
     return newComment;
   }
 
@@ -414,6 +436,9 @@ export class ReaderComments {
     const root = container.querySelector('#comments-section-root') as HTMLElement;
     if (!root) return;
 
+    // Background sync from PostgreSQL server
+    this.syncCommentsWithServer(container, articleId, lang, onCountChange);
+
     // 1. Google Login CTA Button (if unauthenticated)
     const loginBtn = root.querySelector('#btn-login-to-comment');
     loginBtn?.addEventListener('click', async () => {
@@ -589,6 +614,24 @@ export class ReaderComments {
 
     if (onCountChange) {
       onCountChange(totalCount);
+    }
+  }
+
+  // Background sync from PostgreSQL server
+  public static async syncCommentsWithServer(
+    container: HTMLElement, 
+    articleId: string, 
+    lang: 'id' | 'en',
+    onCountChange?: (count: number) => void
+  ): Promise<void> {
+    try {
+      const serverComments = await ApiService.getComments(articleId);
+      if (serverComments && Array.isArray(serverComments) && serverComments.length > 0) {
+        this.saveComments(articleId, serverComments);
+        this.refreshCommentsView(container, articleId, lang, onCountChange);
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi komentar dari server:', err);
     }
   }
 }

@@ -2,6 +2,7 @@ import type { Article, TechIndexItem, AuthorProfile } from '../types/news';
 import type { AdCampaign } from '../components/AdBanner';
 import type { ShoppingProduct, ShoppingWidgetConfig } from '../components/ShoppingCarousel';
 import type { PollData } from '../components/ReaderPoll';
+import type { CommentItem } from '../components/ReaderComments';
 import { ARTICLES, TECH_INDEXES } from '../data/mockNews';
 import { AuthService } from './authService';
 
@@ -533,6 +534,122 @@ export class ApiService {
       }
     }
     return null;
+  }
+
+  // =========================================================================
+  // Article Engagement (Likes & Views Counter)
+  // =========================================================================
+  public static async likeArticle(id: string): Promise<number | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${id}/like`, { method: 'POST' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && typeof json.likesCount === 'number') {
+            return json.likesCount;
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal sinkronisasi like artikel ke server:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async viewArticle(id: string): Promise<number | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${id}/view`, { method: 'POST' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && typeof json.viewsCount === 'number') {
+            return json.viewsCount;
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal mencatat view artikel ke server:', err);
+      }
+    }
+    return null;
+  }
+
+  // =========================================================================
+  // Reader Comments API Methods
+  // =========================================================================
+  public static async getComments(articleId: string): Promise<CommentItem[] | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${articleId}/comments`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn(`Gagal mengambil komentar untuk artikel ${articleId} dari server:`, err);
+      }
+    }
+    return null;
+  }
+
+  public static async postComment(
+    articleId: string,
+    payload: { authorName: string; authorRole?: string; avatar?: string; content: string; parentId?: string | null }
+  ): Promise<CommentItem | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/articles/${articleId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.error('Gagal mengirim komentar ke server:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async likeComment(commentId: string): Promise<number | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/comments/${commentId}/like`, { method: 'POST' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && typeof json.likesCount === 'number') {
+            return json.likesCount;
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal menyukai komentar di server:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async deleteComment(commentId: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json.success === true;
+        }
+      } catch (err) {
+        console.error('Gagal menghapus komentar di server:', err);
+      }
+    }
+    return false;
   }
 }
 

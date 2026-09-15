@@ -104,6 +104,16 @@ func main() {
 	api.Put("/articles/:id", middleware.Protected(), handlers.UpdateArticle)
 	api.Delete("/articles/:id", middleware.Protected(), handlers.DeleteArticle)
 
+	// Public Article Engagement Endpoints (Likes & Views)
+	api.Post("/articles/:id/like", handlers.LikeArticle)
+	api.Post("/articles/:id/view", handlers.ViewArticle)
+
+	// Reader Comments Endpoints
+	api.Get("/articles/:articleId/comments", handlers.GetArticleComments)
+	api.Post("/articles/:articleId/comments", handlers.PostArticleComment)
+	api.Post("/comments/:id/like", handlers.LikeComment)
+	api.Delete("/comments/:id", middleware.Protected(), handlers.DeleteComment)
+
 	// Financial Index Endpoint
 	api.Get("/tech-indexes", handlers.GetTechIndexes)
 

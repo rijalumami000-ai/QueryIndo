@@ -8,6 +8,7 @@ import (
 	"byteindonesia/backend/models"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // GET /api/v1/articles
@@ -206,3 +207,68 @@ func AISummarize(c *fiber.Ctx) error {
 		"data":    summaryPoints,
 	})
 }
+
+// POST /api/v1/articles/:id/like
+func LikeArticle(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "ID artikel diperlukan",
+		})
+	}
+
+	if database.DB != nil {
+		if err := database.DB.Model(&models.Article{}).Where("id = ?", id).UpdateColumn("likes_count", gorm.Expr("likes_count + ?", 1)).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"success": false,
+				"message": "Gagal menyukai artikel",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	var article models.Article
+	if database.DB != nil {
+		database.DB.Select("id", "likes_count").First(&article, "id = ?", id)
+	}
+
+	return c.JSON(fiber.Map{
+		"success":    true,
+		"message":    "Artikel berhasil disukai",
+		"likesCount": article.LikesCount,
+	})
+}
+
+// POST /api/v1/articles/:id/view
+func ViewArticle(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "ID artikel diperlukan",
+		})
+	}
+
+	if database.DB != nil {
+		if err := database.DB.Model(&models.Article{}).Where("id = ?", id).UpdateColumn("views_count", gorm.Expr("views_count + ?", 1)).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"success": false,
+				"message": "Gagal mencatat kunjungan artikel",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	var article models.Article
+	if database.DB != nil {
+		database.DB.Select("id", "views_count").First(&article, "id = ?", id)
+	}
+
+	return c.JSON(fiber.Map{
+		"success":    true,
+		"message":    "Kunjungan artikel berhasil dicatat",
+		"viewsCount": article.ViewsCount,
+	})
+}
+
