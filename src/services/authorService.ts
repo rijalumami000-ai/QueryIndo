@@ -261,11 +261,12 @@ export class AuthorService {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        // Ensure every author has a division
+        // Ensure every author has a division, order, and joinedAt
         return parsed.map((a: AuthorProfile, idx: number) => ({
           ...a,
           division: a.division || 'Redaktur Pelaksana & Koordinator Desk',
-          order: a.order !== undefined ? a.order : (idx + 1)
+          order: a.order !== undefined ? a.order : (idx + 1),
+          joinedAt: a.joinedAt || ((a as any).created_at ? new Date((a as any).created_at).toISOString().split('T')[0] : '2025-01-01')
         }));
       }
       return [];

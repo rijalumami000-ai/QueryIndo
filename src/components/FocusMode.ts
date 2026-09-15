@@ -1,4 +1,5 @@
 import type { Article } from '../types/news';
+import Lenis from 'lenis';
 
 export type FocusTheme = 'dark' | 'sepia' | 'light';
 
@@ -7,6 +8,7 @@ export class FocusMode {
   private static currentTheme: FocusTheme = 'dark';
   private static overlayElement: HTMLElement | null = null;
   private static scrollListener: (() => void) | null = null;
+  private static focusLenis: Lenis | null = null;
 
   public static isFocusActive(): boolean {
     return this.isActive;
@@ -67,7 +69,7 @@ export class FocusMode {
       </div>
 
       <!-- Focus Mode Article Body Container -->
-      <div class="focus-article-scroll-area" id="focus-scroll-area">
+      <div class="focus-article-scroll-area" id="focus-scroll-area" data-lenis-prevent style="overflow-y: auto !important; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
         <div class="focus-article-paper">
           <div class="focus-tag-header">${article.category.toUpperCase()} • QUERYINDO FOCUS</div>
           <h1 class="focus-article-title">${article.title}</h1>
@@ -97,9 +99,38 @@ export class FocusMode {
       </div>
     `;
 
+    overlay.setAttribute('data-lenis-prevent', 'true');
     document.body.appendChild(overlay);
     this.overlayElement = overlay;
     document.body.style.overflow = 'hidden';
+
+    // Dispatch modal opened to pause external Lenis smoothly
+    window.dispatchEvent(new CustomEvent('modal-opened'));
+
+    // Initialize dedicated Lenis instance for silky smooth focus reading
+    if (window.innerWidth > 768) {
+      if (this.focusLenis) {
+        this.focusLenis.destroy();
+        this.focusLenis = null;
+      }
+      const scrollArea = overlay.querySelector('#focus-scroll-area') as HTMLElement;
+      const contentPaper = overlay.querySelector('.focus-article-paper') as HTMLElement;
+      if (scrollArea && contentPaper) {
+        this.focusLenis = new Lenis({
+          wrapper: scrollArea,
+          content: contentPaper,
+          lerp: 0.1,
+          smoothWheel: true
+        });
+        const raf = (time: number) => {
+          if (this.focusLenis && this.isActive) {
+            this.focusLenis.raf(time);
+            requestAnimationFrame(raf);
+          }
+        };
+        requestAnimationFrame(raf);
+      }
+    }
 
     // Bind Event Listeners
     this.bindEvents(overlay, estMinutes, lang);
@@ -107,6 +138,10 @@ export class FocusMode {
 
   public static close() {
     this.isActive = false;
+    if (this.focusLenis) {
+      this.focusLenis.destroy();
+      this.focusLenis = null;
+    }
     if (this.overlayElement) {
       this.overlayElement.remove();
       this.overlayElement = null;
@@ -119,6 +154,7 @@ export class FocusMode {
     const openModal = document.querySelector('.modal-overlay.open');
     if (!openModal) {
       document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-closed'));
     }
   }
 

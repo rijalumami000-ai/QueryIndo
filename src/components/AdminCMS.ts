@@ -1,6 +1,6 @@
 import type { Article, CategoryId, AuthorProfile } from '../types/news';
 import { CATEGORIES } from '../data/mockNews';
-import { AuthService } from '../services/authService';
+import { AuthService, ReaderAuthService } from '../services/authService';
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
 import { ApiService } from '../services/apiService';
 import { ArticleService } from '../services/articleService';
@@ -94,6 +94,13 @@ export class AdminCMS {
     const totalLikes = this.articles.reduce((acc, a) => acc + a.likesCount, 0);
     const featuredCount = this.articles.filter(a => a.isFeatured).length;
 
+    const currentReader = ReaderAuthService.getCurrentReader();
+    const matchedAuthor = user?.fullName ? AuthorService.getAuthorByName(user.fullName) : undefined;
+    const userAvatar = (user?.avatar && !user.avatar.includes('unsplash.com/photo-1534528741775-53994a69daeb'))
+      ? user.avatar
+      : (matchedAuthor?.avatar || currentReader?.avatar || user?.avatar || '');
+    const activeAvatar = ImageUtils.normalizeImageUrl(userAvatar);
+
     return `
       <div style="width: 100%; height: 100vh; display: flex; background: var(--bg-primary); color: var(--text-primary); overflow: hidden;">
         
@@ -129,10 +136,6 @@ export class AdminCMS {
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                 <span>Rekomendasi Belanja</span>
               </button>
-              <button class="nav-sidebar-link ${this.activeTab === 'polls' ? 'active' : ''}" data-tab="polls">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-                <span>Jajak Pendapat</span>
-              </button>
               <button class="nav-sidebar-link ${this.activeTab === 'analytics' ? 'active' : ''}" data-tab="analytics">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 <span>Analitik Redaksi</span>
@@ -155,7 +158,7 @@ export class AdminCMS {
           <!-- User Profile Card & Actions -->
           <div style="padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.85rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-              <img src="${user?.avatar}" alt="${user?.fullName}" style="width: 2.2rem; height: 2.2rem; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-primary);" />
+              <img src="${activeAvatar || ImageUtils.getInitialsAvatar(user?.fullName || 'Rijal Umami')}" alt="${user?.fullName}" style="width: 2.2rem; height: 2.2rem; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-primary);" />
               <div style="overflow: hidden;">
                 <div style="font-weight: 700; font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${user?.fullName}</div>
                 <div style="font-size: 0.7rem; color: var(--accent-cyan); font-family: var(--font-mono);">${user?.role}</div>
@@ -345,7 +348,7 @@ export class AdminCMS {
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                         <span>Terdaftar:</span>
                       </span>
-                      <span style="color: var(--text-primary); font-family: var(--font-mono);">${author.joinedAt}</span>
+                      <span style="color: var(--text-primary); font-family: var(--font-mono);">${author.joinedAt ? (author.joinedAt.includes('-') ? new Date(author.joinedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : author.joinedAt) : '1 Januari 2025'}</span>
                     </div>
                     ${author.socialTwitter ? `
                       <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -1164,6 +1167,16 @@ export class AdminCMS {
       }
       return;
     }
+
+    // Top Header Close Button (✕)
+    const adminCloseBtn = modalElem.querySelector('#admin-modal-close-btn');
+    adminCloseBtn?.addEventListener('click', () => {
+      window.location.hash = '';
+      const modal = document.getElementById('admin-cms-modal');
+      if (modal) modal.classList.remove('open');
+      document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-closed'));
+    });
 
     // Sidebar Tab Switcher
     modalElem.querySelectorAll('.nav-sidebar-link').forEach(btn => {
@@ -2645,6 +2658,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     const editorPage = document.createElement('div');
     editorPage.id = 'manuscript-editor-fullscreen';
+    editorPage.setAttribute('data-lenis-prevent', 'true');
     editorPage.style.position = 'fixed';
     editorPage.style.inset = '0';
     editorPage.style.zIndex = '3000';
@@ -2656,7 +2670,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     editorPage.innerHTML = `
       <!-- Professional Editor Header Bar -->
-      <header style="height: 4.25rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+      <header style="height: 4.25rem; flex-shrink: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
         <div style="display: flex; align-items: center; gap: 1rem;">
           <button id="editor-back-btn" style="padding: 0.45rem 0.9rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); color: var(--text-primary); font-weight: 700; font-size: 0.825rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
             ← Kembali ke Dasbor CMS
@@ -2679,9 +2693,9 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
       </header>
 
       <!-- Fullscreen Body Layout Grid -->
-      <form id="editor-fullscreen-form" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 360px; overflow: hidden;">
+      <form id="editor-fullscreen-form" data-lenis-prevent style="flex: 1; height: calc(100vh - 4.25rem); display: grid; grid-template-columns: 1fr 1fr 360px; overflow: hidden;">
         <!-- Left Column: Title, Toolbar, & Visual WYSIWYG Canvas -->
-        <div style="padding: 2rem 2.5rem; overflow-y: auto; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1.25rem;">
+        <div data-lenis-prevent style="height: 100%; padding: 2rem 2.5rem; overflow-y: auto !important; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
             <input type="text" id="edit-title" required value="${article ? article.title : ''}" placeholder="Masukkan Judul Berita Utama..." style="width: 100%; padding: 0.75rem 0; background: transparent; border: none; border-bottom: 2px solid var(--border-color); color: var(--text-primary); font-size: 1.6rem; font-weight: 800; font-family: var(--font-main);" />
           </div>
@@ -2719,7 +2733,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
           <!-- Manuscript Canvas Container -->
           <div style="flex: 1; min-height: 380px; display: flex; flex-direction: column; position: relative;">
-            <div id="wysiwyg-editor-canvas" contenteditable="true" style="flex: 1; min-height: 380px; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-main); font-size: 1.05rem; line-height: 1.7; outline: none; overflow-y: auto;">
+            <div id="wysiwyg-editor-canvas" contenteditable="true" style="flex: 1; min-height: 380px; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-main); font-size: 1.05rem; line-height: 1.7; outline: none; overflow: visible;">
               ${initialContent}
             </div>
 
@@ -2740,7 +2754,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
         </div>
 
         <!-- Middle Column: Live Reader Preview Column -->
-        <div style="padding: 2rem 2.5rem; overflow-y: auto; background: var(--bg-tertiary); display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border-color);">
+        <div data-lenis-prevent style="height: 100%; padding: 2rem 2.5rem; overflow-y: auto !important; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--bg-tertiary); display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border-color);">
           <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--accent-cyan); font-family: var(--font-mono); display: flex; align-items: center; gap: 0.4rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <span>Pratinjau Langsung Pembaca (Live Preview)</span>
@@ -2762,7 +2776,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
         </div>
 
         <!-- Right Sidebar Area: Metadata, Monetization & Transparency Attributes -->
-        <div style="background: var(--bg-secondary); padding: 2rem 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+        <div data-lenis-prevent style="height: 100%; background: var(--bg-secondary); padding: 2rem 1.5rem; overflow-y: auto !important; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 1.25rem;">
           <h3 style="font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-cyan); border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem;">Atribut & Kemitraan</h3>
 
           <div>
@@ -2804,8 +2818,21 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           </div>
 
           <div>
-            <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">URL Sampul Berita (HD Image)</label>
-            <input type="url" id="edit-image-url" required value="${article ? article.imageUrl : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'}" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">URL Sampul Berita (HD Image)</label>
+              <label for="edit-image-file-input" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload dari Perangkat</span>
+              </label>
+              <input type="file" id="edit-image-file-input" accept="image/*" style="display: none;" />
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <img id="edit-image-preview" src="${article ? ImageUtils.normalizeImageUrl(article.imageUrl) : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'}" style="width: 72px; height: 48px; border-radius: 6px; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0; background: var(--bg-tertiary);" />
+              <input type="text" id="edit-image-url" required value="${article ? article.imageUrl : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'}" placeholder="Tempel URL gambar atau link Google Drive..." style="flex: 1; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+            </div>
+            <div id="edit-image-help" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;">
+              💡 <em>Mendukung upload dari laptop/HP, Unsplash, atau Google Drive. (Jika pakai Google Drive, pastikan file diset ke <strong>"Siapa saja yang memiliki link / Anyone with link"</strong>).</em>
+            </div>
           </div>
 
           <div>
@@ -2832,6 +2859,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     document.body.appendChild(editorPage);
     document.body.style.overflow = 'hidden';
+    window.dispatchEvent(new CustomEvent('modal-opened'));
 
     // Elements
     const wysiwygCanvas = editorPage.querySelector('#wysiwyg-editor-canvas') as HTMLDivElement;
@@ -2863,6 +2891,54 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
         authorCustomInput.style.display = authorSelect.value === '__custom__' ? 'block' : 'none';
         if (authorSelect.value === '__custom__') {
           authorCustomInput.focus();
+        }
+      });
+    }
+
+    // Article Image URL and File Upload Handlers
+    const editImageInput = editorPage.querySelector('#edit-image-url') as HTMLInputElement;
+    const editImagePreview = editorPage.querySelector('#edit-image-preview') as HTMLImageElement;
+    const editImageFileInput = editorPage.querySelector('#edit-image-file-input') as HTMLInputElement;
+
+    const updateImagePreview = (rawUrl: string) => {
+      const normalized = ImageUtils.normalizeImageUrl(rawUrl);
+      if (normalized !== rawUrl && editImageInput) {
+        editImageInput.value = normalized;
+      }
+      if (editImagePreview) {
+        editImagePreview.src = normalized;
+      }
+    };
+
+    if (editImageInput && editImagePreview) {
+      editImageInput.addEventListener('input', () => updateImagePreview(editImageInput.value));
+      editImageInput.addEventListener('change', () => updateImagePreview(editImageInput.value));
+      editImageInput.addEventListener('paste', () => setTimeout(() => updateImagePreview(editImageInput.value), 40));
+
+      editImagePreview.onerror = () => {
+        const cur = editImagePreview.src;
+        if (cur.includes('lh3.googleusercontent.com/d/')) {
+          const id = cur.split('/d/')[1];
+          if (id) {
+            editImagePreview.src = `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
+            return;
+          }
+        }
+        editImagePreview.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
+      };
+    }
+
+    if (editImageFileInput) {
+      editImageFileInput.addEventListener('change', () => {
+        const file = editImageFileInput.files?.[0];
+        if (file) {
+          ImageUtils.processImageFile(file, 1200, 0.85, (dataUrl) => {
+            if (editImageInput) editImageInput.value = dataUrl;
+            if (editImagePreview) editImagePreview.src = dataUrl;
+            Toast.show('Gambar sampul berhasil diunggah dari perangkat!');
+          }, (err) => {
+            Toast.show(err, 'warning');
+          });
         }
       });
     }
@@ -3027,6 +3103,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
     const closeEditor = () => {
       editorPage.remove();
       document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-closed'));
     };
 
     editorPage.querySelector('#editor-back-btn')?.addEventListener('click', closeEditor);
@@ -3052,7 +3129,8 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
       const subtitle = (editorPage.querySelector('#edit-subtitle') as HTMLInputElement).value;
       const category = (editorPage.querySelector('#edit-category') as HTMLSelectElement).value as CategoryId;
       const tagsStr = (editorPage.querySelector('#edit-tags') as HTMLInputElement).value;
-      const imageUrl = (editorPage.querySelector('#edit-image-url') as HTMLInputElement).value;
+      const rawImageUrl = (editorPage.querySelector('#edit-image-url') as HTMLInputElement).value.trim();
+      const imageUrl = ImageUtils.normalizeImageUrl(rawImageUrl);
       
       let authorName = authorSelect?.value === '__custom__' ? authorCustomInput?.value.trim() : authorSelect?.value;
       if (!authorName) authorName = user?.fullName || 'Rijal Umami';
@@ -3115,8 +3193,8 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           isPremium,
           isSponsored,
           sponsorName: isSponsored ? sponsorName : undefined,
-          viewsCount: 150,
-          likesCount: 12,
+          viewsCount: 0,
+          likesCount: 0,
           aiSummary,
           content
         };

@@ -64,25 +64,27 @@ export class ReaderComments {
   public static getComments(articleId: string): CommentItem[] {
     const raw = localStorage.getItem(this.STORAGE_PREFIX + articleId);
     if (!raw) {
-      const seed = this.DEFAULT_SEED_COMMENTS[articleId] || [
-        {
-          id: `cmt-gen-${articleId}-1`,
-          articleId: articleId,
-          authorName: 'Bayu Pratama',
-          authorRole: 'Senior Software Engineer',
-          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
-          content: 'Ulasan yang sangat komprehensif dari redaksi QUERYINDO. Sangat relevan dengan arah transformasi ekosistem teknologi saat ini.',
-          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-          likesCount: 5,
-          replies: []
-        }
-      ];
-      this.saveComments(articleId, seed);
+      const seed = this.DEFAULT_SEED_COMMENTS[articleId] || [];
+      if (seed.length > 0) {
+        this.saveComments(articleId, seed);
+      }
       return seed;
     }
 
     try {
-      return JSON.parse(raw);
+      const parsed: CommentItem[] = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        // Clean up accidentally injected dummy seed comments for user-published articles
+        if (!this.DEFAULT_SEED_COMMENTS[articleId]) {
+          const cleaned = parsed.filter(c => !c.id.startsWith('cmt-gen-'));
+          if (cleaned.length !== parsed.length) {
+            this.saveComments(articleId, cleaned);
+            return cleaned;
+          }
+        }
+        return parsed;
+      }
+      return [];
     } catch {
       return [];
     }

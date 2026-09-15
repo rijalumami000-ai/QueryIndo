@@ -1,5 +1,6 @@
 import type { Article } from '../types/news';
 import { ApiService } from './apiService';
+import { ImageUtils } from '../utils/imageUtils';
 
 const STORAGE_KEY = 'queryindo_articles_v3';
 const DUMMY_IDS = new Set([
@@ -31,7 +32,12 @@ export class ArticleService {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        this.cachedArticles = parsed.filter(a => a && a.id && !DUMMY_IDS.has(a.id));
+        this.cachedArticles = parsed
+          .filter(a => a && a.id && !DUMMY_IDS.has(a.id))
+          .map(a => ({
+            ...a,
+            imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
+          }));
         return this.cachedArticles;
       }
       this.cachedArticles = [];
@@ -43,7 +49,12 @@ export class ArticleService {
   }
 
   public static saveArticles(articles: Article[]): void {
-    const cleanArticles = (articles || []).filter(a => a && a.id && !DUMMY_IDS.has(a.id));
+    const cleanArticles = (articles || [])
+      .filter(a => a && a.id && !DUMMY_IDS.has(a.id))
+      .map(a => ({
+        ...a,
+        imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
+      }));
     this.cachedArticles = cleanArticles;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanArticles));
@@ -80,6 +91,7 @@ export class ArticleService {
   }
 
   public static async createArticle(article: Article): Promise<Article> {
+    article.imageUrl = ImageUtils.normalizeImageUrl(article.imageUrl || '');
     const list = [...this.getArticles()];
     list.unshift(article);
     this.saveArticles(list);
@@ -92,6 +104,9 @@ export class ArticleService {
     const idx = list.findIndex(a => a.id === id);
     if (idx === -1) return false;
 
+    if (updated.imageUrl) {
+      updated.imageUrl = ImageUtils.normalizeImageUrl(updated.imageUrl);
+    }
     list[idx] = { ...list[idx], ...updated };
     this.saveArticles(list);
     await ApiService.updateArticle(id, updated).catch(() => {});

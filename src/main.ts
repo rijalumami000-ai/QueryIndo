@@ -19,6 +19,7 @@ import { ShoppingCarousel } from './components/ShoppingCarousel';
 import { AuthorService } from './services/authorService';
 import { ReaderPoll } from './components/ReaderPoll';
 import { SocialMediaService } from './services/socialMediaService';
+import { ImageUtils } from './utils/imageUtils';
 import Lenis from 'lenis';
 
 // English Names for Categories
@@ -57,6 +58,33 @@ function t(key: keyof typeof UI_TRANSLATIONS['id']): string {
 
 function escapeHtml(str: string): string {
   return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export function getSafeImageUrl(url?: string): string {
+  return ImageUtils.normalizeImageUrl(url || '') || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
+}
+
+export const IMG_ONERROR = `onerror="if(this.dataset.tried!=='1'&&this.src.includes('lh3.googleusercontent.com/d/')){this.dataset.tried='1';const id=this.src.split('/d/')[1];if(id){this.src='https://drive.google.com/thumbnail?id='+id+'&sz=w1200';return;}}this.onerror=null;this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';"`;
+
+export function updateCurrentDateBadge() {
+  const dateEl = document.getElementById('current-date-text');
+  if (!dateEl) return;
+  const now = new Date();
+  if (preferences.language === 'en') {
+    dateEl.textContent = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } else {
+    dateEl.textContent = now.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
 }
 
 export function slugifyTitle(title: string): string {
@@ -151,6 +179,19 @@ const adminCMS = new AdminCMS(() => {
 });
 
 let lenisInstance: Lenis | null = null;
+let readerLenis: Lenis | null = null;
+
+// Global modal lifecycle listeners to manage main page Lenis
+window.addEventListener('modal-opened', () => {
+  lenisInstance?.stop();
+});
+
+window.addEventListener('modal-closed', () => {
+  const anyModalOpen = document.querySelector('.modal-overlay.open, #byte-focus-mode-overlay, #manuscript-editor-fullscreen');
+  if (!anyModalOpen) {
+    lenisInstance?.start();
+  }
+});
 
 // Initialize Application
 async function init() {
@@ -192,6 +233,7 @@ async function init() {
     }
   }
 
+  updateCurrentDateBadge();
   renderTechIndexes();
   renderCategories();
   renderBreakingBanner();
@@ -542,7 +584,7 @@ function renderHeroSection() {
     featuredArticleContainer.innerHTML = `
       <article class="hero-card" data-article-id="${featuredArticle.id}">
         <div class="hero-img-wrapper">
-          <img src="${featuredArticle.imageUrl}" alt="${featuredArticle.title}" class="hero-img" loading="eager" />
+          <img src="${getSafeImageUrl(featuredArticle.imageUrl)}" alt="${escapeHtml(featuredArticle.title)}" class="hero-img" loading="eager" ${IMG_ONERROR} />
           <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
@@ -637,7 +679,7 @@ function renderEditorsPick() {
     <!-- Bento Large Featured Card (60%) -->
     <article class="bento-featured-card" data-article-id="${featured.id}">
       <div class="bento-featured-img-wrap">
-        <img src="${featured.imageUrl}" alt="${escapeHtml(featured.title)}" class="bento-featured-img" loading="lazy" />
+        <img src="${getSafeImageUrl(featured.imageUrl)}" alt="${escapeHtml(featured.title)}" class="bento-featured-img" loading="lazy" ${IMG_ONERROR} />
       </div>
       <div class="bento-featured-overlay"></div>
       <div class="bento-featured-body">
@@ -668,7 +710,7 @@ function renderEditorsPick() {
         return `
           <article class="bento-stacked-card" data-article-id="${art.id}">
             <div class="bento-stacked-img-wrap">
-              <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="bento-stacked-img" loading="lazy" />
+              <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="bento-stacked-img" loading="lazy" ${IMG_ONERROR} />
             </div>
             <div class="bento-stacked-body">
               <div>
@@ -751,7 +793,7 @@ function renderDeepTechMatrix() {
     return `
       <article class="matrix-card" data-article-id="${art.id}">
         <div class="matrix-card-img-wrap">
-          <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="matrix-card-img" loading="lazy" />
+          <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="matrix-card-img" loading="lazy" ${IMG_ONERROR} />
           <span class="matrix-badge-cat">${art.category.toUpperCase()}</span>
         </div>
         <div class="matrix-card-body">
@@ -838,7 +880,7 @@ function renderRapidWire() {
       radarContainer.innerHTML = `
       <article class="radar-spotlight-card" data-article-id="${radarArt.id}">
         <div class="radar-img-wrap">
-          <img src="${radarArt.imageUrl}" alt="${escapeHtml(radarArt.title)}" class="radar-img" loading="lazy" />
+          <img src="${getSafeImageUrl(radarArt.imageUrl)}" alt="${escapeHtml(radarArt.title)}" class="radar-img" loading="lazy" ${IMG_ONERROR} />
           <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(9, 11, 16, 0.85); color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.3);">LAB QUERYINDO</span>
         </div>
         <div class="radar-body">
@@ -955,7 +997,7 @@ function renderFeed() {
     feedHTML += `
       <article class="article-card" data-article-id="${art.id}">
         <div class="card-img-wrap">
-          <img src="${art.imageUrl}" alt="${art.title}" class="card-img" loading="lazy" />
+          <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="card-img" loading="lazy" ${IMG_ONERROR} />
           <span class="card-category-badge">${art.category}</span>
         </div>
         <div class="card-body">
@@ -1125,7 +1167,7 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
       </div>
     </div>
 
-    <img src="${article.imageUrl}" alt="${article.title}" class="reader-hero-image" />
+    <img src="${getSafeImageUrl(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="reader-hero-image" ${IMG_ONERROR} />
     ${article.imageCaption ? `<div class="image-caption">${article.imageCaption}</div>` : ''}
 
     <div class="article-rich-content size-${preferences.fontSize || 'normal'}" id="article-content-wrapper">
@@ -1189,6 +1231,30 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
   readerModal.classList.add('open');
   readerModal.scrollTop = 0;
   document.body.style.overflow = 'hidden';
+
+  // Instantiate Lenis smooth scroll on Reader Modal for silky smooth reading experience
+  if (window.innerWidth > 768) {
+    if (readerLenis) {
+      readerLenis.destroy();
+      readerLenis = null;
+    }
+    const modalContainer = readerModal.querySelector('.modal-container') as HTMLElement;
+    if (modalContainer) {
+      readerLenis = new Lenis({
+        wrapper: readerModal,
+        content: modalContainer,
+        lerp: 0.1,
+        smoothWheel: true
+      });
+      const raf = (time: number) => {
+        if (readerLenis && readerModal.classList.contains('open')) {
+          readerLenis.raf(time);
+          requestAnimationFrame(raf);
+        }
+      };
+      requestAnimationFrame(raf);
+    }
+  }
 
 
 
@@ -1389,6 +1455,10 @@ function setupReaderControls(article: Article) {
 // Close Article Reader Modal
 export function closeArticleReader(updateUrl: boolean = true) {
   if (!readerModal || !readerModal.classList.contains('open')) return;
+  if (readerLenis) {
+    readerLenis.destroy();
+    readerLenis = null;
+  }
   readerModal.classList.remove('open');
   document.body.style.overflow = '';
   TextToSpeechService.stop();
@@ -2243,6 +2313,7 @@ function setupEventListeners() {
       updateCookieBannerLabels();
 
       // Re-render all translatable sections
+      updateCurrentDateBadge();
       renderCategories();
       renderBreakingBanner();
       renderHeroSection();
@@ -2280,7 +2351,7 @@ function setupEventListeners() {
 // Utility: Format Date
 function formatDate(dateStr: string): string {
   const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-  return new Date(dateStr).toLocaleDateString('id-ID', options);
+  return new Date(dateStr).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', options);
 }
 
 // Footer Localization setup

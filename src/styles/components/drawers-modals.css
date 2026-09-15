@@ -510,7 +510,10 @@
 
 .focus-article-scroll-area {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto !important;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 3rem 1.5rem 6rem;
   display: flex;
   justify-content: center;
