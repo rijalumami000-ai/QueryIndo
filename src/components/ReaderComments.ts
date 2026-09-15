@@ -490,8 +490,15 @@ export class ReaderComments {
       const cancelReplyBtn = target.closest('.btn-cancel-reply') as HTMLElement;
       const submitReplyBtn = target.closest('.btn-submit-reply') as HTMLElement;
 
-      // Handle Like Comment
+      // Handle Like Comment (Enforces Reader Login)
       if (likeBtn) {
+        const isReaderLoggedIn = ReaderAuthService.isReaderLoggedIn();
+        if (!isReaderLoggedIn) {
+          Toast.show(lang === 'en' ? 'Please log in to like comments.' : 'Silakan login terlebih dahulu untuk menyukai komentar ini.', 'warning');
+          window.dispatchEvent(new CustomEvent('open-reader-auth-modal'));
+          return;
+        }
+
         const commentId = likeBtn.getAttribute('data-id');
         if (commentId) {
           const { isLiked, newCount } = this.toggleLikeComment(articleId, commentId);

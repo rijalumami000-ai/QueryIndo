@@ -85,23 +85,23 @@ func Login(c *fiber.Ctx) error {
 		}
 	}
 
-	// 2. Default/Fallback Admin Credentials with Bcrypt verification
-	// Pre-hashed bcrypt signature for default admin "Rijalumami1002"
+	// 2. Default/Fallback Admin Credentials
 	adminUser := os.Getenv("ADMIN_USER")
 	if adminUser == "" {
 		adminUser = "Rijalumami"
 	}
 	adminPass := os.Getenv("ADMIN_PASSWORD")
 	if adminPass == "" {
-		adminPass = "Rijalumami1002"
+		adminPass = "rijalumami1002"
 	}
 
-	// Compare plaintext or hashed
-	isUserMatch := req.Username == adminUser || strings.ToLower(req.Username) == "editor@queryindo.com" || strings.ToLower(req.Username) == "editor@queryindo.id" || strings.ToLower(req.Username) == "editor@byteindonesia.id"
-	isPassMatch := (req.Password == adminPass) || (req.Password == "redaksi2026")
+	// Compare username (case-insensitive email or username) and password
+	inputLower := strings.ToLower(strings.TrimSpace(req.Username))
+	isUserMatch := inputLower == strings.ToLower(adminUser) || inputLower == "rijalumami000@gmail.com"
+	isPassMatch := (req.Password == adminPass) || (strings.ToLower(req.Password) == "rijalumami1002")
 
 	if isUserMatch && isPassMatch {
-		signedToken, err := GenerateJWT("Rijalumami", "Rijal Umami", "Editor in Chief (Pemred)")
+		signedToken, err := GenerateJWT("Rijalumami", "Rijal Umami", "Founder & CEO")
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(LoginResponse{
 				Success: false,
@@ -111,18 +111,18 @@ func Login(c *fiber.Ctx) error {
 
 		resp := LoginResponse{
 			Success: true,
-			Message: "Otentikasi Redaksi Berhasil!",
+			Message: "Selamat Datang kembali, Founder & CEO Rijal Umami!",
 			Token:   signedToken,
 		}
 		resp.User.Username = "Rijalumami"
 		resp.User.FullName = "Rijal Umami"
-		resp.User.Role = "Editor in Chief (Pemred)"
+		resp.User.Role = "Founder & CEO"
 
 		return c.JSON(resp)
 	}
 
 	return c.Status(fiber.StatusUnauthorized).JSON(LoginResponse{
 		Success: false,
-		Message: "Kredensial Username atau Password Redaksi Salah",
+		Message: "Kredensial Email atau Password Admin Salah",
 	})
 }

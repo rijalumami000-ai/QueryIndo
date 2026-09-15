@@ -1329,14 +1329,23 @@ function setupReaderControls(article: Article) {
 
 
 
-  // Article Like Button Handler (with Server Sync)
+  // Article Like Button Handler (Enforces Logged-in Reader)
   const likeBtn = document.getElementById('btn-like-article');
   if (likeBtn) {
     likeBtn.addEventListener('click', () => {
+      // Must be logged in as reader to like articles
+      if (!ReaderAuthService.isReaderLoggedIn()) {
+        Toast.show(preferences.language === 'en' ? 'Please log in to like this article.' : 'Silakan login terlebih dahulu untuk menyukai artikel ini.', 'warning');
+        openUserAuthModal();
+        return;
+      }
+
       const isCurrentlyLiked = preferences.likedArticleIds.includes(article.id);
       if (!isCurrentlyLiked) {
         preferences.likedArticleIds.push(article.id);
         localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+        ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
+
         likeBtn.classList.add('active');
         (likeBtn as HTMLElement).style.color = 'var(--accent-red)';
         (likeBtn as HTMLElement).style.borderColor = 'var(--accent-red)';
@@ -1357,6 +1366,8 @@ function setupReaderControls(article: Article) {
       } else {
         preferences.likedArticleIds = preferences.likedArticleIds.filter(id => id !== article.id);
         localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+        ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
+
         likeBtn.classList.remove('active');
         (likeBtn as HTMLElement).style.color = '';
         (likeBtn as HTMLElement).style.borderColor = '';
@@ -2042,6 +2053,10 @@ function renderGoogleAuthModalHTML() {
 
     const res = ReaderAuthService.loginWithGoogle(email);
     preferences.savedArticleIds = res.user.savedArticles || [];
+    if (res.user.likedArticles) {
+      preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, ...res.user.likedArticles]));
+      localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+    }
     updateBookmarkBadge();
     updateUserNavbarState();
     Toast.show(res.message);
@@ -2060,6 +2075,10 @@ function renderGoogleAuthModalHTML() {
     try {
       const res = await ReaderAuthService.signInWithGoogleOAuth();
       preferences.savedArticleIds = res.user.savedArticles || [];
+      if (res.user.likedArticles) {
+        preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, ...res.user.likedArticles]));
+        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+      }
       updateBookmarkBadge();
       updateUserNavbarState();
       Toast.show(res.message);
