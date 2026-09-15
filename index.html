@@ -37,9 +37,13 @@
     }
   </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="icon" type="image/png" href="/logo.png" />
-  <link rel="apple-touch-icon" href="/logo.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
+  <meta property="og:image" content="https://queryindo.com/og-image.png" />
+  <meta name="twitter:image" content="https://queryindo.com/og-image.png" />
   <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="http://localhost:8080/rss.xml" />
   <meta name="theme-color" content="#0d0e12" />
   <link rel="stylesheet" href="/src/styles/main.css" />
@@ -84,10 +88,42 @@
     <!-- Main Navigation Header -->
     <header class="navbar">
       <div class="container navbar-content">
-        <a href="#" class="brand-logo" id="logo-btn">
-          <img src="/logo.png" class="brand-logo-img" alt="QUERYINDO Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
-          <span class="logo-text">QUERYINDO</span>
-          <span class="logo-tag">MEDIA TECH</span>
+        <a href="#" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
+          <div class="brand-emblem-wrap">
+            <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="38" height="38" aria-hidden="true">
+              <defs>
+                <linearGradient id="navBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0B1120"/>
+                  <stop offset="100%" stop-color="#020408"/>
+                </linearGradient>
+                <linearGradient id="navQGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00F2FE"/>
+                  <stop offset="45%" stop-color="#38BDF8"/>
+                  <stop offset="100%" stop-color="#2563EB"/>
+                </linearGradient>
+                <linearGradient id="navRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FF2E54"/>
+                  <stop offset="100%" stop-color="#E11D48"/>
+                </linearGradient>
+                <linearGradient id="navRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45"/>
+                  <stop offset="100%" stop-color="#1E293B" stop-opacity="0.2"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navBg)" stroke="url(#navRim)" stroke-width="1.2"/>
+              <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
+              <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
+              <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+            </svg>
+          </div>
+          <div class="brand-text-lockup">
+            <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+            <div class="brand-wordmark-row">
+              <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+              <span class="brand-domain-tag">.ID</span>
+            </div>
+          </div>
         </a>
 
         <!-- Search Bar with Live Preview Dropdown -->
@@ -325,12 +361,29 @@
       <div class="container" style="position: relative; z-index: 5;">
         <div class="footer-grid">
           <div class="footer-col-brand">
-            <a href="#" class="brand-logo" style="margin-bottom: 0.25rem;">
-              <img src="/logo.png" class="brand-logo-img" alt="QUERYINDO Logo" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;" />
-              <span class="logo-text" style="font-weight: 900; color: inherit;">QUERYINDO</span>
+            <a href="#" class="brand-logo footer-brand-logo" style="margin-bottom: 0.6rem;" aria-label="QueryIndo Home">
+              <div class="brand-emblem-wrap">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+                  <rect x="2" y="2" width="60" height="60" rx="16" fill="#0B1120" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.2"/>
+                  <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
+                  <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+              </div>
+              <div class="brand-text-lockup">
+                <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+                <div class="brand-wordmark-row">
+                  <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+                  <span class="brand-domain-tag">.ID</span>
+                </div>
+              </div>
             </a>
-            <p class="footer-desc" style="color: #555; line-height: 1.5; font-size: 0.85rem; max-width: 260px;">
-              Jurnalisme teknologi independen nasional yang menyajikan kejelasan informasi di tengah pesatnya era transformasi digital.
+            <div class="footer-creed">
+              <span class="footer-creed-badge">JERNIH • TAJAM • BERDAULAT</span>
+            </div>
+            <p class="footer-desc" style="line-height: 1.55; font-size: 0.85rem; max-width: 290px; color: var(--text-tertiary);">
+              Portal jurnalisme teknologi independen nasional. Mengulas kecerdasan buatan, infrastruktur komputasi awan, keamanan siber, dan kedaulatan digital nusantara.
             </p>
             <ul class="footer-social-list" style="display: flex; gap: 0.5rem; margin-top: 1rem; list-style: none;">
               <li><a href="#" class="footer-social-item fb">f</a></li>
