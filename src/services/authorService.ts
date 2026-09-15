@@ -254,13 +254,13 @@ export class AuthorService {
           // fall through
         }
       }
-      this.saveAuthors(DEFAULT_AUTHORS);
-      return DEFAULT_AUTHORS;
+      this.saveAuthors([]);
+      return [];
     }
 
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         // Ensure every author has a division
         return parsed.map((a: AuthorProfile, idx: number) => ({
           ...a,
@@ -268,9 +268,9 @@ export class AuthorService {
           order: a.order !== undefined ? a.order : (idx + 1)
         }));
       }
-      return DEFAULT_AUTHORS;
+      return [];
     } catch {
-      return DEFAULT_AUTHORS;
+      return [];
     }
   }
 
@@ -281,7 +281,7 @@ export class AuthorService {
   public static async syncWithBackend(): Promise<void> {
     try {
       const serverAuthors = await ApiService.getAuthors();
-      if (serverAuthors && serverAuthors.length > 0) {
+      if (serverAuthors && Array.isArray(serverAuthors)) {
         this.saveAuthors(serverAuthors);
       }
     } catch (err) {

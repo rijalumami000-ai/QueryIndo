@@ -41,6 +41,7 @@ export class AdBanner {
   private static STORAGE_KEY = 'byte_ad_campaigns';
   private static ADSENSE_KEY = 'byte_adsense_config';
 
+  // @ts-ignore
   private static DEFAULT_ADS: AdCampaign[] = [
     {
       id: 'ad-01',
@@ -143,15 +144,14 @@ export class AdBanner {
   public static getCampaigns(): AdCampaign[] {
     const raw = localStorage.getItem(this.STORAGE_KEY);
     if (!raw) {
-      this.saveCampaigns(this.DEFAULT_ADS);
-      return this.DEFAULT_ADS;
+      return [];
     }
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
-      return this.DEFAULT_ADS;
+      return [];
     } catch {
-      return this.DEFAULT_ADS;
+      return [];
     }
   }
 
@@ -162,7 +162,7 @@ export class AdBanner {
   public static async syncWithBackend(): Promise<void> {
     try {
       const serverAds = await ApiService.getAds();
-      if (serverAds && serverAds.length > 0) {
+      if (serverAds && Array.isArray(serverAds)) {
         this.saveCampaigns(serverAds);
       }
     } catch (err) {

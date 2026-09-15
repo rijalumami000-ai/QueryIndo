@@ -1,5 +1,4 @@
 import type { Article } from '../types/news';
-import { ARTICLES } from '../data/mockNews';
 import { ApiService } from './apiService';
 
 const STORAGE_KEY = 'queryindo_articles_v2';
@@ -14,7 +13,7 @@ export class ArticleService {
 
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) {
-      this.cachedArticles = [...ARTICLES];
+      this.cachedArticles = [];
       return this.cachedArticles;
     }
 
@@ -24,10 +23,10 @@ export class ArticleService {
         this.cachedArticles = parsed;
         return this.cachedArticles;
       }
-      this.cachedArticles = [...ARTICLES];
+      this.cachedArticles = [];
       return this.cachedArticles;
     } catch {
-      this.cachedArticles = [...ARTICLES];
+      this.cachedArticles = [];
       return this.cachedArticles;
     }
   }
@@ -44,7 +43,7 @@ export class ArticleService {
   public static async syncWithBackend(): Promise<void> {
     try {
       const serverArticles = await ApiService.getArticles();
-      if (Array.isArray(serverArticles) && serverArticles.length > 0) {
+      if (Array.isArray(serverArticles)) {
         this.saveArticles(serverArticles);
       }
     } catch (err) {

@@ -83,7 +83,20 @@ func ConnectDB() (*gorm.DB, error) {
 	return db, nil
 }
 
+type SystemSeedRecord struct {
+	Key       string    `gorm:"primaryKey"`
+	Seeded    bool      `gorm:"default:true"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+}
+
 func seedDefaultCMSData(db *gorm.DB) {
+	_ = db.AutoMigrate(&SystemSeedRecord{})
+	var seedRecord SystemSeedRecord
+	if err := db.Where("key = ?", "initial_seed_v1").First(&seedRecord).Error; err == nil {
+		log.Println("ℹ️ Database sudah di-seed sebelumnya. Melewati auto-seed agar konten yang telah dihapus tidak muncul kembali.")
+		return
+	}
+
 	// 0. Seed Categories
 	var catCount int64
 	db.Model(&models.Category{}).Count(&catCount)
@@ -392,5 +405,8 @@ func seedDefaultCMSData(db *gorm.DB) {
 		}
 		log.Println("🌱 Seed Komentar Pembaca default berhasil!")
 	}
+
+	// Mark database as seeded so future restarts never re-insert deleted dummy data
+	db.Create(&SystemSeedRecord{Key: "initial_seed_v1", Seeded: true, CreatedAt: time.Now()})
 }
 

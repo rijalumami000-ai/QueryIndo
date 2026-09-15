@@ -1,3 +1,5 @@
+import { ArticleService } from '../services/articleService';
+
 export interface StorySlide {
   id: string;
   articleId: string;
@@ -18,101 +20,47 @@ export interface ByteStory {
   slides: StorySlide[];
 }
 
-export const MOCK_STORIES: ByteStory[] = [
-  {
-    id: 'story-01',
-    authorName: 'IKN Superkomputer',
-    authorAvatar: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=250&q=80',
-    badge: 'AI TERKINI',
-    isUnread: true,
-    slides: [
-      {
-        id: 's-101',
-        articleId: 'art-001',
-        titleId: 'Pusat Data AI IKN Resmi Beroperasi!',
-        titleEn: 'IKN AI Data Center Officially Active!',
-        captionId: 'Kapasitas 100 Petaflops ditenagai 100% energi terbarukan PLTS IKN.',
-        captionEn: '100 Petaflops capacity powered 100% by solar renewable energy.',
-        imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
-        category: 'AI & INFRASTRUKTUR'
-      },
-      {
-        id: 's-102',
-        articleId: 'art-001',
-        titleId: 'Fokus Pelatihan LLM Nusantara',
-        titleEn: 'Focus on LLM Nusantara Training',
-        captionId: 'Memproses kecerdasan buatan dalam Bahasa Indonesia & 700+ bahasa daerah.',
-        captionEn: 'Processing artificial intelligence in Indonesian & 700+ regional dialects.',
-        imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-        category: 'AI RESEARCH'
-      }
-    ]
-  },
-  {
-    id: 'story-02',
-    authorName: 'Review HP Lipat',
-    authorAvatar: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=250&q=80',
-    badge: 'GADGET',
-    isUnread: true,
-    slides: [
-      {
-        id: 's-201',
-        articleId: 'art-002',
-        titleId: 'Smartphone Layar Lipat Tiga Pertama',
-        titleEn: 'First Tri-Fold Smartphone Launched',
-        captionId: 'Ketebalan 3.6mm dengan engsel titanium & baterai sel silikon 5600mAh.',
-        captionEn: '3.6mm thickness with titanium hinge & 5600mAh silicon battery.',
-        imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80',
-        category: 'HARDWARE TECH'
-      }
-    ]
-  },
-  {
-    id: 'story-03',
-    authorName: 'Satelit Low Earth',
-    authorAvatar: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=250&q=80',
-    badge: 'TELEKOM',
-    isUnread: true,
-    slides: [
-      {
-        id: 's-301',
-        articleId: 'art-003',
-        titleId: 'Uji Coba Internet Direct-to-Cell',
-        titleEn: 'Direct-to-Cell Satellite Trial',
-        captionId: 'Komunikasi darurat satelit langsung ke smartphone standar di daerah 3T.',
-        captionEn: 'Emergency satellite communication directly to standard smartphones in remote areas.',
-        imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
-        category: 'SPACE TECH'
-      }
-    ]
-  },
-  {
-    id: 'story-04',
-    authorName: 'Cyber Defense RI',
-    authorAvatar: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=250&q=80',
-    badge: 'SECURITY',
-    isUnread: false,
-    slides: [
-      {
-        id: 's-401',
-        articleId: 'art-004',
-        titleId: 'Enkripsi Quantum-Resistant PDP',
-        titleEn: 'Quantum-Resistant PDP Encryption',
-        captionId: 'BSSN berlakukan enkripsi Kuantum bagi lembaga keuangan & infrastruktur kritis.',
-        captionEn: 'BSSN enforces Quantum encryption for financial & critical infrastructure.',
-        imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
-        category: 'CYBERSECURITY'
-      }
-    ]
-  }
-];
-
 export class ByteShorts {
   private static activeStoryIndex = 0;
   private static activeSlideIndex = 0;
   private static timerId: any = null;
+  private static stories: ByteStory[] = [];
+
+  public static getStories(): ByteStory[] {
+    const articles = ArticleService.getArticles();
+    if (!articles || articles.length === 0) {
+      this.stories = [];
+      return [];
+    }
+
+    this.stories = articles.slice(0, 6).map((art) => ({
+      id: `story-${art.id}`,
+      authorName: (art.author && art.author.name ? art.author.name.split(' ')[0] : 'Redaksi'),
+      authorAvatar: (art.author && art.author.avatar ? art.author.avatar : art.imageUrl),
+      badge: art.category.toUpperCase(),
+      isUnread: true,
+      slides: [
+        {
+          id: `slide-${art.id}-1`,
+          articleId: art.id,
+          titleId: art.title,
+          titleEn: art.title,
+          captionId: art.subtitle || (art.aiSummary && art.aiSummary[0]) || art.title,
+          captionEn: art.subtitle || (art.aiSummary && art.aiSummary[0]) || art.title,
+          imageUrl: art.imageUrl,
+          category: art.category.toUpperCase()
+        }
+      ]
+    }));
+    return this.stories;
+  }
 
   public static renderBarHTML(lang: 'id' | 'en'): string {
+    const stories = this.getStories();
+    if (stories.length === 0) {
+      return '';
+    }
+
     const sectionTitleText = lang === 'en' ? 'BYTESHORTS • VISUAL STORIES' : 'BYTESHORTS • BERITA KILAT';
     const clickHintText = lang === 'en' ? 'Click story to preview →' : 'Klik story untuk pratinjau →';
 
@@ -127,7 +75,7 @@ export class ByteShorts {
         </div>
 
         <div style="display: flex; gap: 1.25rem; overflow-x: auto; padding-bottom: 0.35rem; scrollbar-width: none;">
-          ${MOCK_STORIES.map((story, idx) => `
+          ${stories.map((story, idx) => `
             <div class="byte-story-item" data-story-index="${idx}" style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem; cursor: pointer; flex-shrink: 0; transition: transform 0.2s ease;">
               <div style="position: relative; width: 56px; height: 56px; border-radius: 50%; padding: 2px; background: ${story.isUnread ? 'linear-gradient(135deg, var(--accent-cyan), #3b82f6, #ec4899)' : 'var(--border-color)'};">
                 <img src="${story.authorAvatar}" alt="${story.authorName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-primary);" />
@@ -146,11 +94,16 @@ export class ByteShorts {
   }
 
   public static openViewer(storyIdx: number, lang: 'id' | 'en', onOpenArticle: (artId: string) => void) {
+    if (!this.stories || this.stories.length === 0) {
+      this.getStories();
+    }
+    if (!this.stories[storyIdx]) return;
+
     this.activeStoryIndex = storyIdx;
     this.activeSlideIndex = 0;
     
     // Mark as read
-    MOCK_STORIES[storyIdx].isUnread = false;
+    this.stories[storyIdx].isUnread = false;
 
     let viewerModal = document.getElementById('byteshorts-viewer-modal');
     if (!viewerModal) {
@@ -172,68 +125,77 @@ export class ByteShorts {
   }
 
   private static renderViewerContent(container: HTMLElement, lang: 'id' | 'en', onOpenArticle: (artId: string) => void) {
-    const story = MOCK_STORIES[this.activeStoryIndex];
-    const slide = story.slides[this.activeSlideIndex];
+    const story = this.stories[this.activeStoryIndex];
+    if (!story || !story.slides[this.activeSlideIndex]) {
+      this.closeViewer(container);
+      return;
+    }
 
+    const slide = story.slides[this.activeSlideIndex];
     const title = lang === 'en' ? slide.titleEn : slide.titleId;
     const caption = lang === 'en' ? slide.captionEn : slide.captionId;
     const readFullText = lang === 'en' ? 'Read Full Story →' : 'Baca Berita Selengkapnya →';
 
     container.innerHTML = `
-      <div style="position: relative; width: 100%; max-width: 420px; height: 85vh; max-height: 720px; background: #000; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.8);">
+      <div style="position: relative; width: 100%; max-width: 420px; height: 90vh; max-height: 750px; background: #000; border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); border: 1px solid rgba(255,255,255,0.1);">
         
-        <!-- Background Image -->
-        <img src="${slide.imageUrl}" alt="${title}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" />
-        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.95) 100%);"></div>
-
-        <!-- Top Header & Segment Progress Bars -->
-        <div style="position: relative; z-index: 10; padding: 1rem 1rem 0 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
-          <div style="display: flex; gap: 4px;">
-            ${story.slides.map((_, sIdx) => `
-              <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;">
-                <div style="height: 100%; width: ${sIdx < this.activeSlideIndex ? '100%' : sIdx === this.activeSlideIndex ? '100%' : '0%'}; background: var(--accent-cyan); transition: ${sIdx === this.activeSlideIndex ? 'width 4.5s linear' : 'none'};"></div>
-              </div>
-            `).join('')}
-          </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <img src="${story.authorAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-cyan);" />
-              <div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: #fff;">${story.authorName}</div>
-                <div style="font-size: 0.65rem; color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 800;">${slide.category}</div>
-              </div>
+        <!-- Progress Bars Header -->
+        <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; gap: 4px; z-index: 20;">
+          ${story.slides.map((_, sIdx) => `
+            <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px; overflow: hidden;">
+              <div style="height: 100%; width: ${sIdx < this.activeSlideIndex ? '100%' : sIdx === this.activeSlideIndex ? '100%' : '0%'}; background: var(--accent-cyan); transition: width ${sIdx === this.activeSlideIndex ? '4.5s linear' : '0.1s linear'};"></div>
             </div>
-            <button id="btn-close-byteshorts" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold;">✕</button>
+          `).join('')}
+        </div>
+
+        <!-- Author Header Overlay -->
+        <div style="position: absolute; top: 24px; left: 14px; right: 14px; display: flex; align-items: center; justify-content: space-between; z-index: 20; color: #fff;">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <img src="${story.authorAvatar}" alt="${story.authorName}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid #fff;" />
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${story.authorName}</div>
+              <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); font-family: var(--font-mono);">${slide.category}</div>
+            </div>
           </div>
+          <button id="btn-close-byteshorts" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px);">✕</button>
         </div>
 
-        <!-- Navigation Click Overlay Areas -->
-        <div style="position: absolute; inset: 0; z-index: 5; display: flex;">
-          <div id="btn-prev-slide" style="flex: 1; height: 100%; cursor: pointer;"></div>
-          <div id="btn-next-slide" style="flex: 2; height: 100%; cursor: pointer;"></div>
-        </div>
-
-        <!-- Bottom Story Content & Call to Action -->
-        <div style="position: relative; z-index: 10; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem;">
-          <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; line-height: 1.35; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">${title}</h2>
-          <p style="font-size: 0.875rem; color: rgba(255,255,255,0.85); line-height: 1.45;">${caption}</p>
+        <!-- Main Slide Media -->
+        <div style="position: relative; flex: 1; width: 100%; height: 100%; overflow: hidden;">
+          <img src="${slide.imageUrl}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover;" />
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 25%, transparent 60%, rgba(0,0,0,0.92) 100%);"></div>
           
-          <button id="btn-open-story-article" data-article-id="${slide.articleId}" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); border: none; border-radius: 8px; color: #000; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: transform 0.2s ease;">
-            ${readFullText}
+          <!-- Tap Navigation Invisible Zones -->
+          <div id="touch-prev-slide" style="position: absolute; top: 70px; bottom: 120px; left: 0; width: 40%; z-index: 15; cursor: pointer;"></div>
+          <div id="touch-next-slide" style="position: absolute; top: 70px; bottom: 120px; right: 0; width: 60%; z-index: 15; cursor: pointer;"></div>
+        </div>
+
+        <!-- Slide Caption & Read Full CTA -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1.25rem 1.25rem 1.5rem 1.25rem; z-index: 20; color: #fff;">
+          <span style="display: inline-block; padding: 0.2rem 0.6rem; background: var(--accent-cyan); color: #000; font-size: 0.65rem; font-weight: 800; border-radius: var(--radius-full); margin-bottom: 0.5rem; text-transform: uppercase;">
+            ${slide.category}
+          </span>
+          <h2 style="font-size: 1.15rem; font-weight: 800; line-height: 1.35; margin-bottom: 0.45rem; text-shadow: 0 2px 6px rgba(0,0,0,0.8);">${title}</h2>
+          <p style="font-size: 0.85rem; color: rgba(255,255,255,0.85); line-height: 1.45; margin-bottom: 1rem; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">${caption}</p>
+          
+          <button id="btn-read-full-byteshorts" data-article-id="${slide.articleId}" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.85rem; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.15s ease;">
+            <span>${readFullText}</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
       </div>
     `;
 
-    // Bind Viewer Events
+    // Event Bindings
     container.querySelector('#btn-close-byteshorts')?.addEventListener('click', () => this.closeViewer(container));
-    container.querySelector('#btn-prev-slide')?.addEventListener('click', () => this.prevSlide(container, lang, onOpenArticle));
-    container.querySelector('#btn-next-slide')?.addEventListener('click', () => this.nextSlide(container, lang, onOpenArticle));
+    container.querySelector('#touch-prev-slide')?.addEventListener('click', () => this.prevSlide(container, lang, onOpenArticle));
+    container.querySelector('#touch-next-slide')?.addEventListener('click', () => this.nextSlide(container, lang, onOpenArticle));
     
-    container.querySelector('#btn-open-story-article')?.addEventListener('click', () => {
+    const readFullBtn = container.querySelector('#btn-read-full-byteshorts');
+    readFullBtn?.addEventListener('click', () => {
+      const artId = readFullBtn.getAttribute('data-article-id');
       this.closeViewer(container);
-      onOpenArticle(slide.articleId);
+      if (artId) onOpenArticle(artId);
     });
   }
 
@@ -245,15 +207,17 @@ export class ByteShorts {
   }
 
   private static nextSlide(container: HTMLElement, lang: 'id' | 'en', onOpenArticle: (artId: string) => void) {
-    const story = MOCK_STORIES[this.activeStoryIndex];
+    if (!this.stories[this.activeStoryIndex]) return;
+    const story = this.stories[this.activeStoryIndex];
+
     if (this.activeSlideIndex < story.slides.length - 1) {
       this.activeSlideIndex++;
       this.renderViewerContent(container, lang, onOpenArticle);
       this.startAutoAdvance(container, lang, onOpenArticle);
-    } else if (this.activeStoryIndex < MOCK_STORIES.length - 1) {
+    } else if (this.activeStoryIndex < this.stories.length - 1) {
       this.activeStoryIndex++;
       this.activeSlideIndex = 0;
-      MOCK_STORIES[this.activeStoryIndex].isUnread = false;
+      this.stories[this.activeStoryIndex].isUnread = false;
       this.renderViewerContent(container, lang, onOpenArticle);
       this.startAutoAdvance(container, lang, onOpenArticle);
     } else {
@@ -268,7 +232,7 @@ export class ByteShorts {
       this.startAutoAdvance(container, lang, onOpenArticle);
     } else if (this.activeStoryIndex > 0) {
       this.activeStoryIndex--;
-      this.activeSlideIndex = MOCK_STORIES[this.activeStoryIndex].slides.length - 1;
+      this.activeSlideIndex = this.stories[this.activeStoryIndex].slides.length - 1;
       this.renderViewerContent(container, lang, onOpenArticle);
       this.startAutoAdvance(container, lang, onOpenArticle);
     }

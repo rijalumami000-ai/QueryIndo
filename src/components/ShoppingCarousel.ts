@@ -32,6 +32,7 @@ export class ShoppingCarousel {
     mainTitle: 'RADAR GADGET & HARDWARE PILIHAN'
   };
 
+  // @ts-ignore
   private static DEFAULT_PRODUCTS: ShoppingProduct[] = [
     {
       id: 'shop-01',
@@ -132,7 +133,7 @@ export class ShoppingCarousel {
         if (serverData.config) {
           localStorage.setItem(this.STORAGE_KEY_CONFIG, JSON.stringify(serverData.config));
         }
-        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
+        if (Array.isArray(serverData.products)) {
           localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(serverData.products));
         }
       }
@@ -144,15 +145,14 @@ export class ShoppingCarousel {
   public static getProducts(): ShoppingProduct[] {
     const raw = localStorage.getItem(this.STORAGE_KEY_PRODUCTS);
     if (raw === null) {
-      this.saveProducts(this.DEFAULT_PRODUCTS);
-      return this.DEFAULT_PRODUCTS;
+      return [];
     }
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
-      return this.DEFAULT_PRODUCTS;
+      return [];
     } catch {
-      return this.DEFAULT_PRODUCTS;
+      return [];
     }
   }
 

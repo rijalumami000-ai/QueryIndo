@@ -3,7 +3,7 @@ import type { AdCampaign } from '../components/AdBanner';
 import type { ShoppingProduct, ShoppingWidgetConfig } from '../components/ShoppingCarousel';
 import type { PollData } from '../components/ReaderPoll';
 import type { CommentItem } from '../components/ReaderComments';
-import { ARTICLES, TECH_INDEXES } from '../data/mockNews';
+import { TECH_INDEXES } from '../data/mockNews';
 import { AuthService } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -30,22 +30,22 @@ export class ApiService {
   public static async getArticles(category?: string, search?: string): Promise<Article[]> {
     if (this.isBackendAvailable) {
       try {
-        const url = new URL(`${API_BASE_URL}/articles`);
+        const url = new URL(`${API_BASE_URL}/articles`, window.location.origin);
         if (category && category !== 'all') url.searchParams.append('category', category);
         if (search) url.searchParams.append('search', search);
 
         const res = await fetch(url.toString());
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             return json.data;
           }
         }
       } catch (err) {
-        console.warn('Backend API request failed, falling back to local dataset.', err);
+        console.warn('Backend API request failed.', err);
       }
     }
-    return ARTICLES;
+    return [];
   }
 
   // Fetch Tech Indexes from Go Backend or Fallback Dataset
@@ -285,7 +285,7 @@ export class ApiService {
         const res = await fetch(`${API_BASE_URL}/authors`);
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             return json.data;
           }
         }

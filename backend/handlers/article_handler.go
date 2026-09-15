@@ -171,7 +171,7 @@ func DeleteArticle(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	if database.DB != nil {
-		database.DB.Delete(&models.Article{}, "id = ?", id)
+		database.DB.Unscoped().Delete(&models.Article{}, "id = ?", id)
 	}
 
 	return c.JSON(fiber.Map{

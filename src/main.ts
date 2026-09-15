@@ -494,10 +494,15 @@ function renderCategories() {
 
 // Render Breaking News Banner
 function renderBreakingBanner() {
+  const bannerWrapper = document.querySelector('.breaking-bar') as HTMLElement;
   if (!breakingNewsTitle) return;
   const articles = ArticleService.getArticles();
   const breakingArticle = articles.find(a => a.isBreaking) || articles[0];
-  if (!breakingArticle) return;
+  if (!breakingArticle) {
+    if (bannerWrapper) bannerWrapper.style.display = 'none';
+    return;
+  }
+  if (bannerWrapper) bannerWrapper.style.display = '';
   breakingNewsTitle.textContent = breakingArticle.title;
   breakingNewsTitle.onclick = () => {
     openArticleReader(breakingArticle.id, true);
@@ -508,7 +513,25 @@ function renderBreakingBanner() {
 function renderHeroSection() {
   const articles = ArticleService.getArticles();
   const featuredArticle = articles.find(a => a.isFeatured) || articles[0];
-  if (!featuredArticle) return;
+  if (!featuredArticle) {
+    if (featuredArticleContainer) {
+      featuredArticleContainer.innerHTML = `
+        <div style="padding: 3.5rem 1.5rem; text-align: center; background: var(--bg-secondary); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); color: var(--text-muted);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; opacity: 0.7;"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">${preferences.language === 'en' ? 'No Articles Published Yet' : 'Belum Ada Artikel Berita'}</h3>
+          <p style="font-size: 0.875rem;">${preferences.language === 'en' ? 'Publish articles through Admin CMS to feature them here.' : 'Seluruh artikel dummy telah dibersihkan. Terbitkan berita resmi melalui Manajer Publikasi Admin CMS.'}</p>
+        </div>
+      `;
+    }
+    if (trendingArticlesContainer) {
+      trendingArticlesContainer.innerHTML = `
+        <div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+          ${preferences.language === 'en' ? 'No trending stories.' : 'Belum ada tren berita.'}
+        </div>
+      `;
+    }
+    return;
+  }
   
   if (featuredArticleContainer) {
     featuredArticleContainer.innerHTML = `
@@ -590,10 +613,16 @@ function renderBillboardAd() {
 function renderEditorsPick() {
   const container = document.getElementById('editors-pick-container');
   if (!container) return;
+  const section = container.closest('section') as HTMLElement;
 
   const articles = ArticleService.getArticles();
   const featured = articles.find(a => a.id === 'art-008') || articles[1] || articles[0];
-  if (!featured) return;
+  if (!featured) {
+    if (section) section.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  if (section) section.style.display = '';
   const stackedArticles = [
     articles.find(a => a.id === 'art-002'),
     articles.find(a => a.id === 'art-005')
@@ -703,6 +732,14 @@ function renderDeepTechMatrix() {
   if (matrixArticles.length < 4) {
     matrixArticles = articles.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
   }
+
+  const section = container.closest('section') as HTMLElement;
+  if (matrixArticles.length === 0) {
+    if (section) section.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  if (section) section.style.display = '';
 
   container.innerHTML = matrixArticles.map(art => {
     const isBookmarked = preferences.savedArticleIds.includes(art.id);
