@@ -1,4 +1,5 @@
 import type { Article } from '../types/news';
+import { ImageUtils } from '../utils/imageUtils';
 import Lenis from 'lenis';
 
 export type FocusTheme = 'dark' | 'sepia' | 'light';
@@ -78,7 +79,10 @@ export class FocusMode {
           <div class="focus-author-bar">
             <img src="${article.author.avatar}" alt="${article.author.name}" class="focus-author-avatar" />
             <div>
-              <div class="focus-author-name">${article.author.name}</div>
+              <div class="focus-author-name" style="display: flex; align-items: center; gap: 0.35rem;">
+                ${article.author.name}
+                ${ImageUtils.getVerifiedBadgeHTML(14, 'Jurnalis Terverifikasi')}
+              </div>
               <div class="focus-author-sub">${article.author.role} • ${new Date(article.publishedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
             </div>
           </div>

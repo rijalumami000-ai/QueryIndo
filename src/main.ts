@@ -99,6 +99,15 @@ export function findArticleBySlugOrId(idOrSlug: string): Article | undefined {
   return ArticleService.getArticleBySlugOrId(idOrSlug);
 }
 
+// Calculate dynamic reading time based on word count (~200 words per minute)
+export function calculateReadTime(content?: string, fallback: number = 4): number {
+  if (!content) return fallback;
+  const clean = content.replace(/<[^>]*>/g, ' ').trim();
+  const words = clean.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+
 // Reading History System
 export interface ReadingHistoryItem {
   articleId: string;
@@ -597,12 +606,15 @@ function renderHeroSection() {
           <div class="meta-row">
             <div class="meta-author">
               <img src="${featuredArticle.author.avatar}" alt="${featuredArticle.author.name}" class="author-avatar" />
-              <span>${featuredArticle.author.name}</span>
+              <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                ${featuredArticle.author.name}
+                ${ImageUtils.getVerifiedBadgeHTML(15, 'Founder & Pemimpin Redaksi Terverifikasi')}
+              </span>
             </div>
             <span>•</span>
             <span>${formatDate(featuredArticle.publishedAt)}</span>
             <span>•</span>
-            <span>${t('readTime').replace('{min}', String(featuredArticle.readTimeMinutes))}</span>
+            <span>${t('readTime').replace('{min}', String(calculateReadTime(featuredArticle.content, featuredArticle.readTimeMinutes)))}</span>
           </div>
         </div>
       </article>
@@ -625,13 +637,17 @@ function renderHeroSection() {
         <div class="trending-info">
           <h3 class="trending-item-title">${art.title}</h3>
           <div class="trending-meta">
-            <span>${art.author.name}</span>
+            <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
+              ${art.author.name}
+              ${ImageUtils.getVerifiedBadgeHTML(13, 'Jurnalis Terverifikasi')}
+            </span>
             <span>•</span>
             <span>${art.viewsCount >= 1000 ? (art.viewsCount / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : (art.viewsCount || 0)} ${preferences.language === 'en' ? 'Readers' : 'Pembaca'}</span>
           </div>
         </div>
       </div>
     `).join('');
+
 
     trendingArticlesContainer.querySelectorAll('.trending-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -692,12 +708,15 @@ function renderEditorsPick() {
         <div class="bento-meta-row">
           <div class="bento-author">
             <img src="${featured.author.avatar}" alt="${featured.author.name}" />
-            <span>${featured.author.name}</span>
+            <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+              ${featured.author.name}
+              ${ImageUtils.getVerifiedBadgeHTML(14, 'Redaksi Terverifikasi')}
+            </span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span>${formatDate(featured.publishedAt)}</span>
             <span>•</span>
-            <span>${featured.readTimeMinutes} ${preferences.language === 'en' ? 'min read' : 'menit'}</span>
+            <span>${calculateReadTime(featured.content, featured.readTimeMinutes)} ${preferences.language === 'en' ? 'min read' : 'menit baca'}</span>
           </div>
         </div>
       </div>
@@ -718,9 +737,12 @@ function renderEditorsPick() {
                 <h4 class="bento-stacked-title">${art.title}</h4>
               </div>
               <div class="bento-stacked-meta">
-                <span>${art.author.name}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
+                  ${art.author.name}
+                  ${ImageUtils.getVerifiedBadgeHTML(12, 'Jurnalis Terverifikasi')}
+                </span>
                 <span>•</span>
-                <span>${art.readTimeMinutes}m</span>
+                <span>${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
                 <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}" style="margin-left: auto;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                 </button>
@@ -801,10 +823,13 @@ function renderDeepTechMatrix() {
           <div class="matrix-card-footer">
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 1.25rem; height: 1.25rem; border-radius: 50%; object-fit: cover;" />
-              <span style="font-size: 0.72rem; color: var(--text-secondary);">${art.author.name}</span>
+              <span style="font-size: 0.72rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.2rem;">
+                ${art.author.name}
+                ${ImageUtils.getVerifiedBadgeHTML(12, 'Jurnalis Terverifikasi')}
+              </span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${art.readTimeMinutes}m</span>
+              <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
               <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </button>
@@ -814,6 +839,7 @@ function renderDeepTechMatrix() {
       </article>
     `;
   }).join('');
+
 
   container.querySelectorAll('.matrix-card').forEach(card => {
     card.addEventListener('click', (e) => {
@@ -1006,10 +1032,13 @@ function renderFeed() {
           <div class="card-footer">
             <div class="card-author-info">
               <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 1.3rem; height: 1.3rem; border-radius: 50%; object-fit: cover;" />
-              <span>${art.author.name}</span>
+              <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
+                ${art.author.name}
+                ${ImageUtils.getVerifiedBadgeHTML(13, 'Jurnalis Terverifikasi')}
+              </span>
             </div>
             <div class="card-actions">
-              <span>${art.readTimeMinutes}m</span>
+              <span>${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
               <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </button>
@@ -1106,15 +1135,20 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
         <div class="author-detail">
           <img src="${article.author.avatar}" alt="${article.author.name}" class="author-lg-avatar" />
           <div>
-            <div class="author-name-text">${article.author.name}</div>
+            <div class="author-name-text" style="display: flex; align-items: center; gap: 0.35rem;">
+              ${article.author.name}
+              ${ImageUtils.getVerifiedBadgeHTML(16, 'Dewan Redaksi Terverifikasi')}
+            </div>
             <div class="author-role-text">${article.author.role}</div>
           </div>
         </div>
         <div style="font-size: 0.825rem; color: var(--text-muted); text-align: right;">
-          <div>${preferences.language === 'en' ? 'Date' : 'Tanggal'}: ${formatDate(article.publishedAt)}</div>
+          <div>${preferences.language === 'en' ? 'Published' : 'Terbit'}: ${formatDate(article.publishedAt)}</div>
+          <div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:0.2rem;">⏱️ ${calculateReadTime(article.content, article.readTimeMinutes)} ${preferences.language === 'en' ? 'min read' : 'menit baca'}</div>
         </div>
       </div>
     </div>
+
 
     <!-- Audio Player, Focus Mode & Text Size Toolbar -->
     <div style="background:var(--bg-tertiary); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">

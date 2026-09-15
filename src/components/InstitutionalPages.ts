@@ -49,7 +49,10 @@ function staffCard(role: string, name: string, desc: string, avatar?: string, em
         ${avatarHtml}
         <div style="min-width:0; flex:1;">
           <span style="font-size:0.68rem; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-mono); font-weight:700; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${role}</span>
-          <strong style="font-size:0.95rem; color:var(--text-primary); display:block; line-height:1.3;">${name}</strong>
+          <strong style="font-size:0.95rem; color:var(--text-primary); display:flex; align-items:center; gap:0.25rem; line-height:1.3;">
+            ${name}
+            ${ImageUtils.getVerifiedBadgeHTML(14, 'Dewan Redaksi Terverifikasi')}
+          </strong>
         </div>
       </div>
       <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5; margin:0;">${desc}</p>

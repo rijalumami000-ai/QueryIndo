@@ -117,6 +117,9 @@ func main() {
 	// Financial Index Endpoint
 	api.Get("/tech-indexes", handlers.GetTechIndexes)
 
+	// High-Performance Safe Image Proxy Endpoint (Bypasses CORS, Google Drive, and Referrer Restrictions)
+	api.Get("/image-proxy", handlers.ImageProxy)
+
 	// AI Assistant Rate Limiter (Max 15 requests / 1 min per IP)
 	aiLimiter := limiter.New(limiter.Config{
 		Max:        15,

@@ -13,17 +13,26 @@ export class ImageUtils {
     let trimmed = url.trim();
 
     // 1. Google Drive links (sharing, download, uc, etc.)
-    if (trimmed.includes('drive.google.com') || trimmed.includes('drive.usercontent.google.com')) {
-      // Check for /file/d/FILE_ID
+    if (trimmed.includes('drive.google.com') || trimmed.includes('drive.usercontent.google.com') || trimmed.includes('lh3.googleusercontent.com')) {
+      let fileId = '';
       const fileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
       if (fileMatch && fileMatch[1]) {
-        return `https://lh3.googleusercontent.com/d/${fileMatch[1]}`;
+        fileId = fileMatch[1];
+      } else {
+        const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (idMatch && idMatch[1]) {
+          fileId = idMatch[1];
+        } else {
+          const dMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+          if (dMatch && dMatch[1]) {
+            fileId = dMatch[1];
+          }
+        }
       }
 
-      // Check for id=FILE_ID or ?id=FILE_ID
-      const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      if (idMatch && idMatch[1]) {
-        return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+      if (fileId) {
+        // Return reliable high-performance thumbnail proxy
+        return `/api/v1/image-proxy?url=${encodeURIComponent(trimmed)}`;
       }
     }
 
@@ -40,6 +49,26 @@ export class ImageUtils {
 
     return trimmed;
   }
+
+  /**
+   * Premium Scalloped Verified Seal (Similar to Meta Verified / Twitter X / Telegram Star)
+   */
+  public static getVerifiedBadgeHTML(size: number = 16, title: string = 'Dewan Redaksi Terverifikasi'): string {
+    return `<span class="verified-badge-wrap" title="${title}" style="display:inline-flex; align-items:center; vertical-align:middle; margin-left:4px; flex-shrink:0;">
+      <svg class="verified-badge-svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 1L14.7 3.7L18.5 3.3L19.7 7L23 8.9L22.2 12.7L24 16.1L20.8 18.3L20 22.1L16.2 22.2L13.8 25.1L10.2 25.1L7.8 22.2L4 22.1L3.2 18.3L0 16.1L1.8 12.7L1 8.9L4.3 7L5.5 3.3L9.3 3.7L12 1Z" fill="url(#metaVerifyGrad_${size})" style="filter: drop-shadow(0 1px 3px rgba(0, 168, 255, 0.45));"/>
+        <defs>
+          <linearGradient id="metaVerifyGrad_${size}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00f2fe" />
+            <stop offset="45%" stop-color="#0080ff" />
+            <stop offset="100%" stop-color="#0052d4" />
+          </linearGradient>
+        </defs>
+        <path d="M8.2 12.2L11 15L16.2 9.2" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>`;
+  }
+
 
   /**
    * Generates a fallback initials avatar URL using a clean SVG Data URL (works 100% offline).
