@@ -82,6 +82,26 @@ func ConnectDB() (*gorm.DB, error) {
 }
 
 func seedDefaultCMSData(db *gorm.DB) {
+	// 0. Seed Categories
+	var catCount int64
+	db.Model(&models.Category{}).Count(&catCount)
+	if catCount == 0 {
+		defaultCategories := []models.Category{
+			{ID: "all", Name: "Semua Berita", Icon: "layers", Description: "Semua kabar & pembaruan teknologi terkini"},
+			{ID: "ai", Name: "Kecerdasan Buatan", Icon: "cpu", Description: "Inovasi AI, LLM, Otomasi & Agentic Coding"},
+			{ID: "gadget", Name: "Gadget & Inovasi", Icon: "smartphone", Description: "Review, rumor & rilis perangkat terbaru"},
+			{ID: "cybersecurity", Name: "Keamanan Siber", Icon: "shield-alert", Description: "Perlindungan data, privasi & ancaman siber"},
+			{ID: "startup", Name: "Startup & Bisnis", Icon: "trending-up", Description: "Ekosistem pendanaan, unicorn & inovasi bisnis"},
+			{ID: "policy", Name: "Kebijakan Digital", Icon: "file-text", Description: "Regulasi pemerintah, PDP & infrastruktur nasional"},
+			{ID: "telecom", Name: "Telekomunikasi", Icon: "radio", Description: "Jaringan 5G/6G, internet satelit & konektivitas"},
+			{ID: "developer", Name: "Kolektif Developer", Icon: "code", Description: "Bahasa pemrograman, cloud & tren software engineering"},
+		}
+		for _, cat := range defaultCategories {
+			db.Create(&cat)
+		}
+		log.Println("🌱 Seed Categories default berhasil!")
+	}
+
 	// 1. Seed Shopping Config
 	var shopCfg models.ShoppingConfig
 	if err := db.Where("key = ?", "main").First(&shopCfg).Error; err != nil {
