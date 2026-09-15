@@ -1,4 +1,4 @@
-import { ARTICLES } from '../data/mockNews';
+import { ArticleService } from '../services/articleService';
 import { ApiService } from '../services/apiService';
 
 export class ByteAIChatbot {
@@ -169,7 +169,7 @@ export class ByteAIChatbot {
     let responseText = 'Terima kasih atas pertanyaannya. Redaksi QUERYINDO terus memantau perkembangan teknologi terkini di Indonesia.';
     const queryLower = query.toLowerCase();
 
-    const matchedArticle = ARTICLES.find(a => 
+    const matchedArticle = ArticleService.getArticles().find(a => 
       a.title.toLowerCase().includes(queryLower) || 
       a.tags.some(t => t.toLowerCase().includes(queryLower)) ||
       a.category.toLowerCase().includes(queryLower)
