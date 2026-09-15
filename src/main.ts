@@ -1,6 +1,5 @@
 import './styles/main.css';
-import { CATEGORIES, TECH_INDEXES } from './data/mockNews';
-import type { Article, CategoryId, UserPreferences, TechIndexItem } from './types/news';
+import type { CategoryId, TechIndexItem } from './types/news';
 import { ArticleService } from './services/articleService';
 import { AdminCMS } from './components/AdminCMS';
 import { ReaderAuthService, type ReaderUser } from './services/authService';
@@ -8,189 +7,52 @@ import { ApiService } from './services/apiService';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
 import { ByteShorts } from './components/ByteShorts';
 import { Toast } from './utils/toast';
-import { TranslationService, UI_TRANSLATIONS } from './utils/translationService';
-import { TextToSpeechService } from './utils/textToSpeech';
-import { ReaderComments } from './components/ReaderComments';
-import { FocusMode } from './components/FocusMode';
 import { SeoService } from './utils/seoService';
-import { ShareModal } from './components/ShareModal';
-import { AdBanner } from './components/AdBanner';
-import { ShoppingCarousel } from './components/ShoppingCarousel';
-import { AuthorService } from './services/authorService';
-import { ReaderPoll } from './components/ReaderPoll';
 import { SocialMediaService } from './services/socialMediaService';
-import { ImageUtils } from './utils/imageUtils';
+import { store } from './state/store';
+import { Router } from './router';
+import { HeroSection } from './sections/HeroSection';
+import { BentoSection } from './sections/BentoSection';
+import { DeepTechSection } from './sections/DeepTechSection';
+import { FeedSection } from './sections/FeedSection';
+import { ArticleReaderModal } from './sections/ArticleReaderModal';
+import { BookmarksModal } from './sections/BookmarksModal';
+import { SearchPreview } from './sections/SearchPreview';
 import Lenis from 'lenis';
 
-// English Names for Categories
-const CATEGORIES_EN: Record<string, string> = {
-  'all': 'All News',
-  'ai': 'Artificial Intelligence',
-  'gadget': 'Gadget & Innovation',
-  'cybersecurity': 'Cybersecurity',
-  'startup': 'Startup & Business',
-  'policy': 'Digital Policy',
-  'telecom': 'Telecommunications',
-  'developer': 'Developer Collective'
-};
-
-// Default State
-let currentCategory: CategoryId = 'all';
-let searchQuery = '';
-let liveTechIndexes: TechIndexItem[] = [...TECH_INDEXES];
-let currentArticleSpeechText = '';
-let selectedFilterSortBy = 'latest';
-let selectedFilterDateRange = 'all';
-let selectedFilterTag = '';
-
-const preferences: UserPreferences = {
-  theme: (localStorage.getItem('byte_theme') as 'dark' | 'light') || 'light',
-  savedArticleIds: JSON.parse(localStorage.getItem('byte_bookmarks') || '[]'),
-  likedArticleIds: JSON.parse(localStorage.getItem('byte_likes') || '[]'),
-  fontSize: (localStorage.getItem('byte_font_size') as 'normal' | 'large' | 'xlarge') || 'normal',
-  language: (localStorage.getItem('byte_lang') as 'id' | 'en') || 'id'
-};
-
-// Helper: get current language label
-function t(key: keyof typeof UI_TRANSLATIONS['id']): string {
-  return TranslationService.getLabel(key, preferences.language);
-}
-
-function escapeHtml(str: string): string {
-  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-export function getSafeImageUrl(url?: string): string {
-  return ImageUtils.normalizeImageUrl(url || '') || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
-}
-
-export const IMG_ONERROR = `onerror="if(this.dataset.tried!=='1'&&this.src.includes('lh3.googleusercontent.com/d/')){this.dataset.tried='1';const id=this.src.split('/d/')[1];if(id){this.src='https://drive.google.com/thumbnail?id='+id+'&sz=w1200';return;}}this.onerror=null;this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';"`;
-
-export function updateCurrentDateBadge() {
-  const dateEl = document.getElementById('current-date-text');
-  if (!dateEl) return;
-  const now = new Date();
-  if (preferences.language === 'en') {
-    dateEl.textContent = now.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } else {
-    dateEl.textContent = now.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  }
-}
-
-export function slugifyTitle(title: string): string {
-  if (!title) return '';
-  return title
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-');
-}
-
-export function findArticleBySlugOrId(idOrSlug: string): Article | undefined {
-  return ArticleService.getArticleBySlugOrId(idOrSlug);
-}
-
-// Calculate dynamic reading time based on word count (~200 words per minute)
-export function calculateReadTime(content?: string, fallback: number = 4): number {
-  if (!content) return fallback;
-  const clean = content.replace(/<[^>]*>/g, ' ').trim();
-  const words = clean.split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 200));
-}
-
-
-// Reading History System
-export interface ReadingHistoryItem {
-  articleId: string;
-  title: string;
-  category: string;
-  imageUrl: string;
-  readTimeMinutes: number;
-  readAt: string;
-}
-
-function addReadingHistory(article: Article) {
-  try {
-    let history: ReadingHistoryItem[] = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
-    history = history.filter(h => h.articleId !== article.id);
-    history.unshift({
-      articleId: article.id,
-      title: article.title,
-      category: article.category,
-      imageUrl: article.imageUrl,
-      readTimeMinutes: article.readTimeMinutes,
-      readAt: new Date().toISOString()
-    });
-    if (history.length > 40) history = history.slice(0, 40);
-    localStorage.setItem('byte_reading_history', JSON.stringify(history));
-  } catch (e) {
-    console.warn('Failed to save reading history', e);
-  }
-}
-
-
-
 // DOM Elements
-const appElement = document.documentElement;
 const techTickerList = document.getElementById('tech-ticker-list');
-const categoryContainer = document.getElementById('category-container');
-const breakingNewsTitle = document.getElementById('breaking-news-title');
-const featuredArticleContainer = document.getElementById('featured-article-container');
-const trendingArticlesContainer = document.getElementById('trending-articles-container');
-const articlesGrid = document.getElementById('articles-grid');
-const feedTitle = document.getElementById('feed-title');
-const resultsCount = document.getElementById('results-count');
-const searchInput = document.getElementById('search-input') as HTMLInputElement;
+const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
 const themeToggleBtn = document.getElementById('theme-toggle');
-const bookmarkCountBadge = document.getElementById('bookmark-count');
-const readerModal = document.getElementById('reader-modal');
-const modalReaderContent = document.getElementById('modal-reader-content');
-const modalCloseBtn = document.getElementById('modal-close-btn');
 const bookmarksBtn = document.getElementById('bookmarks-btn');
-const bookmarksModal = document.getElementById('bookmarks-modal');
 const bookmarksCloseBtn = document.getElementById('bookmarks-close-btn');
-const bookmarksListContainer = document.getElementById('bookmarks-list-container');
-const logoBtn = document.getElementById('logo-btn');
-const newsletterForm = document.getElementById('newsletter-form');
-const searchPreviewDropdown = document.getElementById('search-preview-dropdown');
+const modalCloseBtn = document.getElementById('modal-close-btn');
 const userAuthBtn = document.getElementById('user-auth-btn');
 const mUserAuthBtn = document.getElementById('m-user-auth-btn');
 const userAuthModal = document.getElementById('user-auth-modal');
 const userAuthContainer = document.getElementById('user-auth-container');
 const adminCmsModal = document.getElementById('admin-cms-modal');
 const adminCmsContainer = document.getElementById('admin-cms-container');
-
-const filterPanel = document.getElementById('advanced-filter-panel');
-const filterToggleBtn = document.getElementById('btn-filter-toggle');
-const filterSortBy = document.getElementById('filter-sort-by') as HTMLSelectElement;
-const filterDateRange = document.getElementById('filter-date-range') as HTMLSelectElement;
-const filterTagChips = document.getElementById('filter-tag-chips');
-const byteShortsContainer = document.getElementById('byteshorts-bar-container');
-
-// Institutional Pages Container
 const institutionalPageContainer = document.getElementById('institutional-page-container');
 const mainContent = document.querySelector('main.container') as HTMLElement | null;
+const byteShortsContainer = document.getElementById('byteshorts-bar-container');
+const filterPanel = document.getElementById('advanced-filter-panel');
+const filterToggleBtn = document.getElementById('btn-filter-toggle');
+const filterSortBy = document.getElementById('filter-sort-by') as HTMLSelectElement | null;
+const filterDateRange = document.getElementById('filter-date-range') as HTMLSelectElement | null;
 
-// Instances
+// Admin CMS Instance
 const adminCMS = new AdminCMS(() => {
-  renderBreakingBanner();
-  renderHeroSection();
-  renderAllNewsSections();
+  HeroSection.renderBreakingBanner();
+  HeroSection.render();
+  BentoSection.render();
+  DeepTechSection.render();
+  FeedSection.render();
 });
 
+// Smooth Scroll (Lenis)
 let lenisInstance: Lenis | null = null;
-let readerLenis: Lenis | null = null;
 
-// Global modal lifecycle listeners to manage main page Lenis
 window.addEventListener('modal-opened', () => {
   lenisInstance?.stop();
 });
@@ -202,13 +64,19 @@ window.addEventListener('modal-closed', () => {
   }
 });
 
-// Initialize Application
+// --------------------------------------------------------------------------
+// Application Initialization
+// --------------------------------------------------------------------------
 async function init() {
-  // Initialize Lenis Smooth Scroll for Main Page (desktop only for performance)
+  // 1. Lenis Smooth Scroll
   if (window.innerWidth > 768) {
     lenisInstance = new Lenis({
-      lerp: 0.1,
-      smoothWheel: true
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
+      infinite: false
     });
 
     const raf = (time: number) => {
@@ -218,1498 +86,95 @@ async function init() {
     requestAnimationFrame(raf);
   }
 
-  applyTheme(preferences.theme);
-  updateBookmarkBadge();
+  // 2. Initialize Store Badges & UI
+  store.updateCurrentDateBadge();
+  store.updateBookmarkBadge();
   updateUserNavbarState();
 
-  
-  // Async Health check & load live financial indexes + sync centralized server content
-  SocialMediaService.init();
-  const isBackendLive = await ApiService.checkBackendHealth();
-  if (isBackendLive) {
-    const results = await Promise.allSettled([
-      AuthorService.syncWithBackend(),
-      AdBanner.syncWithBackend(),
-      ShoppingCarousel.syncWithBackend(),
-      ReaderPoll.syncWithBackend(),
-      ArticleService.syncWithBackend(),
-      SocialMediaService.syncWithBackend(),
-      ApiService.getTechIndexes()
-    ]);
-    const techIdxResult = results[6];
-    if (techIdxResult && techIdxResult.status === 'fulfilled' && techIdxResult.value) {
-      liveTechIndexes = techIdxResult.value;
-    }
+  // 3. Fetch Articles & Indices from Backend
+  try {
+    await ApiService.checkBackendHealth();
+    await ArticleService.syncWithBackend();
+  } catch (err) {
+    console.warn('Backend unavailable, using local mock data', err);
   }
 
-  updateCurrentDateBadge();
+  try {
+    const liveIndices = await ApiService.getTechIndexes();
+    if (liveIndices && liveIndices.length > 0) {
+      store.liveTechIndexes = liveIndices;
+    }
+  } catch (err) {
+    console.warn('Indices API error', err);
+  }
+
+  // 4. Render All UI Sections
   renderTechIndexes();
-  renderCategories();
-  renderBreakingBanner();
-  renderHeroSection();
-  renderAllNewsSections();
-  renderFilterTags();
+  FeedSection.renderCategories();
+  HeroSection.renderBreakingBanner();
+  HeroSection.render();
+  BentoSection.renderBillboardAd();
+  BentoSection.render();
+  BentoSection.renderShoppingCarousel();
+  BentoSection.renderMidstreamAd();
+  DeepTechSection.render();
+  FeedSection.renderFilterTags();
+  FeedSection.render();
   renderByteShorts();
   renderFooterSocials();
   SocialMediaService.subscribe(() => renderFooterSocials());
 
+  // 5. Setup Listeners, Router & PWA
   setupEventListeners();
   setupPWAInstallPrompt();
-  handleRouting();
-  window.addEventListener('popstate', handleRouting);
-  window.addEventListener('hashchange', handleRouting);
   setupCookieConsent();
   updateFooterLabels();
   updateFilterLabels();
   SeoService.setHomeSEO();
-}
 
-// PWA Installation Prompt Handler
-function setupPWAInstallPrompt() {
-  let deferredPrompt: any = null;
-  const pwaInstallBtn = document.getElementById('pwa-install-btn');
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (pwaInstallBtn) {
-      pwaInstallBtn.style.display = 'inline-flex';
-    }
-  });
-
-  pwaInstallBtn?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        Toast.show(preferences.language === 'en' ? 'Thank you for installing QUERYINDO App!' : 'Terima kasih telah memasang aplikasi QUERYINDO!');
-      }
-      deferredPrompt = null;
-      pwaInstallBtn.style.display = 'none';
-    } else {
-      Toast.show(preferences.language === 'en' ? 'App can be added via browser "Add to Home screen" menu.' : 'Gunakan menu browser "Tambahkan ke Layar Utama" untuk memasang aplikasi.');
-    }
-  });
-
-  window.addEventListener('appinstalled', () => {
-    if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
-    deferredPrompt = null;
-  });
-}
-
-// Client-Side Dual Router (Supports /Judul-Berita and #article/..., #admin, #category/..., #page/...)
-function handleRouting() {
-  const hash = window.location.hash;
-  const rawPath = window.location.pathname;
-  const path = decodeURIComponent(rawPath).replace(/^\/+/, '');
-
-  if (hash.startsWith('#admin')) {
-    closeInstitutionalPage();
-    closeArticleReader(false);
-    openAdminCMSModal();
-  } else if (hash.startsWith('#article/')) {
-    closeInstitutionalPage();
-    const artId = hash.replace('#article/', '');
-    openArticleReader(artId, false);
-  } else if (hash.startsWith('#category/')) {
-    closeInstitutionalPage();
-    closeArticleReader(false);
-    const catId = hash.replace('#category/', '') as CategoryId;
-    currentCategory = catId;
-    renderCategories();
-    renderFeed();
-  } else if (hash.startsWith('#page/')) {
-    closeArticleReader(false);
-    const pageId = hash.replace('#page/', '');
-    if (InstitutionalPages.isValidPageId(pageId)) {
-      openInstitutionalPage(pageId);
-    }
-  } else if (path && path !== 'index.html' && !path.startsWith('api/') && !path.startsWith('health')) {
-    // Direct title-based URL e.g. /Indonesia-Resmi-Operasikan-Pusat-Data-Nasional-Superkomputer-AI-Pertama-di-IKN
-    const article = findArticleBySlugOrId(path);
-    if (article) {
-      closeInstitutionalPage();
-      openArticleReader(article.id, false);
-    } else {
-      closeInstitutionalPage();
-      closeArticleReader(false);
-    }
-  } else {
-    // Default home
-    closeInstitutionalPage();
-    closeArticleReader(false);
-    if (adminCmsModal) adminCmsModal.classList.remove('open');
-  }
-}
-
-// Apply Theme
-function applyTheme(theme: 'dark' | 'light') {
-  preferences.theme = theme;
-  appElement.setAttribute('data-theme', theme);
-  localStorage.setItem('byte_theme', theme);
-
-  const themeSvgIcon = document.getElementById('theme-svg-icon');
-  if (themeSvgIcon) {
-    if (theme === 'dark') {
-      themeSvgIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-    } else {
-      themeSvgIcon.innerHTML = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
-    }
-  }
-}
-
-// Update Bookmark Badge
-function updateBookmarkBadge() {
-  if (bookmarkCountBadge) {
-    bookmarkCountBadge.textContent = preferences.savedArticleIds.length.toString();
-  }
-}
-
-// Render Tech Indexes Ticker
-function renderTechIndexes() {
-  if (!techTickerList) return;
-  techTickerList.innerHTML = liveTechIndexes.map((item, idx) => `
-    <div class="ticker-item" data-ticker-idx="${idx}" role="button" tabindex="0" title="Klik untuk lihat grafik ${item.name}">
-      <span class="ticker-symbol">${item.symbol}</span>
-      <span class="ticker-val">${item.value}</span>
-      <span class="ticker-change ${item.isPositive ? 'up' : 'down'}">${item.change}</span>
-    </div>
-  `).join('');
-
-  // Add click handlers for chart popup
-  techTickerList.addEventListener('click', (e) => {
-    const tickerEl = (e.target as HTMLElement).closest('.ticker-item') as HTMLElement;
-    if (!tickerEl) return;
-    const idx = parseInt(tickerEl.dataset.tickerIdx || '0', 10);
-    showTickerChart(liveTechIndexes[idx], tickerEl);
-  });
-}
-
-// Generate SVG line chart from historical data
-function generateSVGChart(item: TechIndexItem): string {
-  const data = item.historicalData;
-  const W = 380, H = 160, padX = 42, padY = 20;
-  const chartW = W - padX * 2, chartH = H - padY * 2;
-
-  const values = data.map(d => d.value);
-  const minV = Math.min(...values);
-  const maxV = Math.max(...values);
-  const range = maxV - minV || 1;
-
-  // Build polyline points
-  const points = data.map((d, i) => {
-    const x = padX + (i / (data.length - 1)) * chartW;
-    const y = padY + chartH - ((d.value - minV) / range) * chartH;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-
-  // Gradient fill area
-  const areaPoints = [
-    `${padX},${padY + chartH}`,
-    ...points,
-    `${(padX + chartW).toFixed(1)},${padY + chartH}`
-  ].join(' ');
-
-  const lineColor = item.isPositive ? '#10b981' : '#f43f5e';
-  const gradId = `grad-${item.symbol.replace(/[^a-zA-Z]/g, '')}`;
-
-  // Y-axis labels (5 steps)
-  const yLabels = Array.from({ length: 5 }, (_, i) => {
-    const val = minV + (range * i) / 4;
-    const y = padY + chartH - (i / 4) * chartH;
-    const label = val >= 1000 ? val.toLocaleString('id-ID', { maximumFractionDigits: 0 }) : val.toFixed(1);
-    return `<text x="${padX - 6}" y="${y + 3}" text-anchor="end" fill="var(--text-muted)" font-size="9" font-family="var(--font-mono)">${label}</text>
-      <line x1="${padX}" y1="${y}" x2="${padX + chartW}" y2="${y}" stroke="var(--border-subtle)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
-  }).join('');
-
-  // X-axis labels (every 6 hours)
-  const xLabels = [0, 6, 12, 18, 23].map(i => {
-    const x = padX + (i / (data.length - 1)) * chartW;
-    return `<text x="${x}" y="${padY + chartH + 14}" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="var(--font-mono)">${data[i].time}</text>`;
-  }).join('');
-
-  // Hover dots
-  const dots = data.map((d, i) => {
-    const x = padX + (i / (data.length - 1)) * chartW;
-    const y = padY + chartH - ((d.value - minV) / range) * chartH;
-    const label = d.value >= 1000 ? d.value.toLocaleString('id-ID') : d.value.toFixed(2);
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${lineColor}" opacity="0" class="chart-dot">
-      <title>${d.time} — ${label}</title>
-    </circle>`;
-  }).join('');
-
-  return `<svg viewBox="0 0 ${W} ${H + 18}" xmlns="http://www.w3.org/2000/svg" class="ticker-chart-svg">
-    <defs>
-      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.25"/>
-        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.02"/>
-      </linearGradient>
-    </defs>
-    ${yLabels}
-    ${xLabels}
-    <polygon points="${areaPoints}" fill="url(#${gradId})"/>
-    <polyline points="${points.join(' ')}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line"/>
-    ${dots}
-  </svg>`;
-}
-
-// Show ticker chart popup
-function showTickerChart(item: TechIndexItem, anchorEl: HTMLElement) {
-  // Remove existing popup
-  document.querySelector('.ticker-chart-popup')?.remove();
-
-  const values = item.historicalData.map(d => d.value);
-  const openVal = values[0];
-  const closeVal = values[values.length - 1];
-  const highVal = Math.max(...values);
-  const lowVal = Math.min(...values);
-  const fmt = (v: number) => v >= 1000 ? v.toLocaleString('id-ID') : v.toFixed(2);
-
-  const isLive = ApiService.isBackendAvailable && item.symbol !== 'STARTUP-RI';
-  const footerText = isLive ? t('chartFooter') : t('chartFooterFallback');
-
-  const popup = document.createElement('div');
-  popup.className = 'ticker-chart-popup';
-  popup.innerHTML = `
-    <div class="ticker-chart-header">
-      <div class="ticker-chart-title">
-        <span class="ticker-chart-symbol">${item.symbol}</span>
-        <span class="ticker-chart-name">${item.name}</span>
-      </div>
-      <div class="ticker-chart-meta">
-        <span class="ticker-chart-value">${item.value}</span>
-        <span class="ticker-chart-change ${item.isPositive ? 'up' : 'down'}">${item.change}</span>
-      </div>
-      <button class="ticker-chart-close" aria-label="Tutup">&times;</button>
-    </div>
-    <div class="ticker-chart-body">
-      ${generateSVGChart(item)}
-    </div>
-    <div class="ticker-chart-stats">
-      <div class="stat-item"><span class="stat-label">Open</span><span class="stat-val">${fmt(openVal)}</span></div>
-      <div class="stat-item"><span class="stat-label">High</span><span class="stat-val up">${fmt(highVal)}</span></div>
-      <div class="stat-item"><span class="stat-label">Low</span><span class="stat-val down">${fmt(lowVal)}</span></div>
-      <div class="stat-item"><span class="stat-label">Close</span><span class="stat-val">${fmt(closeVal)}</span></div>
-    </div>
-    <div class="ticker-chart-footer">
-      <span>${footerText}</span>
-    </div>
-  `;
-
-  // Position relative to the top-bar
-  document.body.appendChild(popup);
-
-  // Close handlers
-  const closeBtn = popup.querySelector('.ticker-chart-close')!;
-  closeBtn.addEventListener('click', () => popup.remove());
-
-  const onClickOutside = (e: MouseEvent) => {
-    if (!popup.contains(e.target as Node) && !anchorEl.contains(e.target as Node)) {
-      popup.remove();
-      document.removeEventListener('click', onClickOutside);
-    }
-  };
-  // Delay adding outside listener to avoid immediate close
-  setTimeout(() => document.addEventListener('click', onClickOutside), 50);
-
-  const onEsc = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      popup.remove();
-      document.removeEventListener('keydown', onEsc);
-    }
-  };
-  document.addEventListener('keydown', onEsc);
-
-  // Animate in
-  requestAnimationFrame(() => popup.classList.add('show'));
-}
-
-// Render Categories Bar
-function renderCategories() {
-  if (!categoryContainer) return;
-  const lang = preferences.language;
-  categoryContainer.innerHTML = CATEGORIES.map(cat => `
-    <button class="cat-pill ${cat.id === currentCategory ? 'active' : ''}" data-category="${cat.id}">
-      <span>${lang === 'en' ? (CATEGORIES_EN[cat.id] || cat.name) : cat.name}</span>
-    </button>
-  `).join('');
-
-  categoryContainer.querySelectorAll('.cat-pill').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const target = e.currentTarget as HTMLElement;
-      const catId = target.getAttribute('data-category') as CategoryId;
-      if (catId) {
-        currentCategory = catId;
-        window.location.hash = `category/${catId}`;
-        renderCategories();
-        renderFeed();
-      }
-    });
-  });
-}
-
-// Render Breaking News Banner
-function renderBreakingBanner() {
-  const bannerWrapper = document.querySelector('.breaking-bar') as HTMLElement;
-  if (!breakingNewsTitle) return;
-  const articles = ArticleService.getArticles();
-  const breakingArticle = articles.find(a => a.isBreaking) || articles[0];
-  if (!breakingArticle) {
-    if (bannerWrapper) bannerWrapper.style.display = 'none';
-    return;
-  }
-  if (bannerWrapper) bannerWrapper.style.display = '';
-  breakingNewsTitle.textContent = breakingArticle.title;
-  breakingNewsTitle.onclick = () => {
-    openArticleReader(breakingArticle.id, true);
-  };
-}
-
-// Render Hero Section (Featured + Trending)
-function renderHeroSection() {
-  const articles = ArticleService.getArticles();
-  const featuredArticle = articles.find(a => a.isFeatured) || articles[0];
-  if (!featuredArticle) {
-    if (featuredArticleContainer) {
-      featuredArticleContainer.innerHTML = `
-        <div style="padding: 3.5rem 1.5rem; text-align: center; background: var(--bg-secondary); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); color: var(--text-muted);">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; opacity: 0.7;"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">${preferences.language === 'en' ? 'No Articles Published Yet' : 'Belum Ada Artikel Berita'}</h3>
-          <p style="font-size: 0.875rem;">${preferences.language === 'en' ? 'Publish articles through Admin CMS to feature them here.' : 'Seluruh artikel dummy telah dibersihkan. Terbitkan berita resmi melalui Manajer Publikasi Admin CMS.'}</p>
-        </div>
-      `;
-    }
-    if (trendingArticlesContainer) {
-      trendingArticlesContainer.innerHTML = `
-        <div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-          ${preferences.language === 'en' ? 'No trending stories.' : 'Belum ada tren berita.'}
-        </div>
-      `;
-    }
-    return;
-  }
-  
-  if (featuredArticleContainer) {
-    featuredArticleContainer.innerHTML = `
-      <article class="hero-card" data-article-id="${featuredArticle.id}">
-        <div class="hero-img-wrapper">
-          <img src="${getSafeImageUrl(featuredArticle.imageUrl)}" alt="${escapeHtml(featuredArticle.title)}" class="hero-img" loading="eager" ${IMG_ONERROR} />
-          <div class="hero-overlay"></div>
-        </div>
-        <div class="hero-content">
-          <div class="badge-group">
-            <span class="tag-badge badge-ai">${preferences.language === 'en' ? 'HEADLINE' : 'BERITA UTAMA'}</span>
-            <span class="tag-badge">${featuredArticle.category.toUpperCase()}</span>
-          </div>
-          <h1 class="hero-title">${featuredArticle.title}</h1>
-          <p class="hero-subtitle">${featuredArticle.subtitle}</p>
-          <div class="meta-row">
-            <div class="meta-author">
-              <img src="${featuredArticle.author.avatar}" alt="${featuredArticle.author.name}" class="author-avatar" />
-              <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                ${featuredArticle.author.name}
-                ${ImageUtils.getVerifiedBadgeHTML(15, 'Founder & Pemimpin Redaksi Terverifikasi')}
-              </span>
-            </div>
-            <span>•</span>
-            <span>${formatDate(featuredArticle.publishedAt)}</span>
-            <span>•</span>
-            <span>${t('readTime').replace('{min}', String(calculateReadTime(featuredArticle.content, featuredArticle.readTimeMinutes)))}</span>
-          </div>
-        </div>
-      </article>
-    `;
-
-    featuredArticleContainer.querySelector('.hero-card')?.addEventListener('click', () => {
-      openArticleReader(featuredArticle.id, true);
-    });
-  }
-
-  // Render Sidebar Trending
-  const trendingHeader = document.getElementById('trending-title-header');
-  if (trendingHeader) trendingHeader.textContent = t('trendingTitle');
-
-  if (trendingArticlesContainer) {
-    const trendingArticles = ArticleService.getArticles().filter(a => a.isTrending && a.id !== featuredArticle.id).slice(0, 4);
-    trendingArticlesContainer.innerHTML = trendingArticles.map((art, idx) => `
-      <div class="trending-item" data-article-id="${art.id}">
-        <div class="trending-num">0${idx + 1}</div>
-        <div class="trending-info">
-          <h3 class="trending-item-title">${art.title}</h3>
-          <div class="trending-meta">
-            <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
-              ${art.author.name}
-              ${ImageUtils.getVerifiedBadgeHTML(13, 'Jurnalis Terverifikasi')}
-            </span>
-            <span>•</span>
-            <span>${art.viewsCount >= 1000 ? (art.viewsCount / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : (art.viewsCount || 0)} ${preferences.language === 'en' ? 'Readers' : 'Pembaca'}</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-
-    trendingArticlesContainer.querySelectorAll('.trending-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const id = item.getAttribute('data-article-id');
-        if (id) {
-          openArticleReader(id, true);
-        }
-      });
-    });
-  }
+  // 6. Bind Router Subscriptions
+  setupRouting();
+  Router.init();
 }
 
 // --------------------------------------------------------------------------
-// Editorial Variety & Advertising Layout Renderers
+// Routing Controller
 // --------------------------------------------------------------------------
-
-// Render Top Billboard Ad Banner
-function renderBillboardAd() {
-  const container = document.getElementById('top-billboard-ad-container');
-  if (!container) return;
-  container.innerHTML = AdBanner.renderBillboardHTML();
-  AdBanner.bindAdEvents(container);
-}
-
-// Render Editor's Pick Bento Showcase
-function renderEditorsPick() {
-  const container = document.getElementById('editors-pick-container');
-  if (!container) return;
-  const section = container.closest('section') as HTMLElement;
-
-  const articles = ArticleService.getArticles();
-  const featured = articles.find(a => a.id === 'art-008') || articles[1] || articles[0];
-  if (!featured) {
-    if (section) section.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  if (section) section.style.display = '';
-  const stackedArticles = [
-    articles.find(a => a.id === 'art-002'),
-    articles.find(a => a.id === 'art-005')
-  ].filter(Boolean) as Article[];
-
-  container.innerHTML = `
-    <!-- Bento Large Featured Card (60%) -->
-    <article class="bento-featured-card" data-article-id="${featured.id}">
-      <div class="bento-featured-img-wrap">
-        <img src="${getSafeImageUrl(featured.imageUrl)}" alt="${escapeHtml(featured.title)}" class="bento-featured-img" loading="lazy" ${IMG_ONERROR} />
-      </div>
-      <div class="bento-featured-overlay"></div>
-      <div class="bento-featured-body">
-        <div class="bento-badges">
-          <span class="bento-tag bento-tag-curated">${preferences.language === 'en' ? 'SPECIAL REPORT' : 'LAPORAN KHUSUS'}</span>
-          <span class="bento-tag bento-tag-cat">${featured.category.toUpperCase()}</span>
-        </div>
-        <h3 class="bento-featured-title">${featured.title}</h3>
-        <p class="bento-featured-excerpt">${featured.subtitle}</p>
-        <div class="bento-meta-row">
-          <div class="bento-author">
-            <img src="${featured.author.avatar}" alt="${featured.author.name}" />
-            <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
-              ${featured.author.name}
-              ${ImageUtils.getVerifiedBadgeHTML(14, 'Redaksi Terverifikasi')}
-            </span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span>${formatDate(featured.publishedAt)}</span>
-            <span>•</span>
-            <span>${calculateReadTime(featured.content, featured.readTimeMinutes)} ${preferences.language === 'en' ? 'min read' : 'menit baca'}</span>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <!-- Bento Stacked Side Cards (40%) -->
-    <div class="bento-stacked-col">
-      ${stackedArticles.map(art => {
-        const isBookmarked = preferences.savedArticleIds.includes(art.id);
-        return `
-          <article class="bento-stacked-card" data-article-id="${art.id}">
-            <div class="bento-stacked-img-wrap">
-              <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="bento-stacked-img" loading="lazy" ${IMG_ONERROR} />
-            </div>
-            <div class="bento-stacked-body">
-              <div>
-                <span class="bento-tag bento-tag-cat" style="font-size:0.6rem; padding:0.15rem 0.4rem; margin-bottom:0.35rem; display:inline-block;">${art.category.toUpperCase()}</span>
-                <h4 class="bento-stacked-title">${art.title}</h4>
-              </div>
-              <div class="bento-stacked-meta">
-                <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
-                  ${art.author.name}
-                  ${ImageUtils.getVerifiedBadgeHTML(12, 'Jurnalis Terverifikasi')}
-                </span>
-                <span>•</span>
-                <span>${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
-                <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}" style="margin-left: auto;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-                </button>
-              </div>
-            </div>
-          </article>
-        `;
-      }).join('')}
-    </div>
-  `;
-
-  // Bind click handlers
-  container.querySelectorAll('[data-article-id]').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.btn-bookmark')) return;
-      const id = card.getAttribute('data-article-id');
-      if (id) {
-        openArticleReader(id, true);
-      }
-    });
-  });
-
-  container.querySelectorAll('.btn-bookmark').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = (btn as HTMLElement).getAttribute('data-bookmark-id');
-      if (id) toggleBookmark(id);
-    });
-  });
-}
-
-// Render Shopping Recommendation Carousel Banner (Affiliate / Liputan6 style)
-function renderShoppingCarousel() {
-  const container = document.getElementById('shopping-carousel-container');
-  if (!container) return;
-  container.innerHTML = ShoppingCarousel.renderWidgetHTML();
-  ShoppingCarousel.bindEvents(container);
-}
-
-// Render Mid-Stream Panoramic Interstitial Ad Banner
-function renderMidstreamAd() {
-  const container = document.getElementById('midstream-ad-container');
-  if (!container) return;
-  container.innerHTML = AdBanner.renderMidstreamHTML();
-  AdBanner.bindAdEvents(container);
-}
-
-// Render Deep Tech & AI Matrix (4-Column Multi-Card Grid)
-function renderDeepTechMatrix() {
-  const container = document.getElementById('deep-tech-matrix-container');
-  if (!container) return;
-
-  const articles = ArticleService.getArticles();
-  const targetIds = ['art-009', 'art-004', 'art-010', 'art-018'];
-  let matrixArticles = targetIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
-  if (matrixArticles.length < 4) {
-    matrixArticles = articles.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
-  }
-
-  const section = container.closest('section') as HTMLElement;
-  if (matrixArticles.length === 0) {
-    if (section) section.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  if (section) section.style.display = '';
-
-  container.innerHTML = matrixArticles.map(art => {
-    const isBookmarked = preferences.savedArticleIds.includes(art.id);
-    return `
-      <article class="matrix-card" data-article-id="${art.id}">
-        <div class="matrix-card-img-wrap">
-          <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="matrix-card-img" loading="lazy" ${IMG_ONERROR} />
-          <span class="matrix-badge-cat">${art.category.toUpperCase()}</span>
-        </div>
-        <div class="matrix-card-body">
-          <h4 class="matrix-card-title">${art.title}</h4>
-          <div class="matrix-card-footer">
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 1.25rem; height: 1.25rem; border-radius: 50%; object-fit: cover;" />
-              <span style="font-size: 0.72rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.2rem;">
-                ${art.author.name}
-                ${ImageUtils.getVerifiedBadgeHTML(12, 'Jurnalis Terverifikasi')}
-              </span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
-              <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join('');
-
-
-  container.querySelectorAll('.matrix-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.btn-bookmark')) return;
-      const id = card.getAttribute('data-article-id');
-      if (id) {
-        openArticleReader(id, true);
-      }
-    });
-  });
-
-  container.querySelectorAll('.btn-bookmark').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = (btn as HTMLElement).getAttribute('data-bookmark-id');
-      if (id) toggleBookmark(id);
-    });
-  });
-}
-
-
-// Render Kilas Cepat 24 Jam & Radar Industri / Sidebar Ad
-function renderRapidWire() {
-  const wireContainer = document.getElementById('rapid-wire-container');
-  const radarContainer = document.getElementById('radar-product-container');
-  const adContainer = document.getElementById('wire-sidebar-ad-container');
-
-  if (wireContainer) {
-    const articles = ArticleService.getArticles();
-    const wireIds = ['art-017', 'art-016', 'art-013', 'art-007'];
-    let wireArticles = wireIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
-    if (wireArticles.length < 4) {
-      wireArticles = articles.slice(4, 8);
-    }
-
-    const timePills = preferences.language === 'en'
-      ? ['12 MIN AGO', '34 MIN AGO', '1 HOUR AGO', '2 HOURS AGO']
-      : ['12 MENIT LALU', '34 MENIT LALU', '1 JAM LALU', '2 JAM LALU'];
-
-    wireContainer.innerHTML = wireArticles.map((art, idx) => `
-      <div class="wire-item" data-article-id="${art.id}">
-        <span class="wire-time-pill">${timePills[idx] || 'TERKINI'}</span>
-        <div class="wire-item-body">
-          <h4 class="wire-item-title">${art.title}</h4>
-          <p class="wire-item-desc">${art.subtitle}</p>
-        </div>
-      </div>
-    `).join('');
-
-    wireContainer.querySelectorAll('.wire-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const id = item.getAttribute('data-article-id');
-        if (id) {
-          openArticleReader(id, true);
-        }
-      });
-    });
-  }
-
-  if (radarContainer) {
-    const articles = ArticleService.getArticles();
-    const radarArt = articles.find(a => a.id === 'art-015') || articles[6] || articles[0];
-    if (radarArt) {
-      radarContainer.innerHTML = `
-      <article class="radar-spotlight-card" data-article-id="${radarArt.id}">
-        <div class="radar-img-wrap">
-          <img src="${getSafeImageUrl(radarArt.imageUrl)}" alt="${escapeHtml(radarArt.title)}" class="radar-img" loading="lazy" ${IMG_ONERROR} />
-          <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(9, 11, 16, 0.85); color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.3);">LAB QUERYINDO</span>
-        </div>
-        <div class="radar-body">
-          <h4 class="radar-title">${radarArt.title}</h4>
-          <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 0.65rem 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${radarArt.subtitle}</p>
-          <div class="radar-meta">
-            <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700;">NPU 52 TOPS • 28 Jam</span>
-            <span style="color: var(--text-muted);">${radarArt.readTimeMinutes} min baca</span>
-          </div>
-        </div>
-      </article>
-      `;
-
-      radarContainer.querySelector('.radar-spotlight-card')?.addEventListener('click', () => {
-        openArticleReader(radarArt.id, true);
-      });
-    }
-  }
-
-  if (adContainer) {
-    adContainer.innerHTML = AdBanner.renderSidebarAdHTML();
-    AdBanner.bindAdEvents(adContainer);
-  }
-}
-
-// Render All Editorial Sections & Ad Spaces
-function renderAllNewsSections() {
-  renderBillboardAd();
-  renderEditorsPick();
-  renderShoppingCarousel();
-  renderMidstreamAd();
-  renderDeepTechMatrix();
-  renderRapidWire();
-  renderFeed();
-}
-
-function renderFeed() {
-  if (!articlesGrid) return;
-
-  // Filter Articles
-  const filtered = ArticleService.getArticles().filter(art => {
-    const matchesCategory = currentCategory === 'all' || art.category === currentCategory;
-    const matchesSearch = searchQuery === '' || 
-      art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesDate = (() => {
-      if (selectedFilterDateRange === 'all') return true;
-      const pubTime = new Date(art.publishedAt).getTime();
-      const now = Date.now();
-      const diff = now - pubTime;
-      if (selectedFilterDateRange === '24h') return diff <= 24 * 60 * 60 * 1000;
-      if (selectedFilterDateRange === 'week') return diff <= 7 * 24 * 60 * 60 * 1000;
-      if (selectedFilterDateRange === 'month') return diff <= 30 * 24 * 60 * 60 * 1000;
-      return true;
-    })();
-
-    const matchesTag = selectedFilterTag === '' || art.tags.some(t => t.toLowerCase() === selectedFilterTag.toLowerCase());
-
-    return matchesCategory && matchesSearch && matchesDate && matchesTag;
-  });
-
-  // Sort Articles
-  filtered.sort((a, b) => {
-    if (selectedFilterSortBy === 'views') {
-      return b.viewsCount - a.viewsCount;
-    }
-    if (selectedFilterSortBy === 'likes') {
-      return b.likesCount - a.likesCount;
-    }
-    // default 'latest'
-    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-  });
-
-  // Update Title & Count
-  if (feedTitle) {
-    const categoryObj = CATEGORIES.find(c => c.id === currentCategory);
-    if (preferences.language === 'en') {
-      feedTitle.innerHTML = categoryObj ? (CATEGORIES_EN[categoryObj.id] || categoryObj.name) : 'Latest Tech News';
-    } else {
-      feedTitle.innerHTML = categoryObj ? categoryObj.name : 'Berita Terbaru';
-    }
-  }
-
-  if (resultsCount) {
-    resultsCount.textContent = preferences.language === 'en'
-      ? `Showing ${filtered.length} articles`
-      : `Menampilkan ${filtered.length} artikel`;
-  }
-
-  // Render Leaderboard Sponsor Ad Banner
-  const leaderboardAdContainer = document.getElementById('leaderboard-ad-container');
-  if (leaderboardAdContainer) {
-    leaderboardAdContainer.innerHTML = AdBanner.renderLeaderboardHTML();
-    AdBanner.bindAdEvents(leaderboardAdContainer);
-  }
-
-  if (filtered.length === 0) {
-    articlesGrid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
-        <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-primary);">${preferences.language === 'en' ? 'No Articles Found' : 'Tidak Ada Berita Ditemukan'}</h3>
-        <p style="margin-top: 0.5rem; font-size:0.9rem;">${preferences.language === 'en' ? 'Try a different search keyword or category.' : 'Coba gunakan kata kunci pencarian lain atau pilih kategori berbeda.'}</p>
-      </div>
-    `;
-    return;
-  }
-
-  let feedHTML = '';
-  const inFeedAdHTML = AdBanner.renderInFeedAdHTML();
-
-  filtered.forEach((art, idx) => {
-    const isBookmarked = preferences.savedArticleIds.includes(art.id);
-    feedHTML += `
-      <article class="article-card" data-article-id="${art.id}">
-        <div class="card-img-wrap">
-          <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="card-img" loading="lazy" ${IMG_ONERROR} />
-          <span class="card-category-badge">${art.category}</span>
-        </div>
-        <div class="card-body">
-          <h3 class="card-title">${art.title}</h3>
-          <p class="card-excerpt">${art.subtitle}</p>
-          <div class="card-footer">
-            <div class="card-author-info">
-              <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 1.3rem; height: 1.3rem; border-radius: 50%; object-fit: cover;" />
-              <span style="display: inline-flex; align-items: center; gap: 0.2rem;">
-                ${art.author.name}
-                ${ImageUtils.getVerifiedBadgeHTML(13, 'Jurnalis Terverifikasi')}
-              </span>
-            </div>
-            <div class="card-actions">
-              <span>${calculateReadTime(art.content, art.readTimeMinutes)}m baca</span>
-              <button class="btn-bookmark ${isBookmarked ? 'active' : ''}" data-bookmark-id="${art.id}" title="${t('bookmarkBtn')}">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
-
-    // Insert native in-feed sponsored ad after the 4th article
-    if (idx === 3 && inFeedAdHTML) {
-      feedHTML += inFeedAdHTML;
+function setupRouting() {
+  Router.subscribe((route) => {
+    if (route.type === 'home') {
+      ArticleReaderModal.close(false);
+      closeInstitutionalPage();
+      closeAdminCMSModal();
+    } else if (route.type === 'admin') {
+      ArticleReaderModal.close(false);
+      closeInstitutionalPage();
+      openAdminCMSModal();
+    } else if (route.type === 'article' && route.param) {
+      closeInstitutionalPage();
+      closeAdminCMSModal();
+      ArticleReaderModal.open(route.param, false);
+    } else if (route.type === 'page' && route.param) {
+      ArticleReaderModal.close(false);
+      closeAdminCMSModal();
+      openInstitutionalPage(route.param as InstitutionalPageId);
+    } else if (route.type === 'category' && route.param) {
+      ArticleReaderModal.close(false);
+      closeInstitutionalPage();
+      closeAdminCMSModal();
+      store.currentCategory = route.param as CategoryId;
+      FeedSection.renderCategories();
+      FeedSection.render();
     }
   });
-
-  articlesGrid.innerHTML = feedHTML;
-
-  // Add click handlers
-  articlesGrid.querySelectorAll('.article-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.btn-bookmark') || target.closest('.btn-ad-cta') || card.classList.contains('sponsored-feed-card')) return;
-
-      const artId = card.getAttribute('data-article-id');
-      if (artId) {
-        openArticleReader(artId, true);
-      }
-    });
-  });
-
-  articlesGrid.querySelectorAll('.btn-bookmark').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const artId = (btn as HTMLElement).getAttribute('data-bookmark-id');
-      if (artId) toggleBookmark(artId);
-    });
-  });
-
-  AdBanner.bindAdEvents(articlesGrid);
 }
 
-// Open Article Reader Modal
-function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
-  const article = findArticleBySlugOrId(articleIdOrSlug);
-  if (!article || !readerModal || !modalReaderContent) return;
-
-  // Temporarily pause Lenis smooth scroll while reader modal is active
-  lenisInstance?.stop();
-
-  // Push clean title slug to browser history
-  if (updateUrl) {
-    const slugUrl = '/' + slugifyTitle(article.title);
-    window.history.pushState({ articleId: article.id }, '', slugUrl);
-  }
-
-  // Record into Reading History
-  addReadingHistory(article);
-
-  // Dynamic SEO Meta Tags & Schema.org JSON-LD NewsArticle
-  SeoService.setArticleSEO(article);
-
-  const isBookmarked = preferences.savedArticleIds.includes(article.id);
-  const isLiked = preferences.likedArticleIds.includes(article.id);
-
-  // Record article view counter to PostgreSQL server in background
-  ApiService.viewArticle(article.id).catch(() => {});
-
-  // Article Content Body
-  const articleBody = article.content;
-
-  // Prepare text & duration for Text-to-Speech Engine
-  const plainBody = TextToSpeechService.extractPlainTextFromHTML(articleBody);
-  currentArticleSpeechText = `${article.title}. ${article.subtitle}. ${plainBody}`;
-  const totalWords = currentArticleSpeechText.split(/\s+/).length;
-  const initialDurationStr = TextToSpeechService.formatTime(Math.ceil(totalWords / 2.2));
-
-  modalReaderContent.innerHTML = `
-    <!-- Sticky Reading Progress Bar -->
-    <div style="position:sticky; top:-2.5rem; left:0; right:0; height:4px; background:var(--bg-secondary); z-index:90; margin:-2.5rem -2.5rem 1.5rem -2.5rem; overflow:hidden;">
-      <div id="reader-progress-bar" style="height:100%; width:0%; background:var(--gradient-brand); transition:width 0.1s linear;"></div>
-    </div>
-
-    <div class="reader-header">
-      <div class="badge-group">
-        <span class="tag-badge">${article.category.toUpperCase()}</span>
-        ${article.isFactChecked ? `<span class="tag-badge" style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border-color:var(--accent-emerald);">✓ VERIFIED FACT-CHECK</span>` : ''}
-        ${article.isSponsored ? `<span class="tag-badge" style="background:rgba(234,179,8,0.15); color:#eab308; border-color:#eab308;">SPONSORED BY ${article.sponsorName || 'PARTNER'}</span>` : ''}
-        ${article.tags.map(t => `<span class="tag-badge" style="background:var(--bg-tertiary); color:var(--text-secondary); border-color:var(--border-color);">#${t}</span>`).join('')}
-      </div>
-      <h1 class="reader-title" id="reader-article-title">${article.title}</h1>
-      <p class="reader-subtitle" id="reader-article-subtitle">${article.subtitle}</p>
-
-      <div class="author-meta-block">
-        <div class="author-detail">
-          <img src="${article.author.avatar}" alt="${article.author.name}" class="author-lg-avatar" />
-          <div>
-            <div class="author-name-text" style="display: flex; align-items: center; gap: 0.35rem;">
-              ${article.author.name}
-              ${ImageUtils.getVerifiedBadgeHTML(16, 'Dewan Redaksi Terverifikasi')}
-            </div>
-            <div class="author-role-text">${article.author.role}</div>
-          </div>
-        </div>
-        <div style="font-size: 0.825rem; color: var(--text-muted); text-align: right;">
-          <div>${preferences.language === 'en' ? 'Published' : 'Terbit'}: ${formatDate(article.publishedAt)}</div>
-          <div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:0.2rem;">⏱️ ${calculateReadTime(article.content, article.readTimeMinutes)} ${preferences.language === 'en' ? 'min read' : 'menit baca'}</div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Audio Player, Focus Mode & Text Size Toolbar -->
-    <div style="background:var(--bg-tertiary); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
-      <div style="display:flex; align-items:center; gap:0.75rem;">
-        <button id="btn-audio-play" style="width:2.4rem; height:2.4rem; border-radius:50%; background:var(--accent-cyan); color:#000; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all 0.2s ease;" title="Play / Pause Audio">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </button>
-        <button id="btn-audio-stop" style="width:2.0rem; height:2.0rem; border-radius:50%; background:rgba(255,255,255,0.08); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all 0.2s ease;" title="Stop Audio">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
-        </button>
-        <div>
-          <div style="font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
-            <span>${t('audioNarrativeHeader')}</span>
-            <div class="audio-visualizer-wave" id="audio-visualizer-wave">
-              <span class="audio-bar"></span>
-              <span class="audio-bar"></span>
-              <span class="audio-bar"></span>
-              <span class="audio-bar"></span>
-            </div>
-          </div>
-          <div style="font-size:0.75rem; color:var(--text-muted);" id="audio-status-text">${t('audioNarrativeSub')}</div>
-        </div>
-      </div>
-
-      <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap;">
-        <!-- Audio Speed Control -->
-        <div class="audio-speed-pills">
-          <button class="btn-audio-speed active" data-speed="1.0">1.0x</button>
-          <button class="btn-audio-speed" data-speed="1.25">1.25x</button>
-          <button class="btn-audio-speed" data-speed="1.5">1.5x</button>
-        </div>
-
-        <span style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);" id="audio-timer-text">00:00 / ${initialDurationStr}</span>
-
-        <!-- Zen Focus Mode Button -->
-        <button id="btn-reader-focus-mode" style="padding: 0.35rem 0.85rem; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); color: #60a5fa; font-weight: 600; font-size: 0.775rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; transition: all 0.2s ease;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          <span>${preferences.language === 'en' ? 'Focus Mode' : 'Mode Fokus'}</span>
-        </button>
-        
-        <!-- Text Size Control Toggle -->
-        <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);">
-          <span>${t('fontSizeLabel')}</span>
-          <div class="font-size-toggle">
-            <button class="btn-size ${!preferences.fontSize || preferences.fontSize === 'normal' ? 'active' : ''}" data-size="normal">A</button>
-            <button class="btn-size ${preferences.fontSize === 'large' ? 'active' : ''}" data-size="large">A+</button>
-            <button class="btn-size ${preferences.fontSize === 'xlarge' ? 'active' : ''}" data-size="xlarge">A++</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <img src="${getSafeImageUrl(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="reader-hero-image" ${IMG_ONERROR} />
-    ${article.imageCaption ? `<div class="image-caption">${article.imageCaption}</div>` : ''}
-
-    <div class="article-rich-content size-${preferences.fontSize || 'normal'}" id="article-content-wrapper">
-      ${articleBody}
-    </div>
-
-    <!-- Dynamic In-Article Sponsor Ad Placement -->
-    ${AdBanner.renderInArticleHTML()}
-
-    ${article.revisionHistory && article.revisionHistory.length > 0 ? `
-      <div style="margin: 1.5rem 0; padding: 1rem; background: var(--bg-tertiary); border-left: 3px solid var(--accent-primary); border-radius: 4px; font-size: 0.8rem; color: var(--text-secondary);">
-        <strong style="color: var(--accent-cyan); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.4rem;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <span>${preferences.language === 'en' ? 'Editorial Revision History' : 'Catatan Revisi & Pemutakhiran Redaksi'}</span>
-        </strong>
-        ${article.revisionHistory.map(rev => `
-          <div style="margin-top:0.25rem;">
-            <span style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.75rem;">[${rev.date}]</span> ${rev.note}
-          </div>
-        `).join('')}
-      </div>
-    ` : ''}
-
-    <!-- Action Bar (Likes, Bookmarks, Share) -->
-    <div class="reader-action-bar">
-      <div style="display:flex; gap:0.75rem; align-items:center;">
-        <button class="btn-action ${isLiked ? 'active' : ''}" id="btn-like-article" style="display:flex; align-items:center; gap:0.45rem; ${isLiked ? 'color:var(--accent-red); border-color:var(--accent-red);' : ''}">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          <span id="reader-like-counter">${article.likesCount || 0}</span>
-        </button>
-        <button class="btn-action" id="btn-bookmark-article">
-          <span>${isBookmarked ? t('bookmarkedBtn') : t('bookmarkBtn')}</span>
-        </button>
-      </div>
-      <button class="btn-action" id="btn-share-article">
-        <span>${t('shareBtn')}</span>
-      </button>
-    </div>
-
-    <!-- Related Articles Slider Block -->
-    <div style="margin:2rem 0; padding:1.25rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-md);">
-      <div style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-cyan); font-family:var(--font-mono); margin-bottom:1rem; letter-spacing:0.05em;">
-        ${preferences.language === 'en' ? 'RELATED STORIES • UP NEXT' : 'BERITA TERKAIT • SELANJUTNYA'}
-      </div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;" id="related-articles-container">
-        ${ArticleService.getArticles().filter(a => a.id !== article.id && (a.category === article.category || a.tags.some(t => article.tags.includes(t)))).slice(0, 3).map(rel => `
-          <div class="related-art-card" data-rel-id="${rel.id}" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:0.85rem; cursor:pointer; transition:all 0.2s ease; display:flex; flex-direction:column; gap:0.5rem;" onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-color)'">
-            <img src="${rel.imageUrl}" alt="${rel.title}" style="width:100%; height:90px; border-radius:6px; object-fit:cover;" />
-            <span class="tag-badge" style="font-size:0.65rem; align-self:flex-start;">${rel.category.toUpperCase()}</span>
-            <h4 style="font-size:0.825rem; font-weight:700; color:var(--text-primary); line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${rel.title}</h4>
-            <span style="font-size:0.72rem; color:var(--text-muted);">${rel.readTimeMinutes}m ${preferences.language === 'en' ? 'read' : 'baca'}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <!-- Reader Comments V2 Section -->
-    ${ReaderComments.renderCommentsSectionHTML(article.id, preferences.language)}
-  `;
-
-  readerModal.classList.add('open');
-  readerModal.scrollTop = 0;
-  document.body.style.overflow = 'hidden';
-
-  // Instantiate Lenis smooth scroll on Reader Modal for silky smooth reading experience
-  if (window.innerWidth > 768) {
-    if (readerLenis) {
-      readerLenis.destroy();
-      readerLenis = null;
-    }
-    const modalContainer = readerModal.querySelector('.modal-container') as HTMLElement;
-    if (modalContainer) {
-      readerLenis = new Lenis({
-        wrapper: readerModal,
-        content: modalContainer,
-        lerp: 0.1,
-        smoothWheel: true
-      });
-      const raf = (time: number) => {
-        if (readerLenis && readerModal.classList.contains('open')) {
-          readerLenis.raf(time);
-          requestAnimationFrame(raf);
-        }
-      };
-      requestAnimationFrame(raf);
-    }
-  }
-
-
-
-  // Reading Progress Bar Scroll Handler
-  const progressBar = document.getElementById('reader-progress-bar');
-  if (progressBar && readerModal) {
-    const handleScroll = () => {
-      const scrollTop = readerModal.scrollTop;
-      const scrollHeight = readerModal.scrollHeight - readerModal.clientHeight;
-      if (scrollHeight > 0) {
-        const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-        progressBar.style.width = `${pct}%`;
-      }
-    };
-    readerModal.addEventListener('scroll', handleScroll);
-  }
-
-  // Related Articles Click Handlers
-  modalReaderContent.querySelectorAll('.related-art-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const relId = card.getAttribute('data-rel-id');
-      if (relId) {
-        openArticleReader(relId, true);
-        readerModal.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  });
-
-  // Apply dynamic translation if language is English
-  if (preferences.language === 'en') {
-    const titleEl = document.getElementById('reader-article-title');
-    const subtitleEl = document.getElementById('reader-article-subtitle');
-    TranslationService.translateArticle(article, 'en').then(translated => {
-      if (titleEl) titleEl.textContent = translated.title;
-      if (subtitleEl) subtitleEl.textContent = translated.subtitle;
-    });
-  }
-
-  setupReaderControls(article);
-}
-
-// Setup Reader Internal Controls
-function setupReaderControls(article: Article) {
-  if (!modalReaderContent) return;
-
-  // Bind ReaderComments events
-  ReaderComments.bindCommentEvents(modalReaderContent, article.id, preferences.language);
-
-  // Focus Mode Trigger
-  document.getElementById('btn-reader-focus-mode')?.addEventListener('click', () => {
-    FocusMode.open(article, preferences.language);
-  });
-
-  // Font Size Buttons
-  const sizeBtns = document.querySelectorAll('.font-size-toggle .btn-size');
-  sizeBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sizeBtns.forEach(b => b.classList.remove('active'));
-      const target = e.currentTarget as HTMLElement;
-      target.classList.add('active');
-      const size = target.getAttribute('data-size') as 'normal' | 'large' | 'xlarge';
-      preferences.fontSize = size;
-      localStorage.setItem('byte_font_size', size);
-      
-      const wrapper = document.getElementById('article-content-wrapper');
-      if (wrapper) {
-        wrapper.className = `article-rich-content size-${size}`;
-      }
-    });
-  });
-
-
-
-  // Article Like Button Handler (Enforces Strict 1-Account 1-Like Toggle)
-  const likeBtn = document.getElementById('btn-like-article') as HTMLButtonElement | null;
-  if (likeBtn) {
-    likeBtn.addEventListener('click', async () => {
-      // Must be logged in as reader to like articles
-      if (!ReaderAuthService.isReaderLoggedIn()) {
-        Toast.show(preferences.language === 'en' ? 'Please sign in with Google to like this article.' : 'Silakan login dengan Akun Google terlebih dahulu untuk menyukai artikel ini.', 'warning');
-        openUserAuthModal();
-        return;
-      }
-
-      const currentReader = ReaderAuthService.getCurrentReader();
-      const readerId = currentReader?.email || currentReader?.id;
-
-      likeBtn.disabled = true;
-
-      const isCurrentlyLiked = preferences.likedArticleIds.includes(article.id);
-      if (!isCurrentlyLiked) {
-        // 1. LIKE ARTICLE
-        preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, article.id]));
-        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
-        ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
-
-        likeBtn.classList.add('active');
-        likeBtn.style.color = 'var(--accent-red)';
-        likeBtn.style.borderColor = 'var(--accent-red)';
-        const svg = likeBtn.querySelector('svg');
-        if (svg) svg.setAttribute('fill', 'currentColor');
-
-        article.likesCount = (article.likesCount || 0) + 1;
-        const counter = document.getElementById('reader-like-counter');
-        if (counter) counter.textContent = String(article.likesCount);
-
-        try {
-          const newCount = await ApiService.likeArticle(article.id, 'like', readerId);
-          if (typeof newCount === 'number') {
-            article.likesCount = newCount;
-            if (counter) counter.textContent = String(newCount);
-          }
-        } catch {}
-
-        Toast.show(preferences.language === 'en' ? 'Article liked! Thank you for your support.' : 'Artikel disukai! Terima kasih atas apresiasi Anda.');
-      } else {
-        // 2. UNLIKE ARTICLE (Single Like Removal)
-        preferences.likedArticleIds = preferences.likedArticleIds.filter(id => id !== article.id);
-        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
-        ReaderAuthService.syncLikedArticles(preferences.likedArticleIds);
-
-        likeBtn.classList.remove('active');
-        likeBtn.style.color = '';
-        likeBtn.style.borderColor = '';
-        const svg = likeBtn.querySelector('svg');
-        if (svg) svg.setAttribute('fill', 'none');
-
-        article.likesCount = Math.max(0, (article.likesCount || 0) - 1);
-        const counter = document.getElementById('reader-like-counter');
-        if (counter) counter.textContent = String(article.likesCount);
-
-        try {
-          const newCount = await ApiService.likeArticle(article.id, 'unlike', readerId);
-          if (typeof newCount === 'number') {
-            article.likesCount = newCount;
-            if (counter) counter.textContent = String(newCount);
-          }
-        } catch {}
-
-        Toast.show(preferences.language === 'en' ? 'Like removed.' : 'Apresiasi suka dibatalkan.');
-      }
-
-      setTimeout(() => {
-        if (likeBtn) likeBtn.disabled = false;
-      }, 350);
-    });
-  }
-
-  // Bookmark Button Handler
-  const bookmarkBtn = document.getElementById('btn-bookmark-article');
-  if (bookmarkBtn) {
-    bookmarkBtn.addEventListener('click', () => {
-      toggleBookmark(article.id);
-      const isNowSaved = preferences.savedArticleIds.includes(article.id);
-      bookmarkBtn.querySelector('span')!.textContent = isNowSaved ? t('bookmarkedBtn') : t('bookmarkBtn');
-    });
-  }
-
-  // Share Button Handler (Multi-Channel Web Share + Modal)
-  const shareBtn = document.getElementById('btn-share-article');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', () => {
-      ShareModal.shareArticle(article, preferences.language);
-    });
-  }
-
-  // Audio Playback Speed Buttons
-  modalReaderContent.querySelectorAll('.btn-audio-speed').forEach(btn => {
-    btn.addEventListener('click', () => {
-      modalReaderContent?.querySelectorAll('.btn-audio-speed').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const speed = parseFloat(btn.getAttribute('data-speed') || '1.0');
-      TextToSpeechService.setSpeed(speed);
-    });
-  });
-
-  // Real Web Speech Synthesis Text-to-Speech Handler
-  const audioBtn = document.getElementById('btn-audio-play');
-  const audioStopBtn = document.getElementById('btn-audio-stop');
-  const audioStatusText = document.getElementById('audio-status-text');
-  const audioTimerText = document.getElementById('audio-timer-text');
-  const waveVisualizer = document.getElementById('audio-visualizer-wave');
-
-  // Stop any previous speech instance when opening new article
-  TextToSpeechService.stop();
-
-  if (audioBtn && audioStatusText && audioTimerText) {
-    audioBtn.addEventListener('click', () => {
-      if (TextToSpeechService.getIsPlaying()) {
-        TextToSpeechService.pause();
-      } else {
-        TextToSpeechService.play(currentArticleSpeechText, preferences.language, (state, curTime, durTime) => {
-          const curStr = TextToSpeechService.formatTime(curTime);
-          const durStr = TextToSpeechService.formatTime(durTime);
-
-          if (state === 'playing') {
-            audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-            (audioBtn as HTMLElement).style.background = 'var(--accent-emerald)';
-            audioStatusText.textContent = t('audioPlaying');
-            audioTimerText.textContent = `${curStr} / ${durStr}`;
-            waveVisualizer?.classList.add('playing');
-          } else if (state === 'paused') {
-            audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-            (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
-            audioStatusText.textContent = t('audioPaused');
-            audioTimerText.textContent = `${curStr} / ${durStr}`;
-            waveVisualizer?.classList.remove('playing');
-          } else {
-            // stopped
-            audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-            (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
-            audioStatusText.textContent = t('audioNarrativeSub');
-            audioTimerText.textContent = `00:00 / ${durStr}`;
-            waveVisualizer?.classList.remove('playing');
-          }
-        });
-      }
-    });
-
-    audioStopBtn?.addEventListener('click', () => {
-      TextToSpeechService.stop();
-      waveVisualizer?.classList.remove('playing');
-    });
-  }
-
-  if (modalReaderContent) {
-    AdBanner.bindAdEvents(modalReaderContent);
-  }
-}
-
-// Close Article Reader Modal
-export function closeArticleReader(updateUrl: boolean = true) {
-  if (!readerModal || !readerModal.classList.contains('open')) return;
-  if (readerLenis) {
-    readerLenis.destroy();
-    readerLenis = null;
-  }
-  readerModal.classList.remove('open');
-  document.body.style.overflow = '';
-  TextToSpeechService.stop();
-  lenisInstance?.start();
-  if (updateUrl) {
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-      window.history.pushState(null, '', '/');
-    } else if (window.location.hash.startsWith('#article/')) {
-      window.location.hash = '';
-    }
-  }
-}
-(window as any).closeArticleReader = closeArticleReader;
-
-// Toggle Bookmark with Cloud Sync
-function toggleBookmark(articleId: string) {
-  const isCurrentlySaved = preferences.savedArticleIds.includes(articleId);
-  if (isCurrentlySaved) {
-    preferences.savedArticleIds = preferences.savedArticleIds.filter(id => id !== articleId);
-  } else {
-    preferences.savedArticleIds.push(articleId);
-  }
-  localStorage.setItem('byte_bookmarks', JSON.stringify(preferences.savedArticleIds));
-  
-  // Sync to Reader Account if logged in
-  if (ReaderAuthService.isReaderLoggedIn()) {
-    ReaderAuthService.syncSavedArticles(preferences.savedArticleIds);
-    Toast.show(
-      !isCurrentlySaved 
-        ? (preferences.language === 'en' ? 'Article saved to your account collection.' : 'Artikel tersimpan ke koleksi akun Anda.')
-        : (preferences.language === 'en' ? 'Article removed from your collection.' : 'Artikel dihapus dari koleksi tersimpan.')
-    );
-  } else {
-    Toast.show(
-      !isCurrentlySaved
-        ? (preferences.language === 'en' ? 'Article saved locally. Sign in to sync across devices!' : 'Artikel disimpan di perangkat. Masuk akun untuk sinkronisasi cloud!')
-        : (preferences.language === 'en' ? 'Article removed.' : 'Artikel dihapus dari simpanan.')
-    );
-  }
-
-  updateBookmarkBadge();
-  renderFeed();
-  renderEditorsPick();
-  renderDeepTechMatrix();
-}
-
-(window as any).openArticleReaderFromOutside = (articleId: string) => {
-  if (bookmarksModal) bookmarksModal.classList.remove('open');
-  openArticleReader(articleId, true);
-};
-
-(window as any).removeBookmarkFromOutside = (articleId: string) => {
-  toggleBookmark(articleId);
-  renderBookmarksModal();
-};
-
-let activeSavedTab: 'bookmarks' | 'history' = 'bookmarks';
-
-function renderBookmarksListHTML(savedArticles: Article[]): string {
-  if (savedArticles.length === 0) {
-    return `
-      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-        </div>
-        <div>
-          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.35rem 0;">${preferences.language === 'en' ? 'No Bookmarked Articles' : 'Belum Ada Artikel Tersimpan'}</h4>
-          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 260px;">${preferences.language === 'en' ? 'Save interesting tech stories to read anytime.' : 'Simpan artikel berita menarik untuk dibaca kapan saja.'}</p>
-        </div>
-        <button id="btn-explore-bookmarks" style="padding: 0.5rem 1.25rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.8rem; border-radius: var(--radius-full); border: none; cursor: pointer;">
-          ${preferences.language === 'en' ? 'Explore Trending Stories →' : 'Eksplor Berita Terbaru →'}
-        </button>
-      </div>
-    `;
-  }
-
-  return savedArticles.map(art => `
-    <div style="display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-color); align-items: center;">
-      <img src="${art.imageUrl}" alt="${art.title}" style="width: 70px; height: 50px; border-radius: 8px; object-fit: cover;" />
-      <div style="flex: 1;">
-        <h4 style="font-size: 0.875rem; font-weight: 700; cursor: pointer; color: var(--text-primary);" onclick="window.openArticleReaderFromOutside('${art.id}')">${art.title}</h4>
-        <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${art.category.toUpperCase()} • ${art.readTimeMinutes}m ${preferences.language === 'en' ? 'read' : 'baca'}</span>
-      </div>
-      <button style="color: var(--accent-rose); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: none;" onclick="window.removeBookmarkFromOutside('${art.id}')">${preferences.language === 'en' ? 'Remove' : 'Hapus'}</button>
-    </div>
-  `).join('');
-}
-
-function renderHistoryListHTML(readingHistory: ReadingHistoryItem[]): string {
-  if (readingHistory.length === 0) {
-    return `
-      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <div>
-          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.35rem 0;">${preferences.language === 'en' ? 'No Reading History' : 'Belum Ada Riwayat Baca'}</h4>
-          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 260px;">${preferences.language === 'en' ? 'Articles you open will automatically appear here.' : 'Artikel yang Anda buka akan tercatat otomatis di sini.'}</p>
-        </div>
-      </div>
-    `;
-  }
-
-  return `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-      <span style="font-size: 0.775rem; color: var(--text-muted); font-family: var(--font-mono);">${readingHistory.length} ${preferences.language === 'en' ? 'articles read' : 'artikel dibaca'}</span>
-      <button id="btn-clear-history" style="font-size: 0.75rem; color: var(--accent-rose); background: none; border: none; cursor: pointer; font-weight: 700;">
-        🗑️ ${preferences.language === 'en' ? 'Clear History' : 'Bersihkan Riwayat'}
-      </button>
-    </div>
-    ${readingHistory.map(item => `
-      <div class="history-item-card" onclick="window.openArticleReaderFromOutside('${item.articleId}')">
-        <div style="flex: 1;">
-          <div class="history-item-title">${item.title}</div>
-          <div class="history-item-meta">
-            <span>${item.category.toUpperCase()}</span>
-            <span>•</span>
-            <span>${new Date(item.readAt).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-        </div>
-        <img src="${item.imageUrl}" alt="${item.title}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;" />
-      </div>
-    `).join('')}
-  `;
-}
-
-// Render Bookmarks Drawer Modal
-function renderBookmarksModal() {
-  if (!bookmarksListContainer) return;
-
-  const savedArticles = ArticleService.getArticles().filter(a => preferences.savedArticleIds.includes(a.id));
-  const readingHistory: ReadingHistoryItem[] = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
-
-  bookmarksListContainer.innerHTML = `
-    <!-- Tab Switcher -->
-    <div class="saved-modal-tabs" style="margin: -1.5rem -1.5rem 1.25rem -1.5rem;">
-      <button class="saved-tab-btn ${activeSavedTab === 'bookmarks' ? 'active' : ''}" id="tab-btn-bookmarks">
-        📌 ${preferences.language === 'en' ? 'Saved Articles' : 'Disimpan'} (${savedArticles.length})
-      </button>
-      <button class="saved-tab-btn ${activeSavedTab === 'history' ? 'active' : ''}" id="tab-btn-history">
-        ⏱️ ${preferences.language === 'en' ? 'Reading History' : 'Riwayat Baca'} (${readingHistory.length})
-      </button>
-    </div>
-
-    <div id="saved-tab-content">
-      ${activeSavedTab === 'bookmarks' ? renderBookmarksListHTML(savedArticles) : renderHistoryListHTML(readingHistory)}
-    </div>
-  `;
-
-  // Bind Tab Switchers
-  bookmarksListContainer.querySelector('#tab-btn-bookmarks')?.addEventListener('click', () => {
-    activeSavedTab = 'bookmarks';
-    renderBookmarksModal();
-  });
-
-  bookmarksListContainer.querySelector('#tab-btn-history')?.addEventListener('click', () => {
-    activeSavedTab = 'history';
-    renderBookmarksModal();
-  });
-
-  // Bind Clear History
-  bookmarksListContainer.querySelector('#btn-clear-history')?.addEventListener('click', () => {
-    localStorage.removeItem('byte_reading_history');
-    Toast.show(preferences.language === 'en' ? 'Reading history cleared.' : 'Riwayat baca berhasil dibersihkan.');
-    renderBookmarksModal();
-  });
-
-  // Bind Explore button
-  bookmarksListContainer.querySelector('#btn-explore-bookmarks')?.addEventListener('click', () => {
-    if (bookmarksModal) bookmarksModal.classList.remove('open');
-    document.getElementById('news-feed-heading')?.scrollIntoView({ behavior: 'smooth' });
-  });
-
-  if (bookmarksModal) {
-    lenisInstance?.stop();
-    bookmarksModal.classList.add('open');
-  }
-}
-
-// Open Admin CMS Modal
+// --------------------------------------------------------------------------
+// Admin CMS Modal Controller
+// --------------------------------------------------------------------------
 function openAdminCMSModal() {
   if (!adminCmsModal || !adminCmsContainer) return;
-  lenisInstance?.stop();
+  window.dispatchEvent(new CustomEvent('modal-opened'));
   adminCmsContainer.innerHTML = adminCMS.renderAdminModalHTML();
   adminCmsModal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1717,166 +182,63 @@ function openAdminCMSModal() {
   adminCMS.bindAdminEvents(adminCmsContainer);
 
   adminCmsContainer.querySelector('#admin-modal-close-btn')?.addEventListener('click', () => {
-    window.location.hash = '';
-    adminCmsModal.classList.remove('open');
-    document.body.style.overflow = '';
-    lenisInstance?.start();
+    closeAdminCMSModal();
+    Router.navigateHome();
   });
 }
 
-// Open Institutional Full-Page
+function closeAdminCMSModal() {
+  if (adminCmsModal && adminCmsModal.classList.contains('open')) {
+    adminCmsModal.classList.remove('open');
+    document.body.style.overflow = '';
+    window.dispatchEvent(new CustomEvent('modal-closed'));
+  }
+}
+
+// --------------------------------------------------------------------------
+// Institutional Full-Page Controller
+// --------------------------------------------------------------------------
 function openInstitutionalPage(pageId: InstitutionalPageId) {
   if (!institutionalPageContainer || !mainContent) return;
 
-  // Hide main feed content
   mainContent.style.display = 'none';
-
-  // Render and show institutional page
-  institutionalPageContainer.innerHTML = InstitutionalPages.renderPage(pageId, preferences.language);
+  institutionalPageContainer.innerHTML = InstitutionalPages.renderPage(pageId, store.preferences.language);
   institutionalPageContainer.style.display = 'block';
 
-  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Bind back button
-  institutionalPageContainer.querySelectorAll('.inst-back-btn, nav a[href="#"]').forEach(btn => {
+  // Back button returns home
+  institutionalPageContainer.querySelectorAll('.inst-back-btn, nav a[href="/"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.hash = '';
-      closeInstitutionalPage();
+      Router.navigateHome();
     });
   });
 
-  // Bind contact form if present
+  // Contact form submission
   const contactForm = institutionalPageContainer.querySelector('#institutional-contact-form');
   if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      Toast.show(preferences.language === 'en' ? 'Your message has been sent! Our team will respond within 2 business days.' : 'Pesan Anda telah terkirim! Tim kami akan merespons dalam 2 hari kerja.');
+      Toast.show(store.preferences.language === 'en' ? 'Your message has been sent! Our team will respond within 2 business days.' : 'Pesan Anda telah terkirim! Tim kami akan merespons dalam 2 hari kerja.');
     });
   }
 }
 
-// Close Institutional Page — show main content again
 function closeInstitutionalPage() {
   if (!institutionalPageContainer || !mainContent) return;
-  if (institutionalPageContainer.style.display === 'none') return; // already closed
+  if (institutionalPageContainer.style.display === 'none') return;
 
   institutionalPageContainer.style.display = 'none';
   institutionalPageContainer.innerHTML = '';
   mainContent.style.display = '';
 }
 
-
-
 // --------------------------------------------------------------------------
-// Instant Live Search Preview & Quick Shortcuts System
-// --------------------------------------------------------------------------
-let activeSearchIndex = -1;
-
-function highlightMatch(text: string, query: string): string {
-  if (!query) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escaped})`, 'gi');
-  return text.replace(regex, '<span class="search-highlight">$1</span>');
-}
-
-function renderSearchPreviewDropdown(query: string) {
-  if (!searchPreviewDropdown) return;
-  const trimmed = query.trim().toLowerCase();
-  
-  if (!trimmed) {
-    searchPreviewDropdown.style.display = 'none';
-    searchPreviewDropdown.innerHTML = '';
-    activeSearchIndex = -1;
-    return;
-  }
-
-  const matches = ArticleService.getArticles().filter(art => {
-    return art.title.toLowerCase().includes(trimmed) ||
-           art.subtitle.toLowerCase().includes(trimmed) ||
-           art.tags.some(t => t.toLowerCase().includes(trimmed));
-  });
-
-  const lang = preferences.language;
-
-  if (matches.length === 0) {
-    searchPreviewDropdown.innerHTML = `
-      <div class="search-preview-empty">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:0.4rem; opacity:0.6;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <p style="margin: 0; font-size: 0.85rem; font-weight: 600;">${lang === 'en' ? `No articles found for "${escapeHtml(query)}"` : `Tidak ditemukan berita untuk "${escapeHtml(query)}"`}</p>
-        <span style="font-size: 0.75rem; color: var(--text-muted);">${lang === 'en' ? 'Try keywords like AI, Apple, Startup, Cyber' : 'Coba kata kunci lain seperti: AI, Apple, Startup, Cyber'}</span>
-      </div>
-    `;
-    searchPreviewDropdown.style.display = 'block';
-    return;
-  }
-
-  const topMatches = matches.slice(0, 5);
-
-  searchPreviewDropdown.innerHTML = `
-    <div class="search-preview-header">
-      <span>${lang === 'en' ? 'Quick Article Preview' : 'Pratinjau Berita Terkait'}</span>
-      <span>${matches.length} ${lang === 'en' ? 'articles found' : 'berita ditemukan'}</span>
-    </div>
-    <div class="search-preview-list" id="search-preview-items-list">
-      ${topMatches.map((art, idx) => `
-        <div class="search-preview-item ${idx === activeSearchIndex ? 'active' : ''}" data-art-id="${art.id}" data-item-idx="${idx}">
-          <img src="${art.imageUrl}" alt="${escapeHtml(art.title)}" class="search-preview-thumb" />
-          <div class="search-preview-info">
-            <div class="search-preview-meta">
-              <span class="search-preview-tag">${art.category.toUpperCase()}</span>
-              <span>•</span>
-              <span>${art.readTimeMinutes} min ${lang === 'en' ? 'read' : 'baca'}</span>
-            </div>
-            <div class="search-preview-title">${highlightMatch(art.title, query)}</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-    <div class="search-preview-footer">
-      <button type="button" class="search-preview-all-btn" id="btn-see-all-search">
-        ${lang === 'en' ? `View all ${matches.length} results for "${escapeHtml(query)}" →` : `Lihat semua ${matches.length} hasil untuk "${escapeHtml(query)}" →`}
-      </button>
-    </div>
-  `;
-
-  searchPreviewDropdown.style.display = 'block';
-
-  // Bind item clicks
-  searchPreviewDropdown.querySelectorAll('.search-preview-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const artId = item.getAttribute('data-art-id');
-      if (artId) {
-        closeSearchPreviewDropdown();
-        openArticleReader(artId, true);
-      }
-    });
-  });
-
-  // Bind see all button
-  searchPreviewDropdown.querySelector('#btn-see-all-search')?.addEventListener('click', () => {
-    closeSearchPreviewDropdown();
-    renderFeed();
-    document.getElementById('news-feed-heading')?.scrollIntoView({ behavior: 'smooth' });
-  });
-}
-
-function closeSearchPreviewDropdown() {
-  if (searchPreviewDropdown) {
-    searchPreviewDropdown.style.display = 'none';
-    searchPreviewDropdown.innerHTML = '';
-    activeSearchIndex = -1;
-  }
-}
-
-
-// --------------------------------------------------------------------------
-// Reader / User Authentication & Profile Management System
+// User Authentication & Profile Drawer
 // --------------------------------------------------------------------------
 function updateUserNavbarState() {
   const currentReader = ReaderAuthService.getCurrentReader();
-  
   if (currentReader) {
     const firstName = currentReader.name.split(' ')[0];
     if (userAuthBtn) {
@@ -1913,10 +275,9 @@ function updateUserNavbarState() {
 
 function openUserAuthModal() {
   if (!userAuthModal || !userAuthContainer) return;
-  lenisInstance?.stop();
+  window.dispatchEvent(new CustomEvent('modal-opened'));
 
   const currentReader = ReaderAuthService.getCurrentReader();
-
   if (currentReader) {
     renderUserProfileHTML(currentReader);
   } else {
@@ -1929,15 +290,14 @@ function openUserAuthModal() {
 
 function renderUserProfileHTML(reader: ReaderUser) {
   if (!userAuthContainer) return;
-
-  const savedCount = preferences.savedArticleIds.length;
+  const savedCount = store.preferences.savedArticleIds.length;
   let historyCount = 0;
   try {
     const history = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
     historyCount = history.length;
   } catch {}
 
-  const joinDate = new Date(reader.registeredAt).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', {
+  const joinDate = new Date(reader.registeredAt).toLocaleDateString(store.preferences.language === 'en' ? 'en-US' : 'id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
@@ -1948,11 +308,10 @@ function renderUserProfileHTML(reader: ReaderUser) {
       <div style="display: flex; align-items: center; gap: 0.6rem;">
         <span style="font-size: 1.1rem; font-weight: 800;">Akun Pembaca</span>
         <span style="font-size: 0.68rem; padding: 0.15rem 0.5rem; background: rgba(66, 133, 244, 0.15); color: #60a5fa; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
-          <svg width="10" height="10" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           Google Connected
         </span>
       </div>
-      <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">✕</button>
+      <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem; background:none; border:none;">✕</button>
     </div>
 
     <div style="padding: 1.5rem;">
@@ -1965,7 +324,6 @@ function renderUserProfileHTML(reader: ReaderUser) {
         </div>
       </div>
 
-      <!-- Quick Stats -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
         <div style="background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
           <div style="font-size: 1.3rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-mono);">${savedCount}</div>
@@ -1977,7 +335,6 @@ function renderUserProfileHTML(reader: ReaderUser) {
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div style="display: flex; flex-direction: column; gap: 0.6rem;">
         <button id="btn-open-my-bookmarks" style="width: 100%; padding: 0.75rem; background: var(--gradient-brand); color: #000; font-weight: 800; font-size: 0.85rem; border-radius: var(--radius-md); border: none; cursor: pointer;">
           📌 Buka Koleksi Tersimpan (${savedCount})
@@ -1990,12 +347,10 @@ function renderUserProfileHTML(reader: ReaderUser) {
   `;
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
-  
   userAuthContainer.querySelector('#btn-open-my-bookmarks')?.addEventListener('click', () => {
     closeUserAuthModal();
-    renderBookmarksModal();
+    BookmarksModal.open();
   });
-
   userAuthContainer.querySelector('#btn-user-logout')?.addEventListener('click', () => {
     ReaderAuthService.logout();
     Toast.show('Anda telah keluar dari akun Google.');
@@ -2008,7 +363,6 @@ function renderGoogleAuthModalHTML() {
   if (!userAuthContainer) return;
 
   userAuthContainer.innerHTML = `
-    <!-- Header -->
     <div class="modal-header-bar" style="background: var(--bg-tertiary); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
       <div style="display: flex; align-items: center; gap: 0.6rem;">
         <svg width="20" height="20" viewBox="0 0 24 24">
@@ -2022,10 +376,7 @@ function renderGoogleAuthModalHTML() {
       <button class="btn-close" id="user-auth-close-btn" style="color: var(--text-muted); cursor: pointer; font-size: 1.1rem; background: none; border: none;">✕</button>
     </div>
 
-    <!-- Google Sign-In Body (1-Click Google OAuth) -->
     <div style="padding: 1.75rem 1.5rem; text-align: center;">
-      
-      <!-- Big Google Icon Emblem -->
       <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
         <svg width="28" height="28" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -2043,22 +394,14 @@ function renderGoogleAuthModalHTML() {
         Simpan artikel favorit, riwayat baca, dan sinkronkan preferensi berita secara aman dengan Akun Google Anda di <strong>QUERYINDO</strong>.
       </p>
 
-      <!-- Single 1-Click Google OAuth Button -->
       <button 
         id="btn-google-oauth-launch"
         type="button"
         style="width: 100%; padding: 0.9rem 1.25rem; background: #ffffff; color: #1f2937; font-weight: 700; font-size: 0.95rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-        </svg>
         <span id="btn-google-oauth-text">Lanjutkan dengan Google</span>
       </button>
 
-      <!-- Google Policy Disclosure -->
       <div style="margin-top: 1.5rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">
         Dengan melanjutkan, preferensi baca, apresiasi suka, dan artikel tersimpan Anda akan disinkronkan secara otomatis dan aman di akun Google Anda.
       </div>
@@ -2067,7 +410,6 @@ function renderGoogleAuthModalHTML() {
 
   userAuthContainer.querySelector('#user-auth-close-btn')?.addEventListener('click', closeUserAuthModal);
 
-  // Bind 1-Click Launch Button
   const launchBtn = userAuthContainer.querySelector('#btn-google-oauth-launch') as HTMLButtonElement;
   const launchText = userAuthContainer.querySelector('#btn-google-oauth-text') as HTMLElement;
 
@@ -2078,12 +420,12 @@ function renderGoogleAuthModalHTML() {
 
     try {
       const res = await ReaderAuthService.signInWithGoogleOAuth();
-      preferences.savedArticleIds = res.user.savedArticles || [];
+      store.preferences.savedArticleIds = res.user.savedArticles || [];
       if (res.user.likedArticles) {
-        preferences.likedArticleIds = Array.from(new Set([...preferences.likedArticleIds, ...res.user.likedArticles]));
-        localStorage.setItem('byte_likes', JSON.stringify(preferences.likedArticleIds));
+        store.preferences.likedArticleIds = Array.from(new Set([...store.preferences.likedArticleIds, ...res.user.likedArticles]));
+        localStorage.setItem('byte_likes', JSON.stringify(store.preferences.likedArticleIds));
       }
-      updateBookmarkBadge();
+      store.updateBookmarkBadge();
       updateUserNavbarState();
       Toast.show(res.message);
       closeUserAuthModal();
@@ -2100,88 +442,305 @@ function closeUserAuthModal() {
   if (userAuthModal) {
     userAuthModal.classList.remove('open');
     document.body.style.overflow = '';
-    lenisInstance?.start();
+    window.dispatchEvent(new CustomEvent('modal-closed'));
   }
 }
 
-// Event Listeners Registration
+// --------------------------------------------------------------------------
+// Tech Index Ticker & Charts
+// --------------------------------------------------------------------------
+function renderTechIndexes() {
+  if (!techTickerList) return;
+  const items = store.liveTechIndexes;
+  const renderItem = (item: TechIndexItem) => `
+    <div class="ticker-item" data-symbol="${item.symbol}">
+      <span class="ticker-symbol">${item.symbol}</span>
+      <span class="ticker-val">${item.value}</span>
+      <span class="ticker-change ${item.isPositive ? 'up' : 'down'}">${item.change}</span>
+    </div>
+  `;
+  techTickerList.innerHTML = items.map(renderItem).join('') + items.map(renderItem).join('');
+
+  techTickerList.querySelectorAll('.ticker-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const sym = (el as HTMLElement).getAttribute('data-symbol');
+      const item = items.find(i => i.symbol === sym);
+      if (item) showTickerChart(item, e.currentTarget as HTMLElement);
+    });
+  });
+}
+
+function generateSVGChart(item: TechIndexItem): string {
+  const data = item.historicalData;
+  const values = data.map(d => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const w = 260;
+  const h = 70;
+  const pad = 6;
+
+  const points = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const lineColor = item.isPositive ? 'var(--accent-emerald)' : 'var(--accent-rose)';
+  const gradId = `tgrad-${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const areaPoints = `${pad},${h} ${points.join(' ')} ${w - pad},${h}`;
+  const dots = points.map(p => {
+    const [x, y] = p.split(',');
+    return `<circle cx="${x}" cy="${y}" r="2.5" fill="${lineColor}" class="chart-dot"/>`;
+  }).join('');
+
+  return `
+  <svg class="ticker-chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${areaPoints}" fill="url(#${gradId})"/>
+    <polyline points="${points.join(' ')}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line"/>
+    ${dots}
+  </svg>`;
+}
+
+function showTickerChart(item: TechIndexItem, anchorEl: HTMLElement) {
+  document.querySelector('.ticker-chart-popup')?.remove();
+  const values = item.historicalData.map(d => d.value);
+  const fmt = (v: number) => v >= 1000 ? v.toLocaleString('id-ID') : v.toFixed(2);
+  const isLive = ApiService.isBackendAvailable && item.symbol !== 'STARTUP-RI';
+  const footerText = isLive ? store.t('chartFooter') : store.t('chartFooterFallback');
+
+  const popup = document.createElement('div');
+  popup.className = 'ticker-chart-popup';
+  popup.innerHTML = `
+    <div class="ticker-chart-header">
+      <div class="ticker-chart-title">
+        <span class="ticker-chart-symbol">${item.symbol}</span>
+        <span class="ticker-chart-name">${item.name}</span>
+      </div>
+      <div class="ticker-chart-meta">
+        <span class="ticker-chart-value">${item.value}</span>
+        <span class="ticker-chart-change ${item.isPositive ? 'up' : 'down'}">${item.change}</span>
+      </div>
+      <button class="ticker-chart-close" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="ticker-chart-body">
+      ${generateSVGChart(item)}
+    </div>
+    <div class="ticker-chart-stats">
+      <div class="stat-item"><span class="stat-label">Open</span><span class="stat-val">${fmt(values[0])}</span></div>
+      <div class="stat-item"><span class="stat-label">High</span><span class="stat-val up">${fmt(Math.max(...values))}</span></div>
+      <div class="stat-item"><span class="stat-label">Low</span><span class="stat-val down">${fmt(Math.min(...values))}</span></div>
+      <div class="stat-item"><span class="stat-label">Close</span><span class="stat-val">${fmt(values[values.length - 1])}</span></div>
+    </div>
+    <div class="ticker-chart-footer">
+      <span>${footerText}</span>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  const closeBtn = popup.querySelector('.ticker-chart-close')!;
+  closeBtn.addEventListener('click', () => popup.remove());
+
+  const onClickOutside = (e: MouseEvent) => {
+    if (!popup.contains(e.target as Node) && !anchorEl.contains(e.target as Node)) {
+      popup.remove();
+      document.removeEventListener('click', onClickOutside);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', onClickOutside), 50);
+
+  const onEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      popup.remove();
+      document.removeEventListener('keydown', onEsc);
+    }
+  };
+  document.addEventListener('keydown', onEsc);
+  requestAnimationFrame(() => popup.classList.add('show'));
+}
+
+// --------------------------------------------------------------------------
+// ByteShorts & Social Channels
+// --------------------------------------------------------------------------
+function renderByteShorts() {
+  if (!byteShortsContainer) return;
+  byteShortsContainer.innerHTML = ByteShorts.renderBarHTML(store.preferences.language);
+  ByteShorts.bindBarEvents(byteShortsContainer, store.preferences.language, (articleId: string) => {
+    const article = ArticleService.getArticleById(articleId);
+    if (article) {
+      Router.navigateToArticle(article.slug || article.id, article.title);
+    }
+  });
+}
+
+function renderFooterSocials() {
+  const container = document.getElementById('footer-social-list');
+  if (container) {
+    container.innerHTML = SocialMediaService.renderFooterSocialListHTML();
+  }
+}
+
+// --------------------------------------------------------------------------
+// Localization & Filter UI Sync
+// --------------------------------------------------------------------------
+function updateFooterLabels() {
+  const companyTitle = document.getElementById('footer-company-title');
+  const linkAbout = document.getElementById('link-about');
+  const linkContact = document.getElementById('link-contact');
+  const linkRedaksi = document.getElementById('link-redaksi');
+  const linkEthics = document.getElementById('link-ethics');
+  const linkCyber = document.getElementById('link-cyber-guidelines');
+  const linkDisclaimer = document.getElementById('link-disclaimer');
+  const linkAds = document.getElementById('link-ads');
+
+  if (companyTitle) companyTitle.textContent = store.t('companyText');
+  if (linkAbout) linkAbout.textContent = store.t('aboutUs');
+  if (linkContact) linkContact.textContent = store.t('getInTouch');
+  if (linkRedaksi) linkRedaksi.textContent = store.t('redaksiText');
+  if (linkEthics) linkEthics.textContent = store.t('ethicsCode');
+  if (linkCyber) linkCyber.textContent = store.t('cyberGuidelines');
+  if (linkDisclaimer) linkDisclaimer.textContent = store.t('disclaimerText');
+  if (linkAds) linkAds.textContent = store.t('adsText');
+}
+
+function updateFilterLabels() {
+  const lblSortBy = document.getElementById('lbl-sort-by');
+  const lblDateRange = document.getElementById('lbl-date-range');
+  const lblPopularTags = document.getElementById('lbl-popular-tags');
+
+  if (lblSortBy) lblSortBy.textContent = store.t('lblSortBy');
+  if (lblDateRange) lblDateRange.textContent = store.t('lblDateRange');
+  if (lblPopularTags) lblPopularTags.textContent = store.t('lblPopularTags');
+
+  if (filterSortBy) {
+    filterSortBy.options[0].text = store.t('optLatest');
+    filterSortBy.options[1].text = store.t('optViews');
+    filterSortBy.options[2].text = store.t('optLikes');
+  }
+
+  if (filterDateRange) {
+    filterDateRange.options[0].text = store.t('optAllTime');
+    filterDateRange.options[1].text = store.t('optLast24h');
+    filterDateRange.options[2].text = store.t('optThisWeek');
+    filterDateRange.options[3].text = store.t('optThisMonth');
+  }
+}
+
+// --------------------------------------------------------------------------
+// Cookie Consent & PWA Prompt
+// --------------------------------------------------------------------------
+function setupCookieConsent() {
+  const banner = document.getElementById('cookie-consent-banner');
+  const acceptBtn = document.getElementById('cookie-accept-btn');
+  const rejectBtn = document.getElementById('cookie-reject-btn');
+  if (!banner || !acceptBtn || !rejectBtn) return;
+
+  const consent = localStorage.getItem('byte_cookie_consent');
+  if (!consent) {
+    setTimeout(() => banner.classList.add('show'), 1500);
+  }
+
+  acceptBtn.addEventListener('click', () => {
+    localStorage.setItem('byte_cookie_consent', 'accepted');
+    banner.classList.remove('show');
+    Toast.show(store.t('cookieToastAccept'));
+  });
+
+  rejectBtn.addEventListener('click', () => {
+    localStorage.setItem('byte_cookie_consent', 'rejected');
+    banner.classList.remove('show');
+    Toast.show(store.t('cookieToastReject'));
+  });
+}
+
+function setupPWAInstallPrompt() {
+  let deferredPrompt: any = null;
+  const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (pwaInstallBtn) pwaInstallBtn.style.display = 'inline-flex';
+  });
+
+  pwaInstallBtn?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        Toast.show(store.preferences.language === 'en' ? 'Thank you for installing QUERYINDO App!' : 'Terima kasih telah memasang aplikasi QUERYINDO!');
+      }
+      deferredPrompt = null;
+      pwaInstallBtn.style.display = 'none';
+    } else {
+      Toast.show(store.preferences.language === 'en' ? 'App can be added via browser "Add to Home screen" menu.' : 'Gunakan menu browser "Tambahkan ke Layar Utama" untuk memasang aplikasi.');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
+}
+
+// --------------------------------------------------------------------------
+// Global Event Listeners
+// --------------------------------------------------------------------------
 function setupEventListeners() {
   // Theme Toggle
-  themeToggleBtn?.addEventListener('click', () => {
-    const newTheme = preferences.theme === 'dark' ? 'light' : 'dark';
-    applyTheme(newTheme);
+  themeToggleBtn?.addEventListener('click', () => store.toggleTheme());
+
+  // Store Event Listeners
+  store.subscribe('bookmarks-change', () => {
+    BentoSection.render();
+    DeepTechSection.render();
+    FeedSection.render();
   });
 
-  // Footer links now use hash routes (#page/xxx) — no manual event listeners needed
-  document.getElementById('link-sitemap')?.addEventListener('click', (e) => { e.preventDefault(); Toast.show(preferences.language === 'en' ? 'QUERYINDO Sitemap 2026.' : 'Peta Situs QUERYINDO 2026.'); });
-
-  // Global Reader Auth Event Listeners
-  window.addEventListener('open-reader-auth-modal', () => {
-    openUserAuthModal();
-  });
+  // Global Auth Events
+  window.addEventListener('open-auth-modal', () => openUserAuthModal());
+  window.addEventListener('open-reader-auth-modal', () => openUserAuthModal());
   window.addEventListener('reader-auth-change', () => {
     updateUserNavbarState();
-    updateBookmarkBadge();
+    store.updateBookmarkBadge();
   });
 
-  // Reader Auth & User Profile Modals
   userAuthBtn?.addEventListener('click', () => openUserAuthModal());
   mUserAuthBtn?.addEventListener('click', () => openUserAuthModal());
 
-  // Search Bar Filter & Live Preview Dropdown
+  // Search Live Preview
   searchInput?.addEventListener('input', (e) => {
     const query = (e.target as HTMLInputElement).value;
-    searchQuery = query;
-    renderFeed();
-    renderSearchPreviewDropdown(query);
+    store.searchQuery = query;
+    FeedSection.render();
+    SearchPreview.render(query);
   });
 
   searchInput?.addEventListener('focus', () => {
     if (searchInput.value.trim()) {
-      renderSearchPreviewDropdown(searchInput.value);
+      SearchPreview.render(searchInput.value);
     }
   });
 
-  // Keyboard navigation inside search input
   searchInput?.addEventListener('keydown', (e) => {
-    if (!searchPreviewDropdown || searchPreviewDropdown.style.display === 'none') return;
-    const items = searchPreviewDropdown.querySelectorAll('.search-preview-item');
-    if (items.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeSearchIndex = (activeSearchIndex + 1) % items.length;
-      items.forEach((item, idx) => item.classList.toggle('active', idx === activeSearchIndex));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeSearchIndex = (activeSearchIndex - 1 + items.length) % items.length;
-      items.forEach((item, idx) => item.classList.toggle('active', idx === activeSearchIndex));
-    } else if (e.key === 'Enter') {
-      if (activeSearchIndex >= 0 && activeSearchIndex < items.length) {
-        e.preventDefault();
-        const activeItem = items[activeSearchIndex] as HTMLElement;
-        const artId = activeItem.getAttribute('data-art-id');
-        if (artId) {
-          closeSearchPreviewDropdown();
-          openArticleReader(artId, true);
-        }
-      } else {
-        closeSearchPreviewDropdown();
-      }
-    } else if (e.key === 'Escape') {
-      closeSearchPreviewDropdown();
-    }
+    SearchPreview.handleKeyNavigation(e);
   });
 
-  // Close Search Dropdown when clicking outside
   document.addEventListener('click', (e) => {
     const searchBox = document.getElementById('navbar-search-box');
     if (searchBox && !searchBox.contains(e.target as Node)) {
-      closeSearchPreviewDropdown();
+      SearchPreview.close();
     }
   });
 
-  // Advanced Filter Panel Toggle & Select Listeners
+  // Filter Panel Toggle & Selects
   filterToggleBtn?.addEventListener('click', () => {
     if (filterPanel) {
       const isHidden = filterPanel.style.display === 'none';
@@ -2191,16 +750,16 @@ function setupEventListeners() {
   });
 
   filterSortBy?.addEventListener('change', () => {
-    selectedFilterSortBy = filterSortBy.value;
-    renderFeed();
+    store.selectedFilterSortBy = filterSortBy.value;
+    FeedSection.render();
   });
 
   filterDateRange?.addEventListener('change', () => {
-    selectedFilterDateRange = filterDateRange.value;
-    renderFeed();
+    store.selectedFilterDateRange = filterDateRange.value;
+    FeedSection.render();
   });
 
-  // Global Keyboard Shortcuts (ESC to close any modal, '/' or 'Ctrl+K'/'Cmd+K' to focus search)
+  // Global Keyboard Shortcuts (Esc to close modals, '/' or 'Ctrl+K' to focus search)
   window.addEventListener('keydown', (e) => {
     const isTyping = document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA';
 
@@ -2210,144 +769,114 @@ function setupEventListeners() {
     }
 
     if (e.key === 'Escape') {
-      closeSearchPreviewDropdown();
-      if (readerModal?.classList.contains('open')) {
-        closeArticleReader(true);
-      }
-      if (userAuthModal?.classList.contains('open')) closeUserAuthModal();
-      if (bookmarksModal?.classList.contains('open')) {
-        bookmarksModal.classList.remove('open');
-        lenisInstance?.start();
-      }
-      if (adminCmsModal?.classList.contains('open')) {
-        window.location.hash = '';
-        adminCmsModal.classList.remove('open');
-        document.body.style.overflow = '';
-        lenisInstance?.start();
-      }
-    }
-  });
-
-  // Modal Close Buttons
-  modalCloseBtn?.addEventListener('click', () => {
-    closeArticleReader(true);
-  });
-
-  bookmarksBtn?.addEventListener('click', renderBookmarksModal);
-  bookmarksCloseBtn?.addEventListener('click', () => {
-    bookmarksModal?.classList.remove('open');
-    lenisInstance?.start();
-  });
-
-  // Close modals on clicking overlay
-  userAuthModal?.addEventListener('click', (e) => {
-    if (e.target === userAuthModal) {
+      SearchPreview.close();
+      ArticleReaderModal.close(true);
       closeUserAuthModal();
+      BookmarksModal.close();
+      closeAdminCMSModal();
     }
   });
 
+  // Modal Closures
+  modalCloseBtn?.addEventListener('click', () => ArticleReaderModal.close(true));
+  bookmarksBtn?.addEventListener('click', () => BookmarksModal.open());
+  bookmarksCloseBtn?.addEventListener('click', () => BookmarksModal.close());
+
+  userAuthModal?.addEventListener('click', (e) => {
+    if (e.target === userAuthModal) closeUserAuthModal();
+  });
+
+  const readerModal = document.getElementById('reader-modal');
   readerModal?.addEventListener('click', (e) => {
-    if (e.target === readerModal) {
-      closeArticleReader(true);
-    }
+    if (e.target === readerModal) ArticleReaderModal.close(true);
   });
 
+  const bookmarksModal = document.getElementById('bookmarks-modal');
   bookmarksModal?.addEventListener('click', (e) => {
-    if (e.target === bookmarksModal) {
-      bookmarksModal.classList.remove('open');
-      lenisInstance?.start();
-    }
+    if (e.target === bookmarksModal) BookmarksModal.close();
   });
-
 
   adminCmsModal?.addEventListener('click', (e) => {
     if (e.target === adminCmsModal) {
-      window.location.hash = '';
-      adminCmsModal.classList.remove('open');
-      document.body.style.overflow = '';
-      lenisInstance?.start();
+      closeAdminCMSModal();
+      Router.navigateHome();
     }
   });
 
-  // Logo Button resets filter and route
+  // Logo Button
+  const logoBtn = document.getElementById('logo-btn');
   logoBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    window.location.hash = '';
-    currentCategory = 'all';
-    searchQuery = '';
-    closeSearchPreviewDropdown();
+    store.currentCategory = 'all';
+    store.searchQuery = '';
+    SearchPreview.close();
     if (searchInput) searchInput.value = '';
-    renderCategories();
-    renderFeed();
+    Router.navigateHome();
+    FeedSection.renderCategories();
+    FeedSection.render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Newsletter Submit
+  // Newsletter Subscriptions
+  const newsletterForm = document.getElementById('newsletter-form');
   newsletterForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = newsletterForm.querySelector('input[type="email"]') as HTMLInputElement;
     const email = input?.value || '';
-    const responseMsg = await ApiService.subscribeNewsletter(email);
-    Toast.show(responseMsg || t('alertSubscribe'));
+    const res = await ApiService.subscribeNewsletter(email);
+    Toast.show(res || store.t('alertSubscribe'));
     (newsletterForm as HTMLFormElement).reset();
   });
 
-  // Footer Newsletter Submit
   const footerNewsletterForm = document.getElementById('footer-newsletter-form');
   footerNewsletterForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = footerNewsletterForm.querySelector('input[type="email"]') as HTMLInputElement;
     const email = input?.value || '';
-    const responseMsg = await ApiService.subscribeNewsletter(email);
-    Toast.show(responseMsg || t('alertSubscribe'));
+    const res = await ApiService.subscribeNewsletter(email);
+    Toast.show(res || store.t('alertSubscribe'));
     (footerNewsletterForm as HTMLFormElement).reset();
   });
 
   // Language Switcher
   const langSwitcher = document.getElementById('lang-toggle-switcher');
   if (langSwitcher) {
-    // Apply initial active state from preferences
     langSwitcher.querySelectorAll('.btn-lang').forEach(btn => {
       const lang = (btn as HTMLElement).getAttribute('data-lang');
-      btn.classList.toggle('active', lang === preferences.language);
+      btn.classList.toggle('active', lang === store.preferences.language);
     });
 
     langSwitcher.addEventListener('click', (e) => {
       const target = (e.target as HTMLElement).closest('.btn-lang') as HTMLElement | null;
       if (!target) return;
       const lang = target.getAttribute('data-lang') as 'id' | 'en';
-      if (lang === preferences.language) return;
+      if (lang === store.preferences.language) return;
 
-      preferences.language = lang;
-      localStorage.setItem('byte_lang', lang);
+      store.setLanguage(lang);
 
-      // Update button visual state
       langSwitcher.querySelectorAll('.btn-lang').forEach(btn => {
         btn.classList.toggle('active', (btn as HTMLElement).getAttribute('data-lang') === lang);
       });
 
-      // Update search placeholder
-      if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+      if (searchInput) searchInput.placeholder = store.t('searchPlaceholder');
 
-      // Update cookie banner text if visible
-      updateCookieBannerLabels();
-
-      // Re-render all translatable sections
-      updateCurrentDateBadge();
-      renderCategories();
-      renderBreakingBanner();
-      renderHeroSection();
-      renderAllNewsSections();
+      // Re-render UI
+      FeedSection.renderCategories();
+      HeroSection.renderBreakingBanner();
+      HeroSection.render();
+      BentoSection.render();
+      DeepTechSection.render();
+      FeedSection.renderFilterTags();
+      FeedSection.render();
+      renderByteShorts();
       updateFooterLabels();
       updateFilterLabels();
-      renderFilterTags();
-      renderByteShorts();
 
       Toast.show(lang === 'en' ? 'Language switched to English' : 'Bahasa diubah ke Indonesia');
     });
   }
 
-  // Back to Top button
+  // Back to Top Button
   const backToTopBtn = document.getElementById('btn-back-to-top');
   backToTopBtn?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2368,149 +897,5 @@ function setupEventListeners() {
   });
 }
 
-// Utility: Format Date
-function formatDate(dateStr: string): string {
-  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-  return new Date(dateStr).toLocaleDateString(preferences.language === 'en' ? 'en-US' : 'id-ID', options);
-}
-
-// Footer Localization setup
-function updateFooterLabels() {
-  const companyTitle = document.getElementById('footer-company-title');
-  const linkAbout = document.getElementById('link-about');
-  const linkContact = document.getElementById('link-contact');
-  const linkRedaksi = document.getElementById('link-redaksi');
-  const linkEthics = document.getElementById('link-ethics');
-  const linkCyber = document.getElementById('link-cyber-guidelines');
-  const linkDisclaimer = document.getElementById('link-disclaimer');
-  const linkAds = document.getElementById('link-ads');
-
-  if (companyTitle) companyTitle.textContent = t('companyText');
-  if (linkAbout) linkAbout.textContent = t('aboutUs');
-  if (linkContact) linkContact.textContent = t('getInTouch');
-  if (linkRedaksi) linkRedaksi.textContent = t('redaksiText');
-  if (linkEthics) linkEthics.textContent = t('ethicsCode');
-  if (linkCyber) linkCyber.textContent = t('cyberGuidelines');
-  if (linkDisclaimer) linkDisclaimer.textContent = t('disclaimerText');
-  if (linkAds) linkAds.textContent = t('adsText');
-}
-
-// Update labels & option text for Advanced Filter Panel
-function updateFilterLabels() {
-  const lblSortBy = document.getElementById('lbl-sort-by');
-  const lblDateRange = document.getElementById('lbl-date-range');
-  const lblPopularTags = document.getElementById('lbl-popular-tags');
-
-  if (lblSortBy) lblSortBy.textContent = t('lblSortBy');
-  if (lblDateRange) lblDateRange.textContent = t('lblDateRange');
-  if (lblPopularTags) lblPopularTags.textContent = t('lblPopularTags');
-
-  if (filterSortBy) {
-    filterSortBy.options[0].text = t('optLatest');
-    filterSortBy.options[1].text = t('optViews');
-    filterSortBy.options[2].text = t('optLikes');
-  }
-
-  if (filterDateRange) {
-    filterDateRange.options[0].text = t('optAllTime');
-    filterDateRange.options[1].text = t('optLast24h');
-    filterDateRange.options[2].text = t('optThisWeek');
-    filterDateRange.options[3].text = t('optThisMonth');
-  }
-}
-
-// Cookie Consent Banner setup
-function updateCookieBannerLabels() {
-  const bannerMsg = document.getElementById('cookie-consent-msg');
-  const acceptBtn = document.getElementById('cookie-accept-btn');
-  const rejectBtn = document.getElementById('cookie-reject-btn');
-  if (bannerMsg) bannerMsg.textContent = t('cookieMsg');
-  if (acceptBtn) acceptBtn.textContent = t('cookieAccept');
-  if (rejectBtn) rejectBtn.textContent = t('cookieReject');
-}
-
-function setupCookieConsent() {
-  const banner = document.getElementById('cookie-consent-banner');
-  const acceptBtn = document.getElementById('cookie-accept-btn');
-  const rejectBtn = document.getElementById('cookie-reject-btn');
-
-  if (!banner || !acceptBtn || !rejectBtn) return;
-
-  // Set initial labels
-  updateCookieBannerLabels();
-
-  const consent = localStorage.getItem('byte_cookie_consent');
-  if (!consent) {
-    // Show banner after 1.5s delay
-    setTimeout(() => {
-      banner.classList.add('show');
-    }, 1500);
-  }
-
-  acceptBtn.addEventListener('click', () => {
-    localStorage.setItem('byte_cookie_consent', 'accepted');
-    banner.classList.remove('show');
-    Toast.show(t('cookieToastAccept'));
-  });
-
-  rejectBtn.addEventListener('click', () => {
-    localStorage.setItem('byte_cookie_consent', 'rejected');
-    banner.classList.remove('show');
-    Toast.show(t('cookieToastReject'));
-  });
-}
-
-// Render dynamic tag chips for Advanced Filter Panel
-function renderFilterTags() {
-  if (!filterTagChips) return;
-  const tagsSet = new Set<string>();
-  ArticleService.getArticles().forEach(art => art.tags.forEach(t => tagsSet.add(t)));
-  const uniqueTags = Array.from(tagsSet).slice(0, 6);
-
-  filterTagChips.innerHTML = uniqueTags.map(tag => {
-    const isActive = selectedFilterTag.toLowerCase() === tag.toLowerCase();
-    return `
-      <span class="tag-chip ${isActive ? 'active' : ''}" data-tag="${tag}" style="cursor:pointer; padding:0.25rem 0.6rem; border-radius:100px; font-size:0.7rem; font-weight:700; border:1px solid var(--border-color); background:${isActive ? 'var(--accent-cyan)' : 'var(--bg-tertiary)'}; color:${isActive ? '#000' : 'var(--text-secondary)'}; transition:all 0.2s ease;">
-        #${tag}
-      </span>
-    `;
-  }).join('');
-
-  filterTagChips.querySelectorAll('.tag-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const tag = chip.getAttribute('data-tag') || '';
-      if (selectedFilterTag.toLowerCase() === tag.toLowerCase()) {
-        selectedFilterTag = '';
-      } else {
-        selectedFilterTag = tag;
-      }
-      renderFilterTags();
-      renderFeed();
-    });
-  });
-}
-
-
-// Render ByteShorts Visual Stories Bar
-function renderByteShorts() {
-  if (!byteShortsContainer) return;
-  byteShortsContainer.innerHTML = ByteShorts.renderBarHTML(preferences.language);
-  ByteShorts.bindBarEvents(byteShortsContainer, preferences.language, (articleId: string) => {
-    // Navigate to article when user clicks "Read Full Story" inside the viewer
-    const article = ArticleService.getArticleById(articleId);
-    if (article) {
-      window.location.hash = `article/${article.slug || article.id}`;
-    }
-  });
-}
-
-// Render Official Social Media Channels in Footer
-function renderFooterSocials() {
-  const container = document.getElementById('footer-social-list');
-  if (container) {
-    container.innerHTML = SocialMediaService.renderFooterSocialListHTML();
-  }
-}
-
-// Run Application
+// Bootstrap Application
 document.addEventListener('DOMContentLoaded', init);
