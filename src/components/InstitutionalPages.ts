@@ -1,5 +1,6 @@
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
 import { ImageUtils } from '../utils/imageUtils';
+import { Toast } from '../utils/toast';
 
 export type InstitutionalPageId =
   | 'tentang-kami'
@@ -497,5 +498,42 @@ export class InstitutionalPages {
 
   public static isValidPageId(id: string): id is InstitutionalPageId {
     return id in PAGE_TITLES;
+  }
+
+  public static open(pageId: InstitutionalPageId, lang: 'id' | 'en'): void {
+    const container = document.getElementById('institutional-page-container');
+    const mainContent = document.querySelector('main.container') as HTMLElement | null;
+    if (!container || !mainContent) return;
+
+    mainContent.style.display = 'none';
+    container.innerHTML = this.renderPage(pageId, lang);
+    container.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    container.querySelectorAll('.inst-back-btn, nav a[href="/"], nav a[href="#"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.history.pushState(null, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
+    });
+
+    const contactForm = container.querySelector('#institutional-contact-form');
+    if (contactForm) {
+      contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        Toast.show(lang === 'en' ? 'Your message has been sent! Our team will respond within 2 business days.' : 'Pesan Anda telah terkirim! Tim kami akan merespons dalam 2 hari kerja.');
+      });
+    }
+  }
+
+  public static close(): void {
+    const container = document.getElementById('institutional-page-container');
+    const mainContent = document.querySelector('main.container') as HTMLElement | null;
+    if (!container || !mainContent) return;
+    if (container.style.display === 'none') return;
+    container.style.display = 'none';
+    container.innerHTML = '';
+    mainContent.style.display = '';
   }
 }
