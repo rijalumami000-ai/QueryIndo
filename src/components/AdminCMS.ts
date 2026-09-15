@@ -1,8 +1,9 @@
 import type { Article, CategoryId, AuthorProfile } from '../types/news';
-import { ARTICLES, CATEGORIES } from '../data/mockNews';
+import { CATEGORIES } from '../data/mockNews';
 import { AuthService } from '../services/authService';
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
 import { ApiService } from '../services/apiService';
+import { ArticleService } from '../services/articleService';
 import { Toast } from '../utils/toast';
 import { ImageUtils } from '../utils/imageUtils';
 import { AdBanner, type AdCampaign, type AdPlacement } from './AdBanner';
@@ -17,11 +18,12 @@ export class AdminCMS {
   private adPlacementFilter: string = 'all';
 
   constructor(onArticlesChange: () => void) {
-    this.articles = ARTICLES;
+    this.articles = ArticleService.getArticles();
     this.onArticlesChange = onArticlesChange;
   }
 
   public renderAdminModalHTML(): string {
+    this.articles = ArticleService.getArticles();
     const user = AuthService.getCurrentUser();
 
     // If not logged in, render Encrypted Login View
@@ -2163,12 +2165,13 @@ export class AdminCMS {
     });
 
     modalElem.querySelectorAll('.btn-toggle-featured').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const art = this.articles.find(a => a.id === id);
-        if (art) {
-          this.articles.forEach(a => { if (a.id !== id) a.isFeatured = false; });
-          art.isFeatured = !art.isFeatured;
+        if (art && id) {
+          const newFeatured = !art.isFeatured;
+          await ArticleService.updateArticle(id, { isFeatured: newFeatured });
+          this.articles = ArticleService.getArticles();
           this.onArticlesChange();
           this.refreshTable(modalElem);
           Toast.show(`Status Headline artikel "${art.title}" berhasil diubah.`);
@@ -2177,15 +2180,16 @@ export class AdminCMS {
     });
 
     modalElem.querySelectorAll('.btn-delete-article').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
-        if (confirm('Apakah Anda yakin ingin menghapus artikel berita ini dari portal QUERYINDO?')) {
-          const idx = this.articles.findIndex(a => a.id === id);
-          if (idx > -1) {
-            this.articles.splice(idx, 1);
+        if (!id) return;
+        if (confirm('Apakah Anda yakin ingin menghapus artikel berita ini secara permanen dari portal QUERYINDO?')) {
+          const success = await ArticleService.deleteArticle(id);
+          if (success) {
+            this.articles = ArticleService.getArticles();
             this.onArticlesChange();
             this.refreshTable(modalElem);
-            Toast.show('Artikel berita berhasil dihapus.');
+            Toast.show('Artikel berita berhasil dihapus secara permanen.');
           }
         }
       });
@@ -2622,7 +2626,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     // Submit Fullscreen Form Handler
     const form = editorPage.querySelector('#editor-fullscreen-form') as HTMLFormElement;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const title = (editorPage.querySelector('#edit-title') as HTMLInputElement).value;
@@ -2650,20 +2654,24 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
       const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
 
       if (isEdit && article) {
-        article.title = title;
-        article.subtitle = subtitle;
-        article.category = category;
-        article.tags = tags;
-        article.imageUrl = imageUrl;
-        article.author.name = authorName;
-        article.author.avatar = authorAvatar;
-        article.author.role = authorRole;
-        article.aiSummary = aiSummary;
-        article.content = content;
-        article.isFactChecked = isFactChecked;
-        article.isPremium = isPremium;
-        article.isSponsored = isSponsored;
-        article.sponsorName = isSponsored ? sponsorName : undefined;
+        await ArticleService.updateArticle(article.id, {
+          title,
+          subtitle,
+          category,
+          tags,
+          imageUrl,
+          author: {
+            name: authorName,
+            role: authorRole,
+            avatar: authorAvatar
+          },
+          aiSummary,
+          content,
+          isFactChecked,
+          isPremium,
+          isSponsored,
+          sponsorName: isSponsored ? sponsorName : undefined
+        });
         Toast.show('Perubahan naskah berita berhasil disimpan.');
       } else {
         const newArt: Article = {
@@ -2693,10 +2701,11 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           aiSummary,
           content
         };
-        this.articles.unshift(newArt);
+        await ArticleService.createArticle(newArt);
         Toast.show('Berita baru berhasil diterbitkan di QUERYINDO!');
       }
 
+      this.articles = ArticleService.getArticles();
       this.onArticlesChange();
       this.refreshTable(parentModal);
       closeEditor();

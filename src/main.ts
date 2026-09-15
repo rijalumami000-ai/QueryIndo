@@ -1,6 +1,7 @@
 import './styles/main.css';
-import { ARTICLES, CATEGORIES, TECH_INDEXES } from './data/mockNews';
+import { CATEGORIES, TECH_INDEXES } from './data/mockNews';
 import type { Article, CategoryId, UserPreferences, TechIndexItem } from './types/news';
+import { ArticleService } from './services/articleService';
 import { AdminCMS } from './components/AdminCMS';
 import { ReaderAuthService, type ReaderUser } from './services/authService';
 import { ApiService } from './services/apiService';
@@ -66,15 +67,7 @@ export function slugifyTitle(title: string): string {
 }
 
 export function findArticleBySlugOrId(idOrSlug: string): Article | undefined {
-  if (!idOrSlug) return undefined;
-  const decoded = decodeURIComponent(idOrSlug).trim().replace(/^\/+/, '').replace(/^article\//, '');
-  return ARTICLES.find(a => 
-    a.id === decoded || 
-    a.slug === decoded ||
-    slugifyTitle(a.title) === decoded ||
-    slugifyTitle(a.title).toLowerCase() === decoded.toLowerCase() ||
-    a.slug.toLowerCase() === decoded.toLowerCase()
-  );
+  return ArticleService.getArticleBySlugOrId(idOrSlug);
 }
 
 // Reading History System
@@ -187,9 +180,10 @@ async function init() {
       AdBanner.syncWithBackend(),
       ShoppingCarousel.syncWithBackend(),
       ReaderPoll.syncWithBackend(),
+      ArticleService.syncWithBackend(),
       ApiService.getTechIndexes()
     ]);
-    const techIdxResult = results[4];
+    const techIdxResult = results[5];
     if (techIdxResult && techIdxResult.status === 'fulfilled' && techIdxResult.value) {
       liveTechIndexes = techIdxResult.value;
     }
@@ -501,7 +495,9 @@ function renderCategories() {
 // Render Breaking News Banner
 function renderBreakingBanner() {
   if (!breakingNewsTitle) return;
-  const breakingArticle = ARTICLES.find(a => a.isBreaking) || ARTICLES[0];
+  const articles = ArticleService.getArticles();
+  const breakingArticle = articles.find(a => a.isBreaking) || articles[0];
+  if (!breakingArticle) return;
   breakingNewsTitle.textContent = breakingArticle.title;
   breakingNewsTitle.onclick = () => {
     openArticleReader(breakingArticle.id, true);
@@ -510,7 +506,9 @@ function renderBreakingBanner() {
 
 // Render Hero Section (Featured + Trending)
 function renderHeroSection() {
-  const featuredArticle = ARTICLES.find(a => a.isFeatured) || ARTICLES[0];
+  const articles = ArticleService.getArticles();
+  const featuredArticle = articles.find(a => a.isFeatured) || articles[0];
+  if (!featuredArticle) return;
   
   if (featuredArticleContainer) {
     featuredArticleContainer.innerHTML = `
@@ -550,7 +548,7 @@ function renderHeroSection() {
   if (trendingHeader) trendingHeader.textContent = t('trendingTitle');
 
   if (trendingArticlesContainer) {
-    const trendingArticles = ARTICLES.filter(a => a.isTrending && a.id !== featuredArticle.id).slice(0, 4);
+    const trendingArticles = ArticleService.getArticles().filter(a => a.isTrending && a.id !== featuredArticle.id).slice(0, 4);
     trendingArticlesContainer.innerHTML = trendingArticles.map((art, idx) => `
       <div class="trending-item" data-article-id="${art.id}">
         <div class="trending-num">0${idx + 1}</div>
@@ -593,10 +591,12 @@ function renderEditorsPick() {
   const container = document.getElementById('editors-pick-container');
   if (!container) return;
 
-  const featured = ARTICLES.find(a => a.id === 'art-008') || ARTICLES[1] || ARTICLES[0];
+  const articles = ArticleService.getArticles();
+  const featured = articles.find(a => a.id === 'art-008') || articles[1] || articles[0];
+  if (!featured) return;
   const stackedArticles = [
-    ARTICLES.find(a => a.id === 'art-002'),
-    ARTICLES.find(a => a.id === 'art-005')
+    articles.find(a => a.id === 'art-002'),
+    articles.find(a => a.id === 'art-005')
   ].filter(Boolean) as Article[];
 
   container.innerHTML = `
@@ -697,10 +697,11 @@ function renderDeepTechMatrix() {
   const container = document.getElementById('deep-tech-matrix-container');
   if (!container) return;
 
+  const articles = ArticleService.getArticles();
   const targetIds = ['art-009', 'art-004', 'art-010', 'art-018'];
-  let matrixArticles = targetIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
+  let matrixArticles = targetIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
   if (matrixArticles.length < 4) {
-    matrixArticles = ARTICLES.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
+    matrixArticles = articles.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
   }
 
   container.innerHTML = matrixArticles.map(art => {
@@ -757,10 +758,11 @@ function renderRapidWire() {
   const adContainer = document.getElementById('wire-sidebar-ad-container');
 
   if (wireContainer) {
+    const articles = ArticleService.getArticles();
     const wireIds = ['art-017', 'art-016', 'art-013', 'art-007'];
-    let wireArticles = wireIds.map(id => ARTICLES.find(a => a.id === id)).filter(Boolean) as Article[];
+    let wireArticles = wireIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
     if (wireArticles.length < 4) {
-      wireArticles = ARTICLES.slice(4, 8);
+      wireArticles = articles.slice(4, 8);
     }
 
     const timePills = preferences.language === 'en'
@@ -788,8 +790,10 @@ function renderRapidWire() {
   }
 
   if (radarContainer) {
-    const radarArt = ARTICLES.find(a => a.id === 'art-015') || ARTICLES[6] || ARTICLES[0];
-    radarContainer.innerHTML = `
+    const articles = ArticleService.getArticles();
+    const radarArt = articles.find(a => a.id === 'art-015') || articles[6] || articles[0];
+    if (radarArt) {
+      radarContainer.innerHTML = `
       <article class="radar-spotlight-card" data-article-id="${radarArt.id}">
         <div class="radar-img-wrap">
           <img src="${radarArt.imageUrl}" alt="${escapeHtml(radarArt.title)}" class="radar-img" loading="lazy" />
@@ -804,11 +808,12 @@ function renderRapidWire() {
           </div>
         </div>
       </article>
-    `;
+      `;
 
-    radarContainer.querySelector('.radar-spotlight-card')?.addEventListener('click', () => {
-      openArticleReader(radarArt.id, true);
-    });
+      radarContainer.querySelector('.radar-spotlight-card')?.addEventListener('click', () => {
+        openArticleReader(radarArt.id, true);
+      });
+    }
   }
 
   if (adContainer) {
@@ -832,7 +837,7 @@ function renderFeed() {
   if (!articlesGrid) return;
 
   // Filter Articles
-  const filtered = ARTICLES.filter(art => {
+  const filtered = ArticleService.getArticles().filter(art => {
     const matchesCategory = currentCategory === 'all' || art.category === currentCategory;
     const matchesSearch = searchQuery === '' || 
       art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1116,7 +1121,7 @@ function openArticleReader(articleIdOrSlug: string, updateUrl: boolean = true) {
         ${preferences.language === 'en' ? 'RELATED STORIES • UP NEXT' : 'BERITA TERKAIT • SELANJUTNYA'}
       </div>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;" id="related-articles-container">
-        ${ARTICLES.filter(a => a.id !== article.id && (a.category === article.category || a.tags.some(t => article.tags.includes(t)))).slice(0, 3).map(rel => `
+        ${ArticleService.getArticles().filter(a => a.id !== article.id && (a.category === article.category || a.tags.some(t => article.tags.includes(t)))).slice(0, 3).map(rel => `
           <div class="related-art-card" data-rel-id="${rel.id}" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:0.85rem; cursor:pointer; transition:all 0.2s ease; display:flex; flex-direction:column; gap:0.5rem;" onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-color)'">
             <img src="${rel.imageUrl}" alt="${rel.title}" style="width:100%; height:90px; border-radius:6px; object-fit:cover;" />
             <span class="tag-badge" style="font-size:0.65rem; align-self:flex-start;">${rel.category.toUpperCase()}</span>
@@ -1423,7 +1428,7 @@ function renderHistoryListHTML(readingHistory: ReadingHistoryItem[]): string {
 function renderBookmarksModal() {
   if (!bookmarksListContainer) return;
 
-  const savedArticles = ARTICLES.filter(a => preferences.savedArticleIds.includes(a.id));
+  const savedArticles = ArticleService.getArticles().filter(a => preferences.savedArticleIds.includes(a.id));
   const readingHistory: ReadingHistoryItem[] = JSON.parse(localStorage.getItem('byte_reading_history') || '[]');
 
   bookmarksListContainer.innerHTML = `
@@ -1558,7 +1563,7 @@ function renderSearchPreviewDropdown(query: string) {
     return;
   }
 
-  const matches = ARTICLES.filter(art => {
+  const matches = ArticleService.getArticles().filter(art => {
     return art.title.toLowerCase().includes(trimmed) ||
            art.subtitle.toLowerCase().includes(trimmed) ||
            art.tags.some(t => t.toLowerCase().includes(trimmed));
@@ -2277,7 +2282,7 @@ function setupCookieConsent() {
 function renderFilterTags() {
   if (!filterTagChips) return;
   const tagsSet = new Set<string>();
-  ARTICLES.forEach(art => art.tags.forEach(t => tagsSet.add(t)));
+  ArticleService.getArticles().forEach(art => art.tags.forEach(t => tagsSet.add(t)));
   const uniqueTags = Array.from(tagsSet).slice(0, 6);
 
   filterTagChips.innerHTML = uniqueTags.map(tag => {
@@ -2310,7 +2315,7 @@ function renderByteShorts() {
   byteShortsContainer.innerHTML = ByteShorts.renderBarHTML(preferences.language);
   ByteShorts.bindBarEvents(byteShortsContainer, preferences.language, (articleId: string) => {
     // Navigate to article when user clicks "Read Full Story" inside the viewer
-    const article = ARTICLES.find(a => a.id === articleId);
+    const article = ArticleService.getArticleById(articleId);
     if (article) {
       window.location.hash = `article/${article.slug || article.id}`;
     }

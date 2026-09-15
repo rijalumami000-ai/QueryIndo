@@ -96,7 +96,7 @@ func GetRSSFeed(c *fiber.Ctx) error {
 			PubDate:     pubTimeStr,
 			GUID:        artUrl,
 			Category:    art.CategoryID,
-			Author:      art.AuthorName,
+			Author:      art.Author.Name,
 		})
 	}
 

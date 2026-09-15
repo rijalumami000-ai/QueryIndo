@@ -1,6 +1,8 @@
 package database
 
 import (
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +13,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+//go:embed default_articles.json
+var defaultArticlesJSON []byte
 
 var DB *gorm.DB
 
@@ -302,6 +307,21 @@ func seedDefaultCMSData(db *gorm.DB) {
 		}
 		db.Create(&defaultPoll)
 		log.Println("🌱 Seed Poll default berhasil!")
+	}
+
+	// 6. Seed Default Articles
+	var articleCount int64
+	db.Model(&models.Article{}).Count(&articleCount)
+	if articleCount == 0 && len(defaultArticlesJSON) > 0 {
+		var defaultArticles []models.Article
+		if err := json.Unmarshal(defaultArticlesJSON, &defaultArticles); err == nil {
+			for _, art := range defaultArticles {
+				db.Create(&art)
+			}
+			log.Printf("🌱 Seed %d Artikel Berita default berhasil!\n", len(defaultArticles))
+		} else {
+			log.Printf("⚠️ Gagal unmarshal default articles JSON: %v\n", err)
+		}
 	}
 }
 
