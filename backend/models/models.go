@@ -67,3 +67,70 @@ type TechIndex struct {
 	IsPositive bool      `json:"is_positive"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
+
+// Author Model (Susunan Dewan Redaksi)
+type Author struct {
+	ID             string    `gorm:"primaryKey" json:"id"`
+	Name           string    `gorm:"not null" json:"name"`
+	Role           string    `gorm:"not null" json:"role"`
+	Division       string    `gorm:"default:'redaksi'" json:"division"`
+	Order          int       `gorm:"default:1" json:"order"`
+	Email          string    `json:"email"`
+	Avatar         string    `json:"avatar"`
+	Bio            string    `gorm:"type:text" json:"bio"`
+	SocialTwitter  string    `json:"socialTwitter,omitempty"`
+	SocialLinkedin string    `json:"socialLinkedin,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// AdCampaign Model (Kemitraan & Iklan Banner)
+type AdCampaign struct {
+	ID          string    `gorm:"primaryKey" json:"id"`
+	SponsorName string    `gorm:"not null" json:"sponsorName"`
+	Tagline     string    `gorm:"type:text" json:"tagline"`
+	Placement   string    `gorm:"index;not null" json:"placement"`
+	ImageURL    string    `gorm:"type:text" json:"imageUrl"`
+	TargetURL   string    `gorm:"type:text" json:"targetUrl"`
+	CtaText     string    `json:"ctaText"`
+	IsActive    bool      `gorm:"default:true" json:"isActive"`
+	Impressions int64     `gorm:"default:0" json:"impressions"`
+	Clicks      int64     `gorm:"default:0" json:"clicks"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// ShoppingProduct Model (Rekomendasi Belanja / Query Picks)
+type ShoppingProduct struct {
+	ID              string    `gorm:"primaryKey" json:"id"`
+	Title           string    `gorm:"not null;type:text" json:"title"`
+	ImageURL        string    `gorm:"type:text" json:"imageUrl"`
+	OriginalPrice   string    `json:"originalPrice"`
+	DiscountPrice   string    `json:"discountPrice"`
+	DiscountPercent string    `json:"discountPercent"`
+	TargetURL       string    `gorm:"type:text" json:"targetUrl"`
+	Category        string    `json:"category"`
+	IsActive        bool      `gorm:"default:true" json:"isActive"`
+	Clicks          int64     `gorm:"default:0" json:"clicks"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+// ShoppingConfig Model (Pengaturan Banner Rekomendasi Belanja)
+type ShoppingConfig struct {
+	Key         string `gorm:"primaryKey;default:'main'" json:"key"`
+	BadgeText   string `json:"badgeText"`
+	PartnerText string `json:"partnerText"`
+	MainTitle   string `json:"mainTitle"`
+	Enabled     bool   `gorm:"default:true" json:"enabled"`
+}
+
+// PollData Model (Jajak Pendapat / Polling Redaksi)
+type PollData struct {
+	Key        string `gorm:"primaryKey;default:'current'" json:"key"`
+	QuestionID string `gorm:"type:text" json:"questionId"`
+	QuestionEN string `gorm:"type:text" json:"questionEn"`
+	Options    string `gorm:"type:text" json:"options"` // JSON array string
+	TotalVotes int64  `gorm:"default:0" json:"totalVotes"`
+}
+

@@ -1,3 +1,5 @@
+import { ApiService } from '../services/apiService';
+
 export type AdPlacement = 
   | 'leaderboard' 
   | 'in_article' 
@@ -157,6 +159,17 @@ export class AdBanner {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(campaigns));
   }
 
+  public static async syncWithBackend(): Promise<void> {
+    try {
+      const serverAds = await ApiService.getAds();
+      if (serverAds && serverAds.length > 0) {
+        this.saveCampaigns(serverAds);
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi data iklan dari server:', err);
+    }
+  }
+
   public static getActiveAd(placement: AdPlacement): AdCampaign | null {
     const list = this.getCampaigns();
     const matches = list.filter(a => a.placement === placement && a.isActive);
@@ -196,6 +209,7 @@ export class AdBanner {
     };
     list.unshift(newAd);
     this.saveCampaigns(list);
+    ApiService.createAd(newAd).catch(() => {});
     return newAd;
   }
 
@@ -205,6 +219,7 @@ export class AdBanner {
     if (idx === -1) return false;
     list[idx] = { ...list[idx], ...updated };
     this.saveCampaigns(list);
+    ApiService.updateAd(id, updated).catch(() => {});
     return true;
   }
 
@@ -213,15 +228,17 @@ export class AdBanner {
     const filtered = list.filter(a => a.id !== id);
     if (filtered.length === list.length) return false;
     this.saveCampaigns(filtered);
+    ApiService.deleteAd(id).catch(() => {});
     return true;
   }
 
   public static toggleCampaign(id: string): boolean {
     const list = this.getCampaigns();
-    const ad = list.find(a => a.id === id);
-    if (!ad) return false;
-    ad.isActive = !ad.isActive;
+    const idx = list.findIndex(a => a.id === id);
+    if (idx === -1) return false;
+    list[idx].isActive = !list[idx].isActive;
     this.saveCampaigns(list);
+    ApiService.updateAd(id, { isActive: list[idx].isActive }).catch(() => {});
     return true;
   }
 

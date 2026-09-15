@@ -1,4 +1,7 @@
-import type { Article, TechIndexItem } from '../types/news';
+import type { Article, TechIndexItem, AuthorProfile } from '../types/news';
+import type { AdCampaign } from '../components/AdBanner';
+import type { ShoppingProduct, ShoppingWidgetConfig } from '../components/ShoppingCarousel';
+import type { PollData } from '../components/ReaderPoll';
 import { ARTICLES, TECH_INDEXES } from '../data/mockNews';
 import { AuthService } from './authService';
 
@@ -270,6 +273,266 @@ export class ApiService {
       message: '[Simulasi Lokal] Broadcast disiapkan dan diproses secara virtual (koneksi backend offline).',
       recipients_count: 1
     };
+  }
+
+  // =========================================================================
+  // Authors (Dewan Redaksi) API Methods
+  // =========================================================================
+  public static async getAuthors(): Promise<AuthorProfile[] | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/authors`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch authors from backend', err);
+      }
+    }
+    return null;
+  }
+
+  public static async createAuthor(author: Partial<AuthorProfile>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/authors`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(author)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to create author on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async updateAuthor(id: string, author: Partial<AuthorProfile>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/authors/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(author)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to update author on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async deleteAuthor(id: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/authors/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to delete author on backend', err);
+      }
+    }
+    return false;
+  }
+
+  // =========================================================================
+  // Ads (Kemitraan & Iklan) API Methods
+  // =========================================================================
+  public static async getAds(placement?: string): Promise<AdCampaign[] | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const url = new URL(`${API_BASE_URL}/ads`, window.location.origin);
+        if (placement && placement !== 'all') url.searchParams.append('placement', placement);
+        const res = await fetch(url.toString());
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch ads from backend', err);
+      }
+    }
+    return null;
+  }
+
+  public static async createAd(ad: Partial<AdCampaign>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/ads`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(ad)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to create ad on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async updateAd(id: string, ad: Partial<AdCampaign>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/ads/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(ad)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to update ad on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async deleteAd(id: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/ads/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to delete ad on backend', err);
+      }
+    }
+    return false;
+  }
+
+  // =========================================================================
+  // Shopping (Rekomendasi Belanja) API Methods
+  // =========================================================================
+  public static async getShoppingData(): Promise<{ config?: ShoppingWidgetConfig; products?: ShoppingProduct[] } | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/shopping`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch shopping data from backend', err);
+      }
+    }
+    return null;
+  }
+
+  public static async saveShoppingConfig(config: Partial<ShoppingWidgetConfig>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/shopping/config`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(config)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to save shopping config on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async createShoppingProduct(prod: Partial<ShoppingProduct>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/shopping/products`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(prod)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to create shopping product on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async updateShoppingProduct(id: string, prod: Partial<ShoppingProduct>): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/shopping/products/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(prod)
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to update shopping product on backend', err);
+      }
+    }
+    return false;
+  }
+
+  public static async deleteShoppingProduct(id: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/shopping/products/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('Failed to delete shopping product on backend', err);
+      }
+    }
+    return false;
+  }
+
+  // =========================================================================
+  // Poll (Jajak Pendapat) API Methods
+  // =========================================================================
+  public static async getPoll(): Promise<PollData | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/poll`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch poll from backend', err);
+      }
+    }
+    return null;
+  }
+
+  public static async votePoll(optionId: string): Promise<PollData | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/poll/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ optionId })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to submit poll vote to backend', err);
+      }
+    }
+    return null;
   }
 }
 

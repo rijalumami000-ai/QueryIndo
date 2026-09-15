@@ -1,4 +1,5 @@
 import type { AuthorProfile } from '../types/news';
+import { ApiService } from './apiService';
 
 export const EDITORIAL_DIVISIONS = [
   'Pimpinan & Penanggung Jawab',
@@ -277,6 +278,17 @@ export class AuthorService {
     localStorage.setItem(AUTHORS_STORAGE_KEY, JSON.stringify(authors));
   }
 
+  public static async syncWithBackend(): Promise<void> {
+    try {
+      const serverAuthors = await ApiService.getAuthors();
+      if (serverAuthors && serverAuthors.length > 0) {
+        this.saveAuthors(serverAuthors);
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi data jurnalis dari server:', err);
+    }
+  }
+
   public static getAuthorById(id: string): AuthorProfile | undefined {
     return this.getAuthors().find(a => a.id === id);
   }
@@ -296,6 +308,7 @@ export class AuthorService {
     };
     authors.push(newAuthor);
     this.saveAuthors(authors);
+    ApiService.createAuthor(newAuthor).catch(() => {});
     return newAuthor;
   }
 
@@ -309,6 +322,7 @@ export class AuthorService {
       ...updated
     };
     this.saveAuthors(authors);
+    ApiService.updateAuthor(id, updated).catch(() => {});
     return true;
   }
 
@@ -318,6 +332,7 @@ export class AuthorService {
     if (filtered.length === authors.length) return false;
 
     this.saveAuthors(filtered);
+    ApiService.deleteAuthor(id).catch(() => {});
     return true;
   }
 

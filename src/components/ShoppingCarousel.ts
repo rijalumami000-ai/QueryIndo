@@ -1,4 +1,5 @@
 import { ImageUtils } from '../utils/imageUtils';
+import { ApiService } from '../services/apiService';
 
 export interface ShoppingProduct {
   id: string;
@@ -121,6 +122,23 @@ export class ShoppingCarousel {
 
   public static saveConfig(config: ShoppingWidgetConfig): void {
     localStorage.setItem(this.STORAGE_KEY_CONFIG, JSON.stringify(config));
+    ApiService.saveShoppingConfig(config).catch(() => {});
+  }
+
+  public static async syncWithBackend(): Promise<void> {
+    try {
+      const serverData = await ApiService.getShoppingData();
+      if (serverData) {
+        if (serverData.config) {
+          localStorage.setItem(this.STORAGE_KEY_CONFIG, JSON.stringify(serverData.config));
+        }
+        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
+          localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(serverData.products));
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi data belanja dari server:', err);
+    }
   }
 
   public static getProducts(): ShoppingProduct[] {
@@ -151,6 +169,7 @@ export class ShoppingCarousel {
     };
     products.unshift(newProduct);
     this.saveProducts(products);
+    ApiService.createShoppingProduct(newProduct).catch(() => {});
     return newProduct;
   }
 
@@ -160,6 +179,7 @@ export class ShoppingCarousel {
     if (idx === -1) return false;
     products[idx] = { ...products[idx], ...updated };
     this.saveProducts(products);
+    ApiService.updateShoppingProduct(id, updated).catch(() => {});
     return true;
   }
 
@@ -168,6 +188,7 @@ export class ShoppingCarousel {
     const filtered = products.filter(p => p.id !== id);
     if (filtered.length === products.length) return false;
     this.saveProducts(filtered);
+    ApiService.deleteShoppingProduct(id).catch(() => {});
     return true;
   }
 
@@ -177,6 +198,7 @@ export class ShoppingCarousel {
     if (!item) return false;
     item.isActive = !item.isActive;
     this.saveProducts(products);
+    ApiService.updateShoppingProduct(id, { isActive: item.isActive }).catch(() => {});
     return true;
   }
 

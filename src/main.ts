@@ -15,6 +15,8 @@ import { SeoService } from './utils/seoService';
 import { ShareModal } from './components/ShareModal';
 import { AdBanner } from './components/AdBanner';
 import { ShoppingCarousel } from './components/ShoppingCarousel';
+import { AuthorService } from './services/authorService';
+import { ReaderPoll } from './components/ReaderPoll';
 import Lenis from 'lenis';
 
 // English Names for Categories
@@ -177,10 +179,20 @@ async function init() {
   updateUserNavbarState();
 
   
-  // Async Health check & load live financial indexes
+  // Async Health check & load live financial indexes + sync centralized server content
   const isBackendLive = await ApiService.checkBackendHealth();
   if (isBackendLive) {
-    liveTechIndexes = await ApiService.getTechIndexes();
+    const results = await Promise.allSettled([
+      AuthorService.syncWithBackend(),
+      AdBanner.syncWithBackend(),
+      ShoppingCarousel.syncWithBackend(),
+      ReaderPoll.syncWithBackend(),
+      ApiService.getTechIndexes()
+    ]);
+    const techIdxResult = results[4];
+    if (techIdxResult && techIdxResult.status === 'fulfilled' && techIdxResult.value) {
+      liveTechIndexes = techIdxResult.value;
+    }
   }
 
   renderTechIndexes();

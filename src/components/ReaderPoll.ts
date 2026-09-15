@@ -1,3 +1,5 @@
+import { ApiService } from '../services/apiService';
+
 export interface PollOption {
   id: string;
   textId: string;
@@ -44,6 +46,17 @@ export class ReaderPoll {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(poll));
   }
 
+  public static async syncWithBackend(): Promise<void> {
+    try {
+      const serverPoll = await ApiService.getPoll();
+      if (serverPoll && Array.isArray(serverPoll.options) && serverPoll.options.length > 0) {
+        this.savePollData(serverPoll);
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi data polling dari server:', err);
+    }
+  }
+
   public static getVotedOptionId(pollId: string): string | null {
     return localStorage.getItem(`byte_poll_vote_${pollId}`);
   }
@@ -58,6 +71,7 @@ export class ReaderPoll {
       targetOpt.votes += 1;
       this.savePollData(poll);
       localStorage.setItem(`byte_poll_vote_${poll.id}`, optionId);
+      ApiService.votePoll(optionId).catch(() => {});
     }
   }
 

@@ -129,6 +129,29 @@ func main() {
 	api.Delete("/newsletter/subscribers/:id", middleware.Protected(), handlers.DeleteSubscriber)
 	api.Post("/newsletter/broadcast", middleware.Protected(), handlers.BroadcastNewsletter)
 
+	// Dewan Redaksi (Authors) Endpoints
+	api.Get("/authors", handlers.GetAuthors)
+	api.Post("/authors", middleware.Protected(), handlers.CreateAuthor)
+	api.Put("/authors/:id", middleware.Protected(), handlers.UpdateAuthor)
+	api.Delete("/authors/:id", middleware.Protected(), handlers.DeleteAuthor)
+
+	// Kemitraan & Iklan (Ads) Endpoints
+	api.Get("/ads", handlers.GetAds)
+	api.Post("/ads", middleware.Protected(), handlers.CreateAd)
+	api.Put("/ads/:id", middleware.Protected(), handlers.UpdateAd)
+	api.Delete("/ads/:id", middleware.Protected(), handlers.DeleteAd)
+
+	// Rekomendasi Belanja (Shopping Carousel) Endpoints
+	api.Get("/shopping", handlers.GetShopping)
+	api.Post("/shopping/config", middleware.Protected(), handlers.SaveShoppingConfig)
+	api.Post("/shopping/products", middleware.Protected(), handlers.CreateShoppingProduct)
+	api.Put("/shopping/products/:id", middleware.Protected(), handlers.UpdateShoppingProduct)
+	api.Delete("/shopping/products/:id", middleware.Protected(), handlers.DeleteShoppingProduct)
+
+	// Jajak Pendapat (Reader Poll) Endpoints
+	api.Get("/poll", handlers.GetPoll)
+	api.Post("/poll/vote", handlers.VotePoll)
+
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap
 	app.Get("/rss.xml", handlers.GetRSSFeed)
 	app.Get("/feed.json", handlers.GetJSONFeed)

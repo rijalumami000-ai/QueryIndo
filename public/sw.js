@@ -1,41 +1,38 @@
-const CACHE_NAME = 'queryindo-pwa-v2';
+// QUERYINDO High-Performance Service Worker v3.0 (Anti-Stale Cache Strategy)
+const CACHE_NAME = 'queryindo-pwa-v3';
+
+// Only precache static brand assets, NEVER HTML or API endpoints
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/logo.png',
   '/favicon.svg',
   '/manifest.json'
 ];
 
-// Install Event: Pre-cache App Shell & Core Assets
+// Install: Cache only permanent brand assets, skip waiting immediately
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => {
-      return self.skipWaiting();
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => {})
   );
 });
 
-// Activate Event: Cleanup Old Caches
+// Activate: Evict ALL old caches immediately and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
+            console.log('[SW] Deleting obsolete cache:', name);
             return caches.delete(name);
           }
         })
       );
-    }).then(() => {
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// Fetch Event: Network-first for APIs/Pages, Stale-while-revalidate for Static Media
+// Fetch Strategy: Strict Freshness for HTML & APIs
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
@@ -43,63 +40,59 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // 1. Navigation / Document requests: Network first with Cache fallback
+  // 1. API Endpoints: ALWAYS DIRECT NETWORK (Bypass SW Cache completely)
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health')) {
+    return; // Let browser handle network directly
+  }
+
+  // 2. Navigation / HTML Document requests: ALWAYS NETWORK FIRST
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-store' })
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          // If network is healthy, return fresh response directly
           return response;
         })
         .catch(() => {
-          return caches.match('/index.html') || caches.match(request);
+          // Only fallback to offline cache if user is completely without internet
+          return caches.match('/index.html') || new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline - QueryIndo</title></head><body style="font-family:sans-serif;text-align:center;padding:3rem;background:#090b10;color:#fff;"><h1>Koneksi Terputus</h1><p>Silakan periksa koneksi internet Anda.</p><button onclick="location.reload()" style="padding:0.6rem 1.2rem;background:#00f2fe;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">Muat Ulang</button></body></html>',
+            { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
         })
     );
     return;
   }
 
-  // 2. Local API or Dynamic Assets: Network first, cache fallback
-  if (url.pathname.startsWith('/api/') || url.origin === self.location.origin) {
+  // 3. Vite Hashed Assets (/assets/index-*.js, .css): Cache First, safe because filenames are hashed
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
-          return response;
-        })
-        .catch(() => caches.match(request))
+          return networkResponse;
+        });
+      })
     );
     return;
   }
 
-  // 3. Static Media (Unsplash Images, Google Fonts, CDN Icons): Cache first, fallback to network
+  // 4. Other static assets (images, icons): Stale-While-Revalidate
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch in background to update cache (Stale-While-Revalidate)
-        fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-
-      return fetch(request).then((networkResponse) => {
+      const fetchPromise = fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return networkResponse;
-      }).catch(() => {
-        // Fallback for image requests if completely offline
-        if (request.destination === 'image') {
-          return caches.match('/logo.png');
-        }
-      });
+      }).catch(() => null);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
