@@ -1,7 +1,18 @@
 import type { Article } from '../types/news';
 import { ApiService } from './apiService';
 
-const STORAGE_KEY = 'queryindo_articles_v2';
+const STORAGE_KEY = 'queryindo_articles_v3';
+const DUMMY_IDS = new Set([
+  'art-001', 'art-002', 'art-003', 'art-004', 'art-005', 'art-006',
+  'art-007', 'art-008', 'art-009', 'art-010', 'art-011', 'art-012',
+  'art-013', 'art-014', 'art-015', 'art-016', 'art-017', 'art-018'
+]);
+
+// Clear old cache keys once
+try {
+  localStorage.removeItem('queryindo_articles_v2');
+  localStorage.removeItem('byteindonesia_articles');
+} catch {}
 
 export class ArticleService {
   private static cachedArticles: Article[] | null = null;
@@ -20,7 +31,7 @@ export class ArticleService {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        this.cachedArticles = parsed;
+        this.cachedArticles = parsed.filter(a => a && a.id && !DUMMY_IDS.has(a.id));
         return this.cachedArticles;
       }
       this.cachedArticles = [];
@@ -32,9 +43,10 @@ export class ArticleService {
   }
 
   public static saveArticles(articles: Article[]): void {
-    this.cachedArticles = articles;
+    const cleanArticles = (articles || []).filter(a => a && a.id && !DUMMY_IDS.has(a.id));
+    this.cachedArticles = cleanArticles;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanArticles));
     } catch (err) {
       console.warn('Gagal menyimpan cache artikel ke localStorage:', err);
     }

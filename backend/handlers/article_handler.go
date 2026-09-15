@@ -18,22 +18,10 @@ func GetArticles(c *fiber.Ctx) error {
 	status := c.Query("status", "published")
 
 	if database.DB == nil {
-		// Mock response if DB not yet initialized
 		return c.JSON(fiber.Map{
 			"success": true,
-			"source":  "mock_memory",
-			"count":   1,
-			"data": []fiber.Map{
-				{
-					"id":         "art-001",
-					"title":      "Indonesia Resmi Operasikan Pusat Data Nasional Superkomputer AI Pertama di IKN",
-					"slug":       "pusat-data-nasional-superkomputer-ai-ikn",
-					"category":   "ai",
-					"status":     status,
-					"search":     search,
-					"cat_filter": category,
-				},
-			},
+			"count":   0,
+			"data":    []fiber.Map{},
 		})
 	}
 
@@ -67,12 +55,9 @@ func GetArticleBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 
 	if database.DB == nil {
-		return c.JSON(fiber.Map{
-			"success": true,
-			"data": fiber.Map{
-				"slug":  slug,
-				"title": "Indonesia Resmi Operasikan Pusat Data Nasional Superkomputer AI Pertama di IKN",
-			},
+		return c.Status(503).JSON(fiber.Map{
+			"success": false,
+			"message": "Database belum terhubung",
 		})
 	}
 
@@ -171,6 +156,7 @@ func DeleteArticle(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	if database.DB != nil {
+		database.DB.Unscoped().Where("article_id = ?", id).Delete(&models.Comment{})
 		database.DB.Unscoped().Delete(&models.Article{}, "id = ?", id)
 	}
 
