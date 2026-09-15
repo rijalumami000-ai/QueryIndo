@@ -177,3 +177,17 @@ type PollData struct {
 	TotalVotes int64  `gorm:"default:0" json:"totalVotes"`
 }
 
+// SocialLink Model (Tautan Media Sosial Resmi Portal QUERYINDO)
+type SocialLink struct {
+	ID        string    `gorm:"primaryKey" json:"id"`
+	Platform  string    `gorm:"not null;index" json:"platform"` // 'facebook', 'instagram', 'threads', 'x', 'tiktok', 'youtube', 'linkedin', 'telegram', 'whatsapp', 'custom'
+	Name      string    `gorm:"not null" json:"name"`         // Label / Handle (e.g. "@queryindo")
+	URL       string    `gorm:"type:text;not null" json:"url"`
+	Icon      string    `json:"icon"`                         // SVG icon identifier or custom SVG string
+	IsActive  bool      `gorm:"default:true;index" json:"isActive"`
+	Order     int       `gorm:"default:1" json:"order"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+

@@ -162,6 +162,12 @@ func main() {
 	api.Get("/poll", handlers.GetPoll)
 	api.Post("/poll/vote", handlers.VotePoll)
 
+	// Media Sosial Resmi (Social Links) Endpoints
+	api.Get("/social-links", handlers.GetSocialLinks)
+	api.Post("/social-links", middleware.Protected(), handlers.CreateSocialLink)
+	api.Put("/social-links/:id", middleware.Protected(), handlers.UpdateSocialLink)
+	api.Delete("/social-links/:id", middleware.Protected(), handlers.DeleteSocialLink)
+
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap
 	app.Get("/rss.xml", handlers.GetRSSFeed)
 	app.Get("/feed.json", handlers.GetJSONFeed)

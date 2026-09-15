@@ -3,6 +3,7 @@ import type { AdCampaign } from '../components/AdBanner';
 import type { ShoppingProduct, ShoppingWidgetConfig } from '../components/ShoppingCarousel';
 import type { PollData } from '../components/ReaderPoll';
 import type { CommentItem } from '../components/ReaderComments';
+import type { SocialLink } from './socialMediaService';
 import { TECH_INDEXES } from '../data/mockNews';
 import { AuthService } from './authService';
 
@@ -647,6 +648,88 @@ export class ApiService {
         }
       } catch (err) {
         console.error('Gagal menghapus komentar di server:', err);
+      }
+    }
+    return false;
+  }
+
+  // =========================================================================
+  // Official Social Media Channels (CRUD)
+  // =========================================================================
+  public static async getSocialLinks(activeOnly = false): Promise<SocialLink[] | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const url = new URL(`${API_BASE_URL}/social-links`, window.location.origin);
+        if (activeOnly) url.searchParams.append('active_only', 'true');
+        const res = await fetch(url.toString());
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal mengambil data media sosial dari backend:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async createSocialLink(link: Partial<SocialLink>): Promise<SocialLink | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/social-links`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(link)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.error('Gagal menambahkan media sosial di server:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async updateSocialLink(id: string, payload: Partial<SocialLink>): Promise<SocialLink | null> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/social-links/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            return json.data;
+          }
+        }
+      } catch (err) {
+        console.error('Gagal memperbarui media sosial di server:', err);
+      }
+    }
+    return null;
+  }
+
+  public static async deleteSocialLink(id: string): Promise<boolean> {
+    if (this.isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/social-links/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json.success === true;
+        }
+      } catch (err) {
+        console.error('Gagal menghapus media sosial di server:', err);
       }
     }
     return false;

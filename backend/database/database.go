@@ -66,6 +66,7 @@ func ConnectDB() (*gorm.DB, error) {
 		&models.ShoppingConfig{},
 		&models.PollData{},
 		&models.Comment{},
+		&models.SocialLink{},
 	)
 	if err != nil {
 		log.Printf("⚠️ AutoMigrate Error: %v", err)
@@ -337,6 +338,98 @@ func seedDefaultCMSData(db *gorm.DB) {
 		}
 		db.Create(&defaultPoll)
 		log.Println("🌱 Seed Poll default berhasil!")
+	}
+
+	// 6. Seed Official Social Media Links
+	var socialCount int64
+	db.Model(&models.SocialLink{}).Count(&socialCount)
+	if socialCount == 0 {
+		defaultSocials := []models.SocialLink{
+			{
+				ID:        "soc-facebook",
+				Platform:  "facebook",
+				Name:      "Facebook",
+				URL:       "https://facebook.com/queryindo",
+				IsActive:  true,
+				Order:     1,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-instagram",
+				Platform:  "instagram",
+				Name:      "Instagram",
+				URL:       "https://instagram.com/queryindo",
+				IsActive:  true,
+				Order:     2,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-threads",
+				Platform:  "threads",
+				Name:      "Threads",
+				URL:       "https://threads.net/@queryindo",
+				IsActive:  true,
+				Order:     3,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-x",
+				Platform:  "x",
+				Name:      "X (Twitter)",
+				URL:       "https://x.com/queryindo",
+				IsActive:  true,
+				Order:     4,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-tiktok",
+				Platform:  "tiktok",
+				Name:      "TikTok",
+				URL:       "https://tiktok.com/@queryindo",
+				IsActive:  true,
+				Order:     5,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-youtube",
+				Platform:  "youtube",
+				Name:      "YouTube",
+				URL:       "https://youtube.com/@queryindo",
+				IsActive:  true,
+				Order:     6,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-linkedin",
+				Platform:  "linkedin",
+				Name:      "LinkedIn",
+				URL:       "https://linkedin.com/company/queryindo",
+				IsActive:  true,
+				Order:     7,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			{
+				ID:        "soc-telegram",
+				Platform:  "telegram",
+				Name:      "Telegram",
+				URL:       "https://t.me/queryindo",
+				IsActive:  false,
+				Order:     8,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		for _, s := range defaultSocials {
+			db.Create(&s)
+		}
+		log.Println("🌱 Seed Media Sosial Resmi QUERYINDO berhasil!")
 	}
 
 	// Mark database as seeded so future restarts never re-insert deleted dummy data

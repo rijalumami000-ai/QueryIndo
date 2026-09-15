@@ -373,3 +373,117 @@ func VotePoll(c *fiber.Ctx) error {
 	})
 }
 
+// =========================================================================
+// 5. SOCIAL MEDIA LINKS HANDLERS
+// =========================================================================
+
+// GET /api/v1/social-links
+func GetSocialLinks(c *fiber.Ctx) error {
+	if database.DB == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "message": "Database belum terhubung"})
+	}
+
+	var links []models.SocialLink
+	query := database.DB.Order("\"order\" asc, created_at asc")
+
+	if c.Query("active_only") == "true" {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&links).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    links,
+	})
+}
+
+// POST /api/v1/social-links
+func CreateSocialLink(c *fiber.Ctx) error {
+	if database.DB == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "message": "Database belum terhubung"})
+	}
+
+	var link models.SocialLink
+	if err := c.BodyParser(&link); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format payload media sosial tidak valid"})
+	}
+
+	if link.Platform == "" || link.URL == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Platform dan URL media sosial wajib diisi"})
+	}
+
+	if link.ID == "" {
+		link.ID = fmt.Sprintf("soc-%d", time.Now().UnixMilli()%1000000)
+	}
+	if link.Name == "" {
+		link.Name = link.Platform
+	}
+
+	link.CreatedAt = time.Now()
+	link.UpdatedAt = time.Now()
+
+	if err := database.DB.Create(&link).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    link,
+		"message": "Akun media sosial berhasil ditambahkan",
+	})
+}
+
+// PUT /api/v1/social-links/:id
+func UpdateSocialLink(c *fiber.Ctx) error {
+	if database.DB == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "message": "Database belum terhubung"})
+	}
+
+	id := c.Params("id")
+	var existing models.SocialLink
+	if err := database.DB.Where("id = ?", id).First(&existing).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Tautan media sosial tidak ditemukan"})
+	}
+
+	var payload models.SocialLink
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data pembaruan tidak valid"})
+	}
+
+	payload.ID = id
+	payload.UpdatedAt = time.Now()
+	if err := database.DB.Model(&existing).Updates(&payload).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+
+	// Make sure bool flags like IsActive are explicitly saved even if false
+	database.DB.Model(&existing).Update("is_active", payload.IsActive)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    existing,
+		"message": "Tautan media sosial berhasil diperbarui",
+	})
+}
+
+// DELETE /api/v1/social-links/:id
+func DeleteSocialLink(c *fiber.Ctx) error {
+	if database.DB == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "message": "Database belum terhubung"})
+	}
+
+	id := c.Params("id")
+	if err := database.DB.Where("id = ?", id).Delete(&models.SocialLink{}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Tautan media sosial berhasil dihapus",
+	})
+}
+
+

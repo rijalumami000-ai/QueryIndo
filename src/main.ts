@@ -18,6 +18,7 @@ import { AdBanner } from './components/AdBanner';
 import { ShoppingCarousel } from './components/ShoppingCarousel';
 import { AuthorService } from './services/authorService';
 import { ReaderPoll } from './components/ReaderPoll';
+import { SocialMediaService } from './services/socialMediaService';
 import Lenis from 'lenis';
 
 // English Names for Categories
@@ -173,6 +174,7 @@ async function init() {
 
   
   // Async Health check & load live financial indexes + sync centralized server content
+  SocialMediaService.init();
   const isBackendLive = await ApiService.checkBackendHealth();
   if (isBackendLive) {
     const results = await Promise.allSettled([
@@ -181,9 +183,10 @@ async function init() {
       ShoppingCarousel.syncWithBackend(),
       ReaderPoll.syncWithBackend(),
       ArticleService.syncWithBackend(),
+      SocialMediaService.syncWithBackend(),
       ApiService.getTechIndexes()
     ]);
-    const techIdxResult = results[5];
+    const techIdxResult = results[6];
     if (techIdxResult && techIdxResult.status === 'fulfilled' && techIdxResult.value) {
       liveTechIndexes = techIdxResult.value;
     }
@@ -196,6 +199,8 @@ async function init() {
   renderAllNewsSections();
   renderFilterTags();
   renderByteShorts();
+  renderFooterSocials();
+  SocialMediaService.subscribe(() => renderFooterSocials());
 
   setupEventListeners();
   setupPWAInstallPrompt();
@@ -2406,6 +2411,14 @@ function renderByteShorts() {
       window.location.hash = `article/${article.slug || article.id}`;
     }
   });
+}
+
+// Render Official Social Media Channels in Footer
+function renderFooterSocials() {
+  const container = document.getElementById('footer-social-list');
+  if (container) {
+    container.innerHTML = SocialMediaService.renderFooterSocialListHTML();
+  }
 }
 
 // Run Application
