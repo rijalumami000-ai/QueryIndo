@@ -1,38 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ==============================================================================
-# QUERYINDO - One-Click Production Deployment Script for VPS (Linux / Ubuntu)
+# QUERYINDO - Production Deployment Script for VPS
 # ==============================================================================
 set -e
 
 APP_DIR="/var/www/queryindo"
-cd $APP_DIR
+cd "$APP_DIR"
 
 echo "=========================================================="
-echo "🚀 [1/5] Memulai Proses Deployment QUERYINDO Production..."
+echo "🚀 [1/4] Menarik Kode Terbaru dari GitHub (origin/main)..."
 echo "=========================================================="
-
-# 1. Update source code from GitHub
-echo "📥 [2/5] Menarik update kode terbaru dari GitHub repository..."
 git fetch --all
 git reset --hard origin/main
 
-# 2. Build Frontend
-echo "📦 [3/5] Menginstal dependensi & membangun bundle Frontend Vite..."
+echo "=========================================================="
+echo "📦 [2/4] Menginstal Dependensi & Build Frontend (Vite)..."
+echo "=========================================================="
 npm install
 npm run build
 
-# 3. Build Go Backend
-echo "⚡ [4/5] Mengompilasi Go Backend API..."
+echo "=========================================================="
+echo "🔨 [3/4] Mengompilasi Go Backend & Restart PM2..."
+echo "=========================================================="
 cd "$APP_DIR/backend"
 go mod tidy
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o server main.go
-chmod +x server
+go build -ldflags='-s -w' -o queryindo-backend .
+chmod +x queryindo-backend
+pm2 restart queryindo-backend || pm2 start queryindo-backend --name queryindo-backend
 cd "$APP_DIR"
 
-# 4. Restart Services
-echo "🔄 [5/5] Me-restart Go Backend Service & me-reload Nginx..."
-sudo systemctl restart queryindo-backend || true
-sudo systemctl reload nginx || sudo systemctl restart nginx
+echo "=========================================================="
+echo "🔄 [4/4] Memeriksa & Me-reload Nginx..."
+echo "=========================================================="
+sudo nginx -t
+sudo systemctl reload nginx
 
 echo "=========================================================="
 echo "✨ DEPLOYMENT SELESAI! Web aktif di https://queryindo.com"
