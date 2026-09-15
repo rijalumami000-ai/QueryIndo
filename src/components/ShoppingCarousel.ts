@@ -125,14 +125,13 @@ export class ShoppingCarousel {
 
   public static getProducts(): ShoppingProduct[] {
     const raw = localStorage.getItem(this.STORAGE_KEY_PRODUCTS);
-    if (!raw) {
+    if (raw === null) {
       this.saveProducts(this.DEFAULT_PRODUCTS);
       return this.DEFAULT_PRODUCTS;
     }
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      this.saveProducts(this.DEFAULT_PRODUCTS);
+      if (Array.isArray(parsed)) return parsed;
       return this.DEFAULT_PRODUCTS;
     } catch {
       return this.DEFAULT_PRODUCTS;

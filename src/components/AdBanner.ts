@@ -146,15 +146,8 @@ export class AdBanner {
     }
     try {
       const parsed = JSON.parse(raw);
-      // Merge any new default placements if missing in stored data
-      if (Array.isArray(parsed) && parsed.length < this.DEFAULT_ADS.length) {
-        const ids = new Set(parsed.map((a: any) => a.id));
-        const missing = this.DEFAULT_ADS.filter(a => !ids.has(a.id));
-        const merged = [...parsed, ...missing];
-        this.saveCampaigns(merged);
-        return merged;
-      }
-      return parsed;
+      if (Array.isArray(parsed)) return parsed;
+      return this.DEFAULT_ADS;
     } catch {
       return this.DEFAULT_ADS;
     }
