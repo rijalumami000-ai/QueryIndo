@@ -73,6 +73,7 @@ func ConnectDB() (*gorm.DB, error) {
 	} else {
 		log.Println("✅ AutoMigrate Skema Database PostgreSQL Selesai!")
 		seedDefaultCMSData(db)
+		seedSocialLinksIfEmpty(db)
 	}
 
 	DB = db
@@ -340,7 +341,12 @@ func seedDefaultCMSData(db *gorm.DB) {
 		log.Println("🌱 Seed Poll default berhasil!")
 	}
 
-	// 6. Seed Official Social Media Links
+	// Mark database as seeded so future restarts never re-insert deleted dummy data
+	db.Create(&SystemSeedRecord{Key: "initial_seed_v1", Seeded: true, CreatedAt: time.Now()})
+}
+
+// 6. Seed Official Social Media Links if empty
+func seedSocialLinksIfEmpty(db *gorm.DB) {
 	var socialCount int64
 	db.Model(&models.SocialLink{}).Count(&socialCount)
 	if socialCount == 0 {
@@ -431,8 +437,5 @@ func seedDefaultCMSData(db *gorm.DB) {
 		}
 		log.Println("🌱 Seed Media Sosial Resmi QUERYINDO berhasil!")
 	}
-
-	// Mark database as seeded so future restarts never re-insert deleted dummy data
-	db.Create(&SystemSeedRecord{Key: "initial_seed_v1", Seeded: true, CreatedAt: time.Now()})
 }
 
