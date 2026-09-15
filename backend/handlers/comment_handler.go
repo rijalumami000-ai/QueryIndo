@@ -1,16 +1,26 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"byteindonesia/backend/database"
 	"byteindonesia/backend/models"
+
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
+
+type CreateCommentRequest struct {
+	AuthorName string `json:"authorName"`
+	AuthorRole string `json:"authorRole"`
+	Avatar     string `json:"avatar"`
+	Content    string `json:"content"`
+	ParentID   string `json:"parentId"`
+}
 
 // GET /api/v1/articles/:articleId/comments
 func GetArticleComments(c *fiber.Ctx) error {
@@ -94,20 +104,15 @@ func PostArticleComment(c *fiber.Ctx) error {
 		})
 	}
 
-	type CreateCommentRequest struct {
-		AuthorName string  `json:"authorName"`
-		AuthorRole string  `json:"authorRole"`
-		Avatar     string  `json:"avatar"`
-		Content    string  `json:"content"`
-		ParentID   *string `json:"parentId"`
-	}
-
 	var req CreateCommentRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"success": false,
-			"message": "Format payload tidak valid",
-		})
+		if errJson := json.Unmarshal(c.Body(), &req); errJson != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"success": false,
+				"message": "Format payload tidak valid",
+				"error":   err.Error(),
+			})
+		}
 	}
 
 	trimmedContent := strings.TrimSpace(req.Content)
@@ -131,8 +136,8 @@ func PostArticleComment(c *fiber.Ctx) error {
 	commentID := fmt.Sprintf("cmt-%d-%04d", time.Now().Unix(), rand.Intn(10000))
 
 	var pID *string
-	if req.ParentID != nil && strings.TrimSpace(*req.ParentID) != "" {
-		cleanPID := strings.TrimSpace(*req.ParentID)
+	cleanPID := strings.TrimSpace(req.ParentID)
+	if cleanPID != "" {
 		pID = &cleanPID
 	}
 
