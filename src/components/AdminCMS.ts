@@ -522,11 +522,11 @@ export class AdminCMS {
               Rekomendasi Belanja & Afiliasi E-Commerce
             </h2>
             <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0;">
-              Kelola widget banner "Rekomendasi Barang Pilihanmu" di beranda. Atur teks promosi, upload produk belanja, harga coret & diskon, serta tautan afiliasi.
+              Kelola widget banner "Query Picks / Radar Gadget & Hardware Pilihan" di beranda. Atur teks promosi, upload produk belanja, harga coret & diskon, serta tautan afiliasi.
             </p>
           </div>
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <button id="btn-add-shopping-product" style="padding: 0.55rem 1.25rem; background: #ea580c; color: #ffffff; font-weight: 700; border-radius: var(--radius-md); font-size: 0.85rem; cursor: pointer; border: none; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(234, 88, 12, 0.4);">
+            <button id="btn-add-shopping-product" style="padding: 0.55rem 1.25rem; background: var(--accent-cyan); color: #000000; font-weight: 800; border-radius: var(--radius-md); font-size: 0.85rem; cursor: pointer; border: none; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 10px rgba(0, 242, 254, 0.35);">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>+ Tambah Produk Belanja</span>
             </button>
@@ -551,15 +551,15 @@ export class AdminCMS {
           <form id="form-shopping-config" style="display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 1rem; align-items: flex-end;">
             <div>
               <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Badge Promosi</label>
-              <input type="text" id="cfg-shop-badge" value="${config.badgeText || 'LAGI DISKON'}" placeholder="LAGI DISKON" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
+              <input type="text" id="cfg-shop-badge" value="${config.badgeText || '⚡ QUERY PICKS'}" placeholder="⚡ QUERY PICKS" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
             </div>
             <div>
               <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Partner Brand</label>
-              <input type="text" id="cfg-shop-partner" value="${config.partnerText || 'Powered by QUERYINDO'}" placeholder="Powered by QUERYINDO" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
+              <input type="text" id="cfg-shop-partner" value="${config.partnerText || 'Kurasi Lab Redaksi'}" placeholder="Kurasi Lab Redaksi" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
             </div>
             <div>
               <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Judul Utama Banner</label>
-              <input type="text" id="cfg-shop-title" value="${config.mainTitle || 'REKOMENDASI BARANG PILIHANMU'}" placeholder="REKOMENDASI BARANG PILIHANMU" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
+              <input type="text" id="cfg-shop-title" value="${config.mainTitle || 'RADAR GADGET & HARDWARE PILIHAN'}" placeholder="RADAR GADGET & HARDWARE PILIHAN" style="width: 100%; padding: 0.55rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
             </div>
             <button type="submit" id="btn-save-shop-config" style="padding: 0.55rem 1.25rem; background: var(--accent-primary); color: #fff; font-weight: 700; font-size: 0.825rem; border-radius: var(--radius-md); border: none; cursor: pointer; white-space: nowrap;">
               Simpan Teks
@@ -571,7 +571,7 @@ export class AdminCMS {
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; overflow: hidden;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 0.7rem; font-weight: 800; font-family: var(--font-mono); background: rgba(249, 115, 22, 0.15); color: #ea580c; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid rgba(249, 115, 22, 0.3);">LIVE PREVIEW</span>
+              <span style="font-size: 0.7rem; font-weight: 800; font-family: var(--font-mono); background: rgba(0, 242, 254, 0.12); color: #00f2fe; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.3);">LIVE PREVIEW</span>
               <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Tampilan Widget Rekomendasi di Beranda</span>
             </div>
             <span style="font-size: 0.75rem; color: var(--text-muted);">Mendukung geser panah kiri/kanan</span>
@@ -1671,14 +1671,14 @@ export class AdminCMS {
       <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl); padding: 1.75rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
           <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <div style="width: 2rem; height: 2rem; border-radius: 8px; background: rgba(249, 115, 22, 0.15); color: #ea580c; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 2rem; height: 2rem; border-radius: 8px; background: rgba(0, 242, 254, 0.12); color: #00f2fe; display: flex; align-items: center; justify-content: center;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
             </div>
             <div>
               <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-primary);">
                 ${isEdit ? 'Edit Produk Belanja' : 'Tambah Produk Belanja Baru'}
               </h3>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">Tampil di widget carousel Rekomendasi Barang Pilihanmu</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Tampil di widget carousel Query Picks / Radar Gadget</span>
             </div>
           </div>
           <button class="btn-close" id="close-shop-modal" title="Tutup" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">✕</button>
@@ -1701,7 +1701,7 @@ export class AdminCMS {
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
               <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Foto Produk *</label>
-              <label for="form-shop-file-input" style="font-size: 0.75rem; font-weight: 700; color: #ea580c; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(249, 115, 22, 0.1); padding: 0.2rem 0.55rem; border-radius: 4px; border: 1px solid rgba(249, 115, 22, 0.25);">
+              <label for="form-shop-file-input" style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(0, 242, 254, 0.08); padding: 0.2rem 0.55rem; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.25);">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <span>Upload dari Perangkat</span>
               </label>
@@ -1726,7 +1726,7 @@ export class AdminCMS {
 
             <div>
               <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Harga Promo / Diskon *</label>
-              <input type="text" id="form-shop-disc-price" required value="${product?.discountPrice || ''}" placeholder="e.g. Rp 79.000" style="width: 100%; padding: 0.65rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: #ea580c; font-weight: 700; font-size: 0.85rem;" />
+              <input type="text" id="form-shop-disc-price" required value="${product?.discountPrice || ''}" placeholder="e.g. Rp 79.000" style="width: 100%; padding: 0.65rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--accent-cyan); font-weight: 800; font-size: 0.85rem;" />
             </div>
 
             <div>
