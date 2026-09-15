@@ -184,7 +184,7 @@ function renderHubungiKami(): string {
           </h4>
           <div style="display:flex; flex-direction:column; gap:0.65rem; font-size:0.88rem; color:var(--text-secondary);">
             <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Kontak / WhatsApp</strong><br/><span style="color:var(--text-primary);">+62895323861966</span></div>
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Email Resmi</strong><br/><span style="color:var(--text-primary);">redaksi@queryindo.id</span></div>
+            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Email Resmi</strong><br/><span style="color:var(--text-primary);">redaksi@queryindo.com</span></div>
             <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Jam Operasional</strong><br/><span style="color:var(--text-primary);">Senin – Jumat, 08.00 – 17.00 WIB</span></div>
           </div>
         </div>
@@ -193,7 +193,7 @@ function renderHubungiKami(): string {
       <!-- Email Korespondensi -->
       ${sectionTitle('Email Korespondensi')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Redaksi & Korespondensi Utama', 'redaksi@queryindo.id', 'var(--accent-cyan)')}
+        ${infoCard('Redaksi & Korespondensi Utama', 'redaksi@queryindo.com', 'var(--accent-cyan)')}
       </div>
 
       <!-- Formulir Kontak -->
@@ -236,7 +236,7 @@ function renderKodeEtik(): string {
     { title: 'Uji Informasi', body: 'Wartawan Indonesia selalu menguji informasi, memberitakan secara berimbang, tidak mencampurkan fakta dan opini yang menghakimi, serta menerapkan asas praduga tak bersalah. Berita dipublikasikan wajib diverifikasi minimal tiga sumber.' },
     { title: 'Larangan Berita Bohong', body: 'Wartawan Indonesia tidak membuat berita bohong, fitnah, sadis, dan cabul. Redaksi menerapkan sistem pemeriksaan berlapis sebelum artikel dipublikasikan.' },
     { title: 'Perlindungan Identitas', body: 'Wartawan Indonesia tidak menyebutkan identitas korban kejahatan susila dan anak pelaku kejahatan. Prinsip perlindungan identitas diterapkan ketat.' },
-    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi redaksi@queryindo.id.' },
+    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi redaksi@queryindo.com.' },
     { title: 'Perlindungan Sumber', body: 'Wartawan Indonesia memiliki Hak Tolak untuk melindungi narasumber rahasia yang tidak bersedia diketahui identitasnya demi alasan keamanan.' },
     { title: 'Embargo & Ralat Berita', body: 'Wartawan Indonesia menghormati embargo informasi dan segera mengoreksi berita yang keliru dengan pencantuman stempel waktu revisi yang transparan.' },
     { title: 'Larangan Plagiarisme', body: 'Orisinalitas konten dijaga ketat. Setiap pengutipan karya pihak lain wajib mencantumkan atribusi dan tautan balik secara eksplisit.' },
@@ -263,7 +263,7 @@ function renderKodeEtik(): string {
       <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
         <p style="margin:0 0 0.75rem 0;">Laporan pelanggaran etik atau permohonan Hak Jawab disampaikan melalui:</p>
         <ul style="padding-left:1.15rem; display:flex; flex-direction:column; gap:0.4rem; margin:0; font-family:var(--font-mono);">
-          <li>Email: redaksi@queryindo.id</li>
+          <li>Email: redaksi@queryindo.com</li>
           <li>WhatsApp Pengaduan: +62895323861966</li>
         </ul>
       </div>
@@ -370,7 +370,7 @@ function renderDisclaimer(): string {
 
       ${sectionTitle('Batasan Tanggung Jawab')}
       <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:0.85rem;">
-        <p>Seluruh informasi di portal QUERYINDO (<code style="color:var(--accent-cyan);">queryindo.id</code>) disediakan <strong style="color:var(--text-primary);">as-is</strong> untuk tujuan informasi umum. QUERYINDO berupaya menjaga keakuratan informasi namun tidak bertanggung jawab atas keputusan independen yang diambil pembaca berdasarkan konten situs ini.</p>
+        <p>Seluruh informasi di portal QUERYINDO (<code style="color:var(--accent-cyan);">queryindo.com</code>) disediakan <strong style="color:var(--text-primary);">as-is</strong> untuk tujuan informasi umum. QUERYINDO berupaya menjaga keakuratan informasi namun tidak bertanggung jawab atas keputusan independen yang diambil pembaca berdasarkan konten situs ini.</p>
         <p>Informasi harga saham, data teknis gadget, atau ulasan produk bersifat informatif dan bukan merupakan nasihat finansial atau investasi resmi.</p>
       </div>
 
@@ -381,7 +381,7 @@ function renderDisclaimer(): string {
 
       ${sectionTitle('Privasi Data (UU PDP)')}
       <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel redaksi@queryindo.id.</p>
+        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel redaksi@queryindo.com.</p>
       </div>
     </section>
   `;
@@ -429,7 +429,7 @@ function renderInfoIklan(): string {
       <!-- Kontak -->
       ${sectionTitle('Kontak Tim Iklan')}
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Email Iklan & Kemitraan', 'redaksi@queryindo.id')}
+        ${infoCard('Email Iklan & Kemitraan', 'redaksi@queryindo.com')}
         ${infoCard('WhatsApp Komersial', '+62895323861966', 'var(--accent-cyan)')}
       </div>
     </section>

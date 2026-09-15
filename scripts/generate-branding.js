@@ -89,10 +89,10 @@ const masterHorizontalLogoSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox
     <tspan fill="#FFFFFF">QUERY</tspan><tspan fill="url(#indoTextGrad)">INDO</tspan>
   </text>
 
-  <!-- Domain Pill Badge (.ID) -->
+  <!-- Domain Pill Badge (.COM) -->
   <g transform="translate(236, 26)">
-    <rect x="0" y="0" width="34" height="18" rx="4" fill="rgba(0, 242, 254, 0.08)" stroke="rgba(0, 242, 254, 0.25)" stroke-width="1"/>
-    <text x="17" y="13" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" font-weight="800" fill="#00F2FE" text-anchor="middle" letter-spacing="0.5">.ID</text>
+    <rect x="0" y="0" width="46" height="18" rx="4" fill="rgba(0, 242, 254, 0.08)" stroke="rgba(0, 242, 254, 0.25)" stroke-width="1"/>
+    <text x="23" y="13" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="800" fill="#00F2FE" text-anchor="middle" letter-spacing="0.5">.COM</text>
   </g>
 </svg>`;
 
@@ -142,13 +142,11 @@ const masterOGBannerSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
   <text x="600" y="315" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="800" letter-spacing="4" fill="#38BDF8" text-anchor="middle">PORTAL JURNALISME TEKNOLOGI INDONESIA</text>
 
   <!-- Brand Name -->
-  <text x="600" y="420" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="88" font-weight="900" letter-spacing="-2" text-anchor="middle">
+  <text x="600" y="425" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="88" font-weight="900" letter-spacing="-2" text-anchor="middle">
     <tspan fill="#FFFFFF">QUERY</tspan><tspan fill="url(#indoTextGradOG)">INDO</tspan>
   </text>
 
-  <!-- Editorial Creed -->
-  <text x="600" y="485" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="600" letter-spacing="1.5" fill="#94A3B8" text-anchor="middle">JERNIH • TAJAM • KEDAULATAN DIGITAL</text>
-  <text x="600" y="525" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#64748B" text-anchor="middle">https://queryindo.com</text>
+  <text x="600" y="485" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="600" letter-spacing="1" fill="#64748B" text-anchor="middle">https://queryindo.com</text>
 </svg>`;
 
 async function buildAllBrandAssets() {

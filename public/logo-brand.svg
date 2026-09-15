@@ -37,9 +37,9 @@
     <tspan fill="#FFFFFF">QUERY</tspan><tspan fill="url(#indoTextGrad)">INDO</tspan>
   </text>
 
-  <!-- Domain Pill Badge (.ID) -->
+  <!-- Domain Pill Badge (.COM) -->
   <g transform="translate(236, 26)">
-    <rect x="0" y="0" width="34" height="18" rx="4" fill="rgba(0, 242, 254, 0.08)" stroke="rgba(0, 242, 254, 0.25)" stroke-width="1"/>
-    <text x="17" y="13" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" font-weight="800" fill="#00F2FE" text-anchor="middle" letter-spacing="0.5">.ID</text>
+    <rect x="0" y="0" width="46" height="18" rx="4" fill="rgba(0, 242, 254, 0.08)" stroke="rgba(0, 242, 254, 0.25)" stroke-width="1"/>
+    <text x="23" y="13" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="800" fill="#00F2FE" text-anchor="middle" letter-spacing="0.5">.COM</text>
   </g>
 </svg>

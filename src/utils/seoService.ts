@@ -2,8 +2,8 @@ import type { Article } from '../types/news';
 
 export class SeoService {
   private static SITE_NAME = 'QUERYINDO';
-  private static BASE_URL = 'https://queryindo.id';
-  private static DEFAULT_IMAGE = 'https://queryindo.id/logo.png';
+  private static BASE_URL = 'https://queryindo.com';
+  private static DEFAULT_IMAGE = 'https://queryindo.com/logo.png';
   private static DEFAULT_DESCRIPTION = 'Portal jurnalisme teknologi, kecerdasan buatan, dan pasar finansial digital independen terdepan Indonesia.';
 
   // Helper to update or create meta tag by name or property

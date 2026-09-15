@@ -69,7 +69,7 @@ export class AdminCMS {
 
               <div>
                 <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-secondary);">Email Redaksi</label>
-                <input type="text" id="login-email" required value="" placeholder="editor@queryindo.id" autocomplete="username" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
+                <input type="text" id="login-email" required value="" placeholder="editor@queryindo.com" autocomplete="username" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem;" />
               </div>
 
               <div>
@@ -1135,7 +1135,7 @@ export class AdminCMS {
             </div>
             <div>
               <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Email Resmi Redaksi *</label>
-              <input type="email" id="form-author-email" required value="${author?.email || ''}" placeholder="e.g. raditya@queryindo.id" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
+              <input type="email" id="form-author-email" required value="${author?.email || ''}" placeholder="e.g. raditya@queryindo.com" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
             </div>
           </div>
 

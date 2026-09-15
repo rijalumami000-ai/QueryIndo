@@ -374,15 +374,15 @@ func processYahooResult(symbol string, name string, rawSymbol string, rangeStr s
 	case "ETH/IDR":
 		displayValue = fmt.Sprintf("Rp %.2fM", latestVal/1000000.0)
 	case "USD/IDR":
-		displayValue = fmt.Sprintf("Rp %,.0f", latestVal)
+		displayValue = fmt.Sprintf("Rp %.0f", latestVal)
 	case "GOTO":
-		displayValue = fmt.Sprintf("Rp %,.0f", latestVal)
+		displayValue = fmt.Sprintf("Rp %.0f", latestVal)
 	case "NVDA":
 		displayValue = fmt.Sprintf("$%.2f", latestVal)
 	case "NASDAQ":
-		displayValue = fmt.Sprintf("%,.2f", latestVal)
+		displayValue = fmt.Sprintf("%.2f", latestVal)
 	default:
-		displayValue = fmt.Sprintf("%,.2f", latestVal)
+		displayValue = fmt.Sprintf("%.2f", latestVal)
 	}
 	
 	return TechIndexItem{

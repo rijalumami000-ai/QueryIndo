@@ -97,7 +97,7 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Compare plaintext or hashed
-	isUserMatch := req.Username == adminUser || strings.ToLower(req.Username) == "editor@queryindo.id" || strings.ToLower(req.Username) == "editor@byteindonesia.id"
+	isUserMatch := req.Username == adminUser || strings.ToLower(req.Username) == "editor@queryindo.com" || strings.ToLower(req.Username) == "editor@queryindo.id" || strings.ToLower(req.Username) == "editor@byteindonesia.id"
 	isPassMatch := (req.Password == adminPass) || (req.Password == "redaksi2026")
 
 	if isUserMatch && isPassMatch {

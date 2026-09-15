@@ -72,6 +72,7 @@ export class AuthService {
 
     // 2. Offline Fallback Authentication for Editorial Staff
     const isUserMatch = trimmedUser === this.ADMIN_USERNAME || 
+                        trimmedUser.toLowerCase() === 'editor@queryindo.com' ||
                         trimmedUser.toLowerCase() === 'editor@queryindo.id' || 
                         trimmedUser.toLowerCase() === 'editor@byteindonesia.id';
     const isPassMatch = passwordInput === this.ADMIN_PASSWORD || passwordInput === 'redaksi2026';

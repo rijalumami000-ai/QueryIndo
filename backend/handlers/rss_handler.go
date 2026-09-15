@@ -81,7 +81,7 @@ func GetRSSFeed(c *fiber.Ctx) error {
 		db.Order("published_at desc").Limit(20).Find(&articles)
 	}
 
-	baseUrl := "https://queryindo.id"
+	baseUrl := "https://queryindo.com"
 	nowStr := time.Now().Format(time.RFC1123Z)
 
 	var items []RSSItem
@@ -130,7 +130,7 @@ func GetJSONFeed(c *fiber.Ctx) error {
 		db.Order("published_at desc").Limit(20).Find(&articles)
 	}
 
-	baseUrl := "https://queryindo.id"
+	baseUrl := "https://queryindo.com"
 
 	var items []JSONFeedItem
 	for _, art := range articles {
@@ -165,7 +165,7 @@ func GetJSONFeed(c *fiber.Ctx) error {
 
 // GET /sitemap.xml (Dynamic Automated XML Sitemap for Google/Bing Indexing)
 func GetSitemap(c *fiber.Ctx) error {
-	baseUrl := "https://queryindo.id"
+	baseUrl := "https://queryindo.com"
 	nowDate := time.Now().Format("2006-01-02")
 
 	// Base Static URLs
@@ -233,7 +233,7 @@ Allow: /feed.json
 Allow: /sitemap.xml
 Disallow: /api/v1/auth/
 
-Sitemap: https://queryindo.id/sitemap.xml
+Sitemap: https://queryindo.com/sitemap.xml
 `
 	c.Set("Content-Type", "text/plain; charset=utf-8")
 	return c.SendString(robotsTxt)

@@ -94,7 +94,7 @@ export class CompanyModal {
               <div>
                 <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Pengaduan Resmi</h3>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Kritik, saran, maupun hak jawab atas pemberitaan dapat dikirimkan langsung ke divisi kepatuhan redaksi kami melalui surel resmi: <code style="color: var(--accent-cyan); font-weight: bold;">ombudsman@queryindo.id</code>.
+                  Kritik, saran, maupun hak jawab atas pemberitaan dapat dikirimkan langsung ke divisi kepatuhan redaksi kami melalui surel resmi: <code style="color: var(--accent-cyan); font-weight: bold;">ombudsman@queryindo.com</code>.
                 </p>
               </div>
             </div>
@@ -126,7 +126,7 @@ export class CompanyModal {
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Bertanggung jawab melakukan investigasi mendalam isu keamanan siber nasional, audit infrastruktur digital negara, dan kebijakan telekomunikasi.</p>
                   </div>
-                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.id')">Daftar Sekarang</button>
+                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.com')">Daftar Sekarang</button>
                 </div>
 
                 <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
@@ -137,7 +137,7 @@ export class CompanyModal {
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Melakukan evaluasi berkala terhadap model AI lokal, kinerja superkomputer nasional, dan implementasi teknologi ramah lingkungan di IKN.</p>
                   </div>
-                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.id')">Daftar Sekarang</button>
+                  <button style="padding: 0.5rem 1.2rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;" onclick="alert('Kirim berkas lamaran ke karir@queryindo.com')">Daftar Sekarang</button>
                 </div>
               </div>
             </div>
@@ -181,7 +181,7 @@ export class CompanyModal {
               <div>
                 <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Kontak Kemitraan Bisnis</h3>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">redaksi@queryindo.id</code>.
+                  Hubungi tim pemasaran bisnis kami untuk mendapatkan lembar data media kit resmi dan penawaran kerja sama eksklusif: <code style="color: var(--accent-cyan); font-weight: bold;">redaksi@queryindo.com</code>.
                 </p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export class CompanyModal {
                 <h4 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-top: 0.5rem; margin-bottom: 0.25rem;">QueryIndo Office</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem;">
                   Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan Lampung<br />
-                  Email Utama: <code style="color:var(--accent-cyan);">redaksi@queryindo.id</code><br />
+                  Email Utama: <code style="color:var(--accent-cyan);">redaksi@queryindo.com</code><br />
                   Telepon Hubungan Media: +62895323861966
                 </p>
               </div>
