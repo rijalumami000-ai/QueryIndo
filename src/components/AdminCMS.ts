@@ -88,10 +88,18 @@ export class AdminCMS {
     `;
   }
 
+   // Format numeric statistics (handles <1k accurately without confusing 0.0k / 0.2k rounding)
+  private formatStats(num: number): string {
+    if (!num || num <= 0) return '0';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return num.toLocaleString('id-ID');
+  }
+
   // Professional Fullscreen CMS Dashboard Workspace
   private renderFullscreenDashboardHTML(user: ReturnType<typeof AuthService.getCurrentUser>): string {
-    const totalViews = this.articles.reduce((acc, a) => acc + a.viewsCount, 0);
-    const totalLikes = this.articles.reduce((acc, a) => acc + a.likesCount, 0);
+    const totalViews = this.articles.reduce((acc, a) => acc + (a.viewsCount || 0), 0);
+    const totalLikes = this.articles.reduce((acc, a) => acc + (a.likesCount || 0), 0);
     const featuredCount = this.articles.filter(a => a.isFeatured).length;
 
     const currentReader = ReaderAuthService.getCurrentReader();
@@ -128,25 +136,25 @@ export class AdminCMS {
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Dewan Redaksi</span>
               </button>
+              <button class="nav-sidebar-link ${this.activeTab === 'analytics' ? 'active' : ''}" data-tab="analytics">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                <span>Kinerja Redaksi</span>
+              </button>
               <button class="nav-sidebar-link ${this.activeTab === 'ads' ? 'active' : ''}" data-tab="ads">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-                <span>Kemitraan & Iklan</span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                <span>Iklan Banner</span>
               </button>
               <button class="nav-sidebar-link ${this.activeTab === 'shopping' ? 'active' : ''}" data-tab="shopping">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                <span>Rekomendasi Belanja</span>
-              </button>
-              <button class="nav-sidebar-link ${this.activeTab === 'analytics' ? 'active' : ''}" data-tab="analytics">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span>Analitik Redaksi</span>
+                <span>Belanja Tekno</span>
               </button>
               <button class="nav-sidebar-link ${this.activeTab === 'subscribers' ? 'active' : ''}" data-tab="subscribers">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <span>Pelanggan Newsletter</span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <span>Pelanggan Surel</span>
               </button>
               <button class="nav-sidebar-link ${this.activeTab === 'social' ? 'active' : ''}" data-tab="social">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                <span>Kanal Media Sosial</span>
+                <span>Media Sosial</span>
               </button>
               <button class="nav-sidebar-link ${this.activeTab === 'settings' ? 'active' : ''}" data-tab="settings">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -155,48 +163,60 @@ export class AdminCMS {
             </nav>
           </div>
 
-          <!-- User Profile Card & Actions -->
-          <div style="padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.85rem;">
-            <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-              <img src="${activeAvatar || ImageUtils.getInitialsAvatar(user?.fullName || 'Rijal Umami')}" alt="${user?.fullName}" style="width: 2.2rem; height: 2.2rem; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-primary);" />
+          <!-- Bottom User & Logout Profile Card -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <img src="${activeAvatar}" alt="${user?.fullName}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-cyan);" />
               <div style="overflow: hidden;">
-                <div style="font-weight: 700; font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${user?.fullName}</div>
-                <div style="font-size: 0.7rem; color: var(--accent-cyan); font-family: var(--font-mono);">${user?.role}</div>
+                <div style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${user?.fullName}</div>
+                <div style="font-size: 0.72rem; color: var(--accent-cyan);">${user?.role?.toUpperCase()}</div>
               </div>
             </div>
 
-            <button id="btn-logout-cms" style="width: 100%; padding: 0.55rem; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); color: var(--accent-rose); font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-              <span>Keluar (Logout)</span>
+            <button id="cms-logout-btn" style="width: 100%; padding: 0.5rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              <span>Keluar Dasbor</span>
             </button>
           </div>
         </aside>
 
-        <!-- Right Main Workspace Content Area -->
-        <main style="flex: 1; min-width: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Right Main Content Area -->
+        <main style="flex: 1; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-primary);">
           
-          <!-- Top Header Bar -->
-          <header style="height: 4.25rem; flex-shrink: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; flex: 1; max-width: 450px;">
-              <input type="text" id="admin-search-input" value="${this.searchKeyword}" placeholder="Cari judul berita, kata kunci..." style="width: 100%; padding: 0.55rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem; outline: none;" />
+          <!-- Top Global Utility Header -->
+          <header style="height: 4.25rem; flex-shrink: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h2 style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">
+                ${this.activeTab === 'analytics' ? 'Analitik & Kinerja Editorial' :
+                  this.activeTab === 'authors' ? 'Dewan Redaksi & Jurnalis' :
+                  this.activeTab === 'ads' ? 'Manajemen Iklan Banner Sponsor' :
+                  this.activeTab === 'shopping' ? 'Manajemen Belanja Tekno & Produk Rekomendasi' :
+                  this.activeTab === 'polls' ? 'Manajemen Jajak Pendapat Komunitas' :
+                  this.activeTab === 'subscribers' ? 'Basis Data Pelanggan Newsletter Surel' :
+                  this.activeTab === 'social' ? 'Integrasi Kanal Media Sosial' :
+                  this.activeTab === 'settings' ? 'Konfigurasi & Pengaturan Portal' :
+                  'Pusat Manajemen Berita & Konten'}
+              </h2>
             </div>
 
             <div style="display: flex; align-items: center; gap: 1rem;">
-              <span style="font-size: 0.75rem; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.08); padding: 0.3rem 0.75rem; border-radius: var(--radius-full); border: 1px solid rgba(16, 185, 129, 0.25); font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
-                <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-emerald); display: inline-block;"></span>
-                <span>API Gateway Online</span>
-              </span>
-              
-              <button id="btn-create-article" style="padding: 0.55rem 1.25rem; background: var(--accent-primary); color: #ffffff; font-weight: 600; border-radius: var(--radius-md); font-size: 0.85rem; display: flex; align-items: center; gap: 0.45rem; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 1px 2px rgba(0,0,0,0.2); cursor: pointer;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                <span>Tulis Berita Baru</span>
-              </button>
+              ${this.activeTab === 'articles' ? `
+                <div style="position: relative;">
+                  <input type="text" id="cms-search-input" value="${this.searchKeyword}" placeholder="Cari judul atau tag berita..." style="width: 260px; padding: 0.5rem 0.75rem 0.5rem 2.2rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); font-size: 0.8rem; color: var(--text-primary);" />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <button id="cms-btn-new-article" style="padding: 0.55rem 1.25rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.825rem; display: flex; align-items: center; gap: 0.4rem; box-shadow: var(--shadow-glow); cursor: pointer;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Tulis Berita Baru</span>
+                </button>
+              ` : ''}
 
-              <button class="btn-close" id="admin-modal-close-btn" title="Tutup & Kembali ke Portal Publik" aria-label="Close CMS" style="width: 2rem; height: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer;">✕</button>
+              <!-- Close Modal Button -->
+              <button id="admin-modal-close-btn" class="btn-close" style="width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);" title="Kembali ke Beranda">✕</button>
             </div>
           </header>
 
-          <!-- Main Scrollable Dashboard Content -->
+          <!-- Main Scrollable Body View -->
           <div class="cms-scroll-view" style="flex: 1; min-height: 0; height: calc(100vh - 4.25rem); padding: 2rem 2rem 4rem 2rem; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;">
             
             ${this.activeTab === 'analytics' ? this.renderAnalyticsTabHTML() :
@@ -216,11 +236,11 @@ export class AdminCMS {
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
                   <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Total Pembaca (Views)</div>
-                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.35rem;">${(totalViews / 1000).toFixed(1)}k</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.35rem;">${this.formatStats(totalViews)}</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
                   <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Total Interaksi (Likes)</div>
-                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.35rem;">${totalLikes.toLocaleString('id-ID')}</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.35rem;">${this.formatStats(totalLikes)}</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
                   <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Headline Utama (Featured)</div>
@@ -366,7 +386,7 @@ export class AdminCMS {
                 <div>
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid var(--border-color); font-size: 0.78rem; margin-bottom: 0.65rem;">
                     <span style="color: var(--text-muted);">Naskah Dipublikasi:</span>
-                    <strong style="color: var(--text-primary);">${authorArticles.length} Berita <span style="color: var(--accent-cyan);">(${(totalAuthorViews / 1000).toFixed(1)}k Views)</span></strong>
+                    <strong style="color: var(--text-primary);">${authorArticles.length} Berita <span style="color: var(--accent-cyan);">(${this.formatStats(totalAuthorViews)} Views)</span></strong>
                   </div>
 
                   <div style="display: flex; gap: 0.5rem;">
@@ -1086,13 +1106,13 @@ export class AdminCMS {
           </div>
         </td>
         <td style="padding: 0.9rem 1.25rem; font-family: var(--font-mono); font-size: 0.78rem;">
-          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--text-secondary);">
+          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--text-secondary);" title="${art.viewsCount || 0} pembaca">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span>${(art.viewsCount / 1000).toFixed(1)}k</span>
+            <span>${this.formatStats(art.viewsCount || 0)}</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-rose); margin-top: 0.2rem;">
+          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-rose); margin-top: 0.2rem;" title="${art.likesCount || 0} suka">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            <span>${art.likesCount}</span>
+            <span>${this.formatStats(art.likesCount || 0)}</span>
           </div>
         </td>
         <td style="padding: 0.9rem 1.25rem;">

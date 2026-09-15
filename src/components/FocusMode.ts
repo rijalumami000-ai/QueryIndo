@@ -69,7 +69,7 @@ export class FocusMode {
       </div>
 
       <!-- Focus Mode Article Body Container -->
-      <div class="focus-article-scroll-area" id="focus-scroll-area" data-lenis-prevent style="overflow-y: auto !important; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
+      <div class="focus-article-scroll-area" id="focus-scroll-area" style="overflow-y: auto !important; scroll-behavior: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
         <div class="focus-article-paper">
           <div class="focus-tag-header">${article.category.toUpperCase()} • QUERYINDO FOCUS</div>
           <h1 class="focus-article-title">${article.title}</h1>
@@ -99,7 +99,6 @@ export class FocusMode {
       </div>
     `;
 
-    overlay.setAttribute('data-lenis-prevent', 'true');
     document.body.appendChild(overlay);
     this.overlayElement = overlay;
     document.body.style.overflow = 'hidden';

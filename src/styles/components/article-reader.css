@@ -11,7 +11,7 @@
   align-items: flex-start;
   padding: 2rem 1rem;
   overflow-y: auto !important;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overscroll-behavior-y: contain;

@@ -627,7 +627,7 @@ function renderHeroSection() {
           <div class="trending-meta">
             <span>${art.author.name}</span>
             <span>•</span>
-            <span>${(art.viewsCount / 1000).toFixed(1)}k ${preferences.language === 'en' ? 'Readers' : 'Pembaca'}</span>
+            <span>${art.viewsCount >= 1000 ? (art.viewsCount / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : (art.viewsCount || 0)} ${preferences.language === 'en' ? 'Readers' : 'Pembaca'}</span>
           </div>
         </div>
       </div>
