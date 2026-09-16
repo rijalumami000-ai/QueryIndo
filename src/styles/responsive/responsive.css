@@ -586,7 +586,9 @@
   }
   .article-rich-content {
     font-size: 0.88rem;
-    gap: 0.9rem;
+  }
+  .article-rich-content p {
+    margin-bottom: 0.9rem;
   }
 
   /* Floating Widgets */

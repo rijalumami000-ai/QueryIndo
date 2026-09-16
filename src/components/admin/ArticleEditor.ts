@@ -136,7 +136,7 @@ export class ArticleEditor {
             <p class="reader-subtitle" id="preview-subtitle" style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.45;">${article ? article.subtitle : '[Sub-judul berita]'}</p>
           </div>
 
-          <div class="article-rich-content size-large" id="preview-content-body" style="font-size: 0.95rem; line-height: 1.65; color: var(--text-primary);">
+          <div class="article-rich-content size-normal" id="preview-content-body">
             ${initialContent}
           </div>
         </div>

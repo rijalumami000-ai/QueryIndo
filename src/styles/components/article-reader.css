@@ -219,27 +219,32 @@
   font-size: 1rem;
   line-height: 1.75;
   color: var(--text-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: block;
   transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .article-rich-content p {
   font-size: 1em;
   line-height: 1.75;
+  margin: 0 0 1.25rem 0;
+}
+
+.article-rich-content p:last-child {
+  margin-bottom: 0;
 }
 
 .article-rich-content p.lead {
   font-size: 1.15em;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 1.5rem;
 }
 
+.article-rich-content h2,
 .article-rich-content h3 {
   font-size: 1.35em;
   font-weight: 800;
-  margin-top: 1.5rem;
+  margin: 1.75rem 0 0.75rem 0;
   color: var(--accent-cyan);
 }
 
@@ -250,7 +255,8 @@
   background: var(--bg-tertiary);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-style: italic;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
+  clear: both;
 }
 
 /* Scaled Font Size Multipliers */
@@ -306,34 +312,33 @@
    Article In-Content Inline Media & Editorial Figures
    ========================================================================== */
 .article-inline-image {
-  margin: 1.75rem 0;
+  margin: 1.5rem auto;
   display: block;
   box-sizing: border-box;
-  clear: both;
   transition: all 0.2s ease;
   user-select: text;
 }
 
 .article-inline-image.align-center {
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 1.5rem auto;
+  float: none;
   clear: both;
 }
 
 .article-inline-image.align-left {
   float: left;
   width: 46%;
-  max-width: 380px;
-  margin: 0.5rem 1.75rem 1rem 0;
+  max-width: 440px;
+  margin: 0.5rem 1.5rem 0.75rem 0;
   clear: left;
 }
 
 .article-inline-image.align-right {
   float: right;
   width: 46%;
-  max-width: 380px;
-  margin: 0.5rem 0 1rem 1.75rem;
+  max-width: 440px;
+  margin: 0.5rem 0 0.75rem 1.5rem;
   clear: right;
 }
 
@@ -350,9 +355,15 @@
 .article-inline-image .inline-image-frame img {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+}
+
+.article-inline-image[class*="ratio-"] .inline-image-frame img,
+.article-inline-image .inline-image-frame[style*="height"] img {
+  height: 100%;
 }
 
 .article-inline-image:hover .inline-image-frame img {
