@@ -337,31 +337,147 @@ export class ArticleEditor {
       }
     });
 
-    // Native Backspace or Delete removes currently selected figure
+    // Keyboard shortcuts for selected figure: Delete, Backspace, Alt+Up, Alt+Down
     wysiwygCanvas.addEventListener('keydown', (e) => {
+      const selectedFig = wysiwygCanvas.querySelector('.article-inline-image.is-selected') as HTMLElement | null;
+      if (!selectedFig) return;
+
+      const activeEl = document.activeElement;
+      if (activeEl && selectedFig.querySelector('figcaption')?.contains(activeEl)) {
+        return;
+      }
+
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        const selectedFig = wysiwygCanvas.querySelector('.article-inline-image.is-selected') as HTMLElement | null;
-        if (selectedFig) {
-          const activeEl = document.activeElement;
-          if (activeEl && selectedFig.querySelector('figcaption')?.contains(activeEl)) {
-            return;
-          }
-          e.preventDefault();
-          const nextSibling = selectedFig.nextElementSibling as HTMLElement | null || selectedFig.previousElementSibling as HTMLElement | null;
-          selectedFig.remove();
+        e.preventDefault();
+        const nextSibling = selectedFig.nextElementSibling as HTMLElement | null || selectedFig.previousElementSibling as HTMLElement | null;
+        selectedFig.remove();
+        syncAll();
+        if (nextSibling) {
+          const sel = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(nextSibling);
+          range.collapse(true);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          nextSibling.focus();
+        }
+        Toast.show('Gambar berhasil dihapus dari naskah.');
+      } else if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = selectedFig.previousElementSibling as HTMLElement | null;
+        if (prev) {
+          prev.before(selectedFig);
+          selectedFig.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           syncAll();
-          if (nextSibling) {
-            const sel = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(nextSibling);
-            range.collapse(true);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-            nextSibling.focus();
+          Toast.show('Gambar digeser ke atas.');
+        }
+      } else if (e.altKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = selectedFig.nextElementSibling as HTMLElement | null;
+        if (next) {
+          next.after(selectedFig);
+          if (!selectedFig.nextElementSibling) {
+            const p = document.createElement('p');
+            p.innerHTML = '<br>';
+            selectedFig.after(p);
           }
-          Toast.show('Gambar berhasil dihapus dari naskah.');
+          selectedFig.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          syncAll();
+          Toast.show('Gambar digeser ke bawah.');
         }
       }
+    });
+
+    // Canvas Drag-and-Drop Relocation Mechanics
+    wysiwygCanvas.addEventListener('dragover', (e: DragEvent) => {
+      const draggedFig = (wysiwygCanvas as any)._draggedFigure as HTMLElement | null;
+      if (!draggedFig) return;
+
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+
+      const children = Array.from(wysiwygCanvas.children).filter(
+        c => c !== draggedFig && !c.classList.contains('wysiwyg-drop-indicator')
+      ) as HTMLElement[];
+
+      if (children.length === 0) return;
+
+      const clientY = e.clientY;
+      let targetBlock: HTMLElement | null = null;
+      let insertPos: 'before' | 'after' = 'after';
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const rect = child.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+
+        if (clientY < midY) {
+          targetBlock = child;
+          insertPos = 'before';
+          break;
+        } else if (i === children.length - 1 || clientY < rect.bottom) {
+          targetBlock = child;
+          insertPos = 'after';
+          break;
+        }
+      }
+
+      if (!targetBlock) {
+        targetBlock = children[children.length - 1];
+        insertPos = 'after';
+      }
+
+      let dropIndicator = wysiwygCanvas.querySelector('.wysiwyg-drop-indicator') as HTMLElement | null;
+      if (!dropIndicator) {
+        dropIndicator = document.createElement('div');
+        dropIndicator.className = 'wysiwyg-drop-indicator';
+      }
+
+      if (insertPos === 'before') {
+        if (dropIndicator.nextElementSibling !== targetBlock) {
+          targetBlock.before(dropIndicator);
+        }
+      } else {
+        if (dropIndicator.previousElementSibling !== targetBlock) {
+          targetBlock.after(dropIndicator);
+        }
+      }
+    });
+
+    wysiwygCanvas.addEventListener('dragleave', (e: DragEvent) => {
+      const rect = wysiwygCanvas.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        wysiwygCanvas.querySelector('.wysiwyg-drop-indicator')?.remove();
+      }
+    });
+
+    wysiwygCanvas.addEventListener('drop', (e: DragEvent) => {
+      const draggedFig = (wysiwygCanvas as any)._draggedFigure as HTMLElement | null;
+      if (!draggedFig) return;
+
+      e.preventDefault();
+
+      const dropIndicator = wysiwygCanvas.querySelector('.wysiwyg-drop-indicator') as HTMLElement | null;
+      if (dropIndicator) {
+        dropIndicator.replaceWith(draggedFig);
+      }
+
+      // Ensure trailing editable paragraph exists if placed at the end
+      let nextEl = draggedFig.nextElementSibling as HTMLElement | null;
+      if (!nextEl || nextEl.tagName.toLowerCase() === 'figure') {
+        const p = document.createElement('p');
+        p.innerHTML = '<br>';
+        draggedFig.after(p);
+      }
+
+      draggedFig.classList.remove('is-dragging');
+      draggedFig.classList.add('is-selected');
+      delete (wysiwygCanvas as any)._draggedFigure;
+
+      syncAll();
+      Toast.show('Posisi gambar berhasil dipindahkan!');
     });
 
     rawTextarea.addEventListener('input', () => {
@@ -780,7 +896,7 @@ export class ArticleEditor {
   // Clean HTML serializer: strips temporary editing handles and badges
   public static getCleanArticleHtml(wysiwygCanvas: HTMLElement): string {
     const clone = wysiwygCanvas.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('.figure-canvas-tools, .crop-resize-handle, .word-resize-handle, .word-layout-badge, .word-dim-badge').forEach(el => el.remove());
+    clone.querySelectorAll('.figure-canvas-tools, .crop-resize-handle, .word-resize-handle, .word-layout-badge, .word-dim-badge, .wysiwyg-drop-indicator').forEach(el => el.remove());
     clone.querySelectorAll('.article-inline-image').forEach(fig => {
       fig.removeAttribute('contenteditable');
       fig.removeAttribute('draggable');
@@ -933,21 +1049,60 @@ export class ArticleEditor {
       });
     });
 
-    // 2. Create Floating Word-Style Layout Options Badge (Wrap Text)
+    // 2. Create Floating Word-Style Layout Options Badge (Wrap Text & Movement)
     const align = figure.getAttribute('data-align') || (figure.classList.contains('align-left') ? 'left' : figure.classList.contains('align-right') ? 'right' : 'center');
 
     const badge = document.createElement('div');
     badge.className = 'word-layout-badge';
     badge.setAttribute('contenteditable', 'false');
     badge.innerHTML = `
-      <button type="button" class="word-layout-btn opt-wrap ${align === 'left' ? 'active' : ''}" data-align="left" title="Wrap Kiri: Teks mengalir di kanan gambar">⇦ Wrap Kiri</button>
+      <button type="button" class="word-layout-btn opt-drag-handle" draggable="true" title="Tahan & tarik untuk menggeser posisi gambar ke paragraf lain" style="cursor: grab; background: rgba(0, 242, 254, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+        <span>Geser</span>
+      </button>
+      <button type="button" class="word-layout-btn opt-move-up" title="Geser gambar 1 paragraf ke atas (Alt + Panah Atas)">▲ Naik</button>
+      <button type="button" class="word-layout-btn opt-move-down" title="Geser gambar 1 paragraf ke bawah (Alt + Panah Bawah)">▼ Turun</button>
+      <div class="word-layout-divider"></div>
+      <button type="button" class="word-layout-btn opt-wrap ${align === 'left' ? 'active' : ''}" data-align="left" title="Wrap Kiri: Teks mengalir di kanan gambar">⇦ Kiri</button>
       <button type="button" class="word-layout-btn opt-wrap ${align === 'center' ? 'active' : ''}" data-align="center" title="Tengah / In Line: Sejajar naskah penuh">▣ Tengah</button>
-      <button type="button" class="word-layout-btn opt-wrap ${align === 'right' ? 'active' : ''}" data-align="right" title="Wrap Kanan: Teks mengalir di kiri gambar">Wrap Kanan ⇨</button>
+      <button type="button" class="word-layout-btn opt-wrap ${align === 'right' ? 'active' : ''}" data-align="right" title="Wrap Kanan: Teks mengalir di kiri gambar">Kanan ⇨</button>
       <div class="word-layout-divider"></div>
       <button type="button" class="word-layout-btn opt-edit" title="Ubah link gambar atau keterangan">✎ Ubah</button>
       <button type="button" class="word-layout-btn opt-delete danger" title="Hapus gambar dari naskah">🗑 Hapus</button>
     `;
     figure.appendChild(badge);
+
+    // Movement Buttons: Move Up & Move Down
+    badge.querySelector('.opt-move-up')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const prev = figure.previousElementSibling as HTMLElement | null;
+      if (prev) {
+        prev.before(figure);
+        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        syncCallback();
+        Toast.show('Gambar digeser ke atas.');
+      } else {
+        Toast.show('Gambar sudah berada di posisi paling atas.');
+      }
+    });
+
+    badge.querySelector('.opt-move-down')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const next = figure.nextElementSibling as HTMLElement | null;
+      if (next) {
+        next.after(figure);
+        if (!figure.nextElementSibling) {
+          const p = document.createElement('p');
+          p.innerHTML = '<br>';
+          figure.after(p);
+        }
+        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        syncCallback();
+        Toast.show('Gambar digeser ke bawah.');
+      } else {
+        Toast.show('Gambar sudah berada di posisi paling bawah.');
+      }
+    });
 
     // Layout Option Buttons (Wrap Text)
     badge.querySelectorAll('.opt-wrap').forEach(btn => {
@@ -1012,6 +1167,8 @@ export class ArticleEditor {
     });
 
     // 3. Selection & Caret Safety
+    figure.setAttribute('draggable', 'true');
+
     figure.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('figcaption, .word-layout-badge')) return;
       e.stopPropagation();
@@ -1019,31 +1176,43 @@ export class ArticleEditor {
       wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => {
         if (f !== figure) {
           f.classList.remove('is-selected');
-          f.setAttribute('draggable', 'false');
         }
       });
 
       figure.classList.add('is-selected');
-      figure.setAttribute('draggable', 'true');
     });
 
-    // Drag-and-drop to move between paragraphs
-    figure.addEventListener('dragstart', (e) => {
-      if (!figure.classList.contains('is-selected')) {
-        e.preventDefault();
+    // Drag-and-drop initiation from figure or dedicated handle
+    const startDrag = (e: DragEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('figcaption') || (target.closest('.word-layout-btn') && !target.closest('.opt-drag-handle'))) {
         return;
       }
+
+      wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => {
+        if (f !== figure) f.classList.remove('is-selected');
+      });
+      figure.classList.add('is-selected');
       figure.classList.add('is-dragging');
+
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'queryindo-figure');
       }
       (wysiwygCanvas as any)._draggedFigure = figure;
+    };
+
+    figure.addEventListener('dragstart', startDrag);
+
+    const dragHandle = badge.querySelector('.opt-drag-handle');
+    dragHandle?.addEventListener('dragstart', (e: any) => {
+      startDrag(e);
     });
 
     figure.addEventListener('dragend', () => {
       figure.classList.remove('is-dragging');
       delete (wysiwygCanvas as any)._draggedFigure;
+      wysiwygCanvas.querySelector('.wysiwyg-drop-indicator')?.remove();
       syncCallback();
     });
   }
