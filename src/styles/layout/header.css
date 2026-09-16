@@ -104,12 +104,13 @@
   transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.navbar.is-scrolled {
+.navbar.is-scrolled,
+body.is-scrolled .navbar {
   background: var(--bg-glass);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(0, 242, 254, 0.18);
-  box-shadow: 0 6px 24px -2px rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.22);
+  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.45);
 }
 
 .navbar-scroll-progress {
@@ -134,7 +135,8 @@
   transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.navbar.is-scrolled .navbar-content {
+.navbar.is-scrolled .navbar-content,
+body.is-scrolled .navbar-content {
   height: 3.4rem;
 }
 
@@ -194,21 +196,25 @@
   max-height: 20px;
 }
 
-.navbar.is-scrolled .brand-kicker {
+.navbar.is-scrolled .brand-kicker,
+body.is-scrolled .brand-kicker {
   opacity: 0;
   max-height: 0;
   margin-bottom: 0;
   overflow: hidden;
 }
 
-.navbar.is-scrolled .brand-emblem-wrap {
+.navbar.is-scrolled .brand-emblem-wrap,
+body.is-scrolled .brand-emblem-wrap {
   width: 32px;
   height: 32px;
   border-radius: 9px;
 }
 
 .navbar.is-scrolled .brand-word-query,
-.navbar.is-scrolled .brand-word-indo {
+.navbar.is-scrolled .brand-word-indo,
+body.is-scrolled .brand-word-query,
+body.is-scrolled .brand-word-indo {
   font-size: 1.2rem;
 }
 
@@ -649,10 +655,11 @@
   transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.navbar.is-scrolled ~ main .category-bar {
+.navbar.is-scrolled ~ main .category-bar,
+body.is-scrolled .category-bar {
   top: 3.4rem;
-  box-shadow: 0 6px 24px -4px rgba(0, 0, 0, 0.35);
-  border-color: rgba(0, 242, 254, 0.15);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 242, 254, 0.18);
 }
 
 .category-scroll {

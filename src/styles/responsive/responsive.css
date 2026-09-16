@@ -217,10 +217,12 @@
     width: 100%;
     max-width: 100%;
   }
-  .navbar.is-scrolled ~ main .category-bar {
+  .navbar.is-scrolled ~ main .category-bar,
+  body.is-scrolled .category-bar {
     top: 3rem;
   }
-  .navbar.is-scrolled .navbar-content {
+  .navbar.is-scrolled .navbar-content,
+  body.is-scrolled .navbar-content {
     height: 3rem;
   }
   .category-scroll {

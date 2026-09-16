@@ -115,6 +115,12 @@
   outline-offset: 4px;
 }
 
+#wysiwyg-editor-canvas .article-inline-image.is-dragging {
+  opacity: 0.45;
+  outline: 2px dashed var(--accent-cyan) !important;
+  transform: scale(0.98);
+}
+
 /* Floating Action Bar on Image Click */
 #inline-image-action-bar {
   display: flex;

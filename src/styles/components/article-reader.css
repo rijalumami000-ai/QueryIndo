@@ -382,6 +382,15 @@
   object-fit: contain;
   margin: 0 auto;
 }
+.article-inline-image.ratio-custom .inline-image-frame {
+  aspect-ratio: auto;
+  overflow: hidden;
+}
+.article-inline-image.ratio-custom .inline-image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 /* Focus / Crop Alignment */
 .article-inline-image[data-focus="top"] img {

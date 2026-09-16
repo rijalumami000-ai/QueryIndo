@@ -3367,7 +3367,60 @@ export class AdminCMS {
       });
     });
 
-    // Interactive In-Canvas Image Figure Actions (Click to Align, Edit, Delete)
+    // Free Drag-and-Drop for Images Between Paragraphs
+    let draggedFigure: HTMLElement | null = null;
+
+    wysiwygCanvas.addEventListener('dragstart', (e) => {
+      const target = e.target as HTMLElement;
+      const fig = target.closest('.article-inline-image') as HTMLElement | null;
+      if (fig) {
+        draggedFigure = fig;
+        fig.classList.add('is-dragging');
+        editorPage.querySelector('#inline-image-action-bar')?.remove();
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', fig.outerHTML);
+        }
+      }
+    });
+
+    wysiwygCanvas.addEventListener('dragend', () => {
+      if (draggedFigure) {
+        draggedFigure.classList.remove('is-dragging');
+        draggedFigure = null;
+        rawTextarea.value = wysiwygCanvas.innerHTML;
+        updateAnalytics();
+        syncLivePreview();
+      }
+    });
+
+    wysiwygCanvas.addEventListener('dragover', (e) => {
+      if (!draggedFigure) return;
+      e.preventDefault();
+      const target = (e.target as HTMLElement).closest('#wysiwyg-editor-canvas > p, #wysiwyg-editor-canvas > h2, #wysiwyg-editor-canvas > h3, #wysiwyg-editor-canvas > blockquote') as HTMLElement | null;
+      if (target && target !== draggedFigure) {
+        const rect = target.getBoundingClientRect();
+        if (e.clientY > rect.top + rect.height / 2) {
+          target.after(draggedFigure);
+        } else {
+          target.before(draggedFigure);
+        }
+      }
+    });
+
+    wysiwygCanvas.addEventListener('drop', (e) => {
+      if (!draggedFigure) return;
+      e.preventDefault();
+      draggedFigure.classList.remove('is-dragging');
+      draggedFigure = null;
+      rawTextarea.value = wysiwygCanvas.innerHTML;
+      updateAnalytics();
+      syncLivePreview();
+      Toast.show('Posisi gambar berhasil dipindahkan.');
+    });
+
+    // Interactive In-Canvas Image Figure Actions (Click to Align, Crop, Move, Delete)
+    // NOTE: NEVER call e.preventDefault() so editor cursor & caret placement never freeze!
     wysiwygCanvas.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       const figure = target.closest('.article-inline-image') as HTMLElement | null;
@@ -3377,14 +3430,13 @@ export class AdminCMS {
         return;
       }
 
-      // If editor clicked inside figcaption, allow typing directly
+      // If user clicked inside figcaption, allow typing directly in caption
       if (target.closest('figcaption')) return;
 
-      e.preventDefault();
       wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => f.classList.remove('is-selected'));
       figure.classList.add('is-selected');
 
-      this.showInlineImageActionBar(figure, editorPage, () => {
+      this.showInlineImageActionBar(figure, editorPage, wysiwygCanvas, () => {
         rawTextarea.value = wysiwygCanvas.innerHTML;
         updateAnalytics();
         syncLivePreview();
@@ -3773,8 +3825,8 @@ export class AdminCMS {
       const finalSource = sourceInput.value.trim();
 
       const figureHtml = `
-        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" contenteditable="false">
-          <div class="inline-image-frame">
+        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" draggable="true">
+          <div class="inline-image-frame" contenteditable="false">
             <img src="${finalUrl}" alt="${escapeHtml(finalCaption || 'Ilustrasi Berita')}" loading="lazy" style="object-position: center ${selectedFocus};" />
           </div>
           ${(finalCaption || finalSource) ? `
@@ -3795,56 +3847,204 @@ export class AdminCMS {
   private showInlineImageActionBar(
     figure: HTMLElement,
     parentContainer: HTMLElement,
+    _wysiwygCanvas: HTMLElement,
     syncCallback: () => void
   ) {
     // Remove existing action bar
     parentContainer.querySelector('#inline-image-action-bar')?.remove();
 
-    const rect = figure.getBoundingClientRect();
+    const frame = figure.querySelector('.inline-image-frame') as HTMLElement | null;
+    const img = figure.querySelector('img') as HTMLImageElement | null;
+    const curAlign = figure.getAttribute('data-align') || 'center';
+    let curRatio = figure.getAttribute('data-ratio') || '16-9';
+    let curFocus = figure.getAttribute('data-focus') || 'center';
+    const curHeightVal = parseInt(figure.getAttribute('data-height') || '') || (frame ? Math.round(frame.getBoundingClientRect().height) : 320);
+
     const actionBar = document.createElement('div');
     actionBar.id = 'inline-image-action-bar';
+    actionBar.setAttribute('data-lenis-prevent', 'true');
     actionBar.style.cssText = `
       position: fixed;
-      top: ${Math.max(10, rect.top - 46)}px;
-      left: ${Math.max(10, Math.min(window.innerWidth - 380, rect.left + (rect.width / 2) - 170))}px;
       z-index: 5000;
-      background: var(--bg-secondary);
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid var(--accent-cyan);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-      border-radius: var(--radius-full);
-      padding: 0.35rem 0.65rem;
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.65), 0 0 16px rgba(0, 242, 254, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 0.45rem 0.75rem;
       display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      backdrop-filter: blur(16px);
+      flex-direction: column;
+      gap: 0.45rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      max-width: 95vw;
+      animation: popIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     `;
-
-    const curAlign = figure.getAttribute('data-align') || 'center';
 
     actionBar.innerHTML = `
-      <button type="button" class="btn-action-pill ${curAlign === 'left' ? 'active' : ''}" id="btn-align-left" title="Rata Kiri (Float Left)">⇦ Kiri</button>
-      <button type="button" class="btn-action-pill ${curAlign === 'center' ? 'active' : ''}" id="btn-align-center" title="Lebar Penuh Tengah">▣ Tengah</button>
-      <button type="button" class="btn-action-pill ${curAlign === 'right' ? 'active' : ''}" id="btn-align-right" title="Rata Kanan (Float Right)">Kanan ⇨</button>
-      <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
-      <button type="button" class="btn-action-pill" id="btn-edit-fig" title="Ubah Rasio, Fokus & Keterangan">✎ Ubah</button>
-      <button type="button" class="btn-action-pill danger" id="btn-del-fig" title="Hapus Gambar">🗑 Hapus</button>
+      <!-- Row 1: Geser Posisi & Perataan -->
+      <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+        <span style="font-size: 0.68rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; font-family: var(--font-mono); display: flex; align-items: center; gap: 0.2rem;">
+          <span>⠿</span> Geser:
+        </span>
+        <button type="button" class="btn-action-pill" id="bar-btn-up" title="Geser ke Atas Paragraf Sebelumnya">▲ Naik</button>
+        <button type="button" class="btn-action-pill" id="bar-btn-down" title="Geser ke Bawah Paragraf Setelahnya">▼ Turun</button>
+        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+        <button type="button" class="btn-action-pill ${curAlign === 'left' ? 'active' : ''}" id="bar-btn-align-left" title="Rata Kiri (Wrap Teks)">⇦ Kiri</button>
+        <button type="button" class="btn-action-pill ${curAlign === 'center' ? 'active' : ''}" id="bar-btn-align-center" title="Lebar Penuh Tengah">▣ Tengah</button>
+        <button type="button" class="btn-action-pill ${curAlign === 'right' ? 'active' : ''}" id="bar-btn-align-right" title="Rata Kanan (Wrap Teks)">Kanan ⇨</button>
+
+        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+        <button type="button" class="btn-action-pill" id="bar-btn-edit-fig" title="Ubah Tautan URL & Keterangan">✎ Ubah</button>
+        <button type="button" class="btn-action-pill danger" id="bar-btn-del-fig" title="Hapus Gambar">🗑 Hapus</button>
+      </div>
+
+      <!-- Row 2: Crop Rasio, Fokus & Tinggi Bebas -->
+      <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 0.35rem;">
+        <span style="font-size: 0.68rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; font-family: var(--font-mono);">
+          Crop:
+        </span>
+        <button type="button" class="btn-action-pill ${curRatio === '16-9' ? 'active' : ''}" data-ratio="16-9">16:9</button>
+        <button type="button" class="btn-action-pill ${curRatio === '21-9' ? 'active' : ''}" data-ratio="21-9">21:9</button>
+        <button type="button" class="btn-action-pill ${curRatio === '4-3' ? 'active' : ''}" data-ratio="4-3">4:3</button>
+        <button type="button" class="btn-action-pill ${curRatio === '1-1' ? 'active' : ''}" data-ratio="1-1">1:1</button>
+        <button type="button" class="btn-action-pill ${curRatio === 'auto' ? 'active' : ''}" data-ratio="auto">Asli</button>
+
+        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+
+        <!-- Fokus Potong -->
+        <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">Fokus:</span>
+        <button type="button" class="btn-action-pill ${curFocus === 'top' ? 'active' : ''}" data-focus="top" title="Fokus Atas (Kepala/Wajah)">👤 Atas</button>
+        <button type="button" class="btn-action-pill ${curFocus === 'center' ? 'active' : ''}" data-focus="center" title="Fokus Tengah">🎯 Tengah</button>
+        <button type="button" class="btn-action-pill ${curFocus === 'bottom' ? 'active' : ''}" data-focus="bottom" title="Fokus Bawah">⬇ Bawah</button>
+
+        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+
+        <!-- Tinggi Crop Bebas -->
+        <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">↕ Tinggi:</span>
+        <input type="range" id="bar-crop-slider" min="140" max="600" step="20" value="${curHeightVal}" style="width: 70px; height: 4px; accent-color: var(--accent-cyan); cursor: pointer;" title="Geser untuk mengubah tinggi crop bebas secara langsung" />
+        <span id="bar-crop-val" style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--accent-cyan); min-width: 38px;">${curHeightVal}px</span>
+      </div>
     `;
 
-    document.body.appendChild(actionBar);
+    parentContainer.appendChild(actionBar);
 
+    const updateBarPos = () => {
+      if (!figure.isConnected) {
+        actionBar.remove();
+        return;
+      }
+      const rect = figure.getBoundingClientRect();
+      const top = Math.max(65, rect.top - 82);
+      const left = Math.max(15, Math.min(window.innerWidth - 480, rect.left));
+      actionBar.style.top = `${top}px`;
+      actionBar.style.left = `${left}px`;
+    };
+
+    updateBarPos();
+
+    // Move Up
+    actionBar.querySelector('#bar-btn-up')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const prev = figure.previousElementSibling;
+      if (prev) {
+        prev.before(figure);
+        syncCallback();
+        updateBarPos();
+        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        Toast.show('Gambar sudah di posisi teratas.', 'info');
+      }
+    });
+
+    // Move Down
+    actionBar.querySelector('#bar-btn-down')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const next = figure.nextElementSibling;
+      if (next) {
+        next.after(figure);
+        syncCallback();
+        updateBarPos();
+        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        Toast.show('Gambar sudah di posisi terbawah.', 'info');
+      }
+    });
+
+    // Alignment
     const setAlign = (newAlign: 'left' | 'center' | 'right') => {
       figure.classList.remove('align-left', 'align-center', 'align-right');
       figure.classList.add(`align-${newAlign}`);
       figure.setAttribute('data-align', newAlign);
+      actionBar.querySelectorAll('#bar-btn-align-left, #bar-btn-align-center, #bar-btn-align-right').forEach(b => b.classList.remove('active'));
+      actionBar.querySelector(`#bar-btn-align-${newAlign}`)?.classList.add('active');
       syncCallback();
-      actionBar.remove();
+      updateBarPos();
     };
 
-    actionBar.querySelector('#btn-align-left')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('left'); });
-    actionBar.querySelector('#btn-align-center')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('center'); });
-    actionBar.querySelector('#btn-align-right')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('right'); });
+    actionBar.querySelector('#bar-btn-align-left')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('left'); });
+    actionBar.querySelector('#bar-btn-align-center')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('center'); });
+    actionBar.querySelector('#bar-btn-align-right')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('right'); });
 
-    actionBar.querySelector('#btn-del-fig')?.addEventListener('click', (e) => {
+    // Ratio Switcher
+    actionBar.querySelectorAll('[data-ratio]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const r = btn.getAttribute('data-ratio') || '16-9';
+        figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto', 'ratio-custom');
+        figure.classList.add(`ratio-${r}`);
+        figure.setAttribute('data-ratio', r);
+        figure.removeAttribute('data-height');
+        if (frame) {
+          frame.style.height = '';
+          if (r === '16-9') frame.style.aspectRatio = '16 / 9';
+          else if (r === '21-9') frame.style.aspectRatio = '21 / 9';
+          else if (r === '4-3') frame.style.aspectRatio = '4 / 3';
+          else if (r === '1-1') frame.style.aspectRatio = '1 / 1';
+          else frame.style.aspectRatio = 'auto';
+        }
+        actionBar.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        syncCallback();
+        updateBarPos();
+      });
+    });
+
+    // Focus Switcher
+    actionBar.querySelectorAll('[data-focus]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const f = btn.getAttribute('data-focus') || 'center';
+        figure.setAttribute('data-focus', f);
+        if (img) img.style.objectPosition = `center ${f}`;
+        actionBar.querySelectorAll('[data-focus]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        syncCallback();
+      });
+    });
+
+    // Height Crop Slider
+    const slider = actionBar.querySelector('#bar-crop-slider') as HTMLInputElement | null;
+    const valLabel = actionBar.querySelector('#bar-crop-val') as HTMLElement | null;
+    slider?.addEventListener('input', (e) => {
+      e.stopPropagation();
+      const h = slider.value;
+      if (valLabel) valLabel.textContent = `${h}px`;
+      if (frame) {
+        frame.style.aspectRatio = 'auto';
+        frame.style.height = `${h}px`;
+      }
+      if (img) img.style.objectFit = 'cover';
+      figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto');
+      figure.classList.add('ratio-custom');
+      figure.setAttribute('data-height', `${h}px`);
+      figure.setAttribute('data-ratio', 'custom');
+      actionBar.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+      syncCallback();
+      updateBarPos();
+    });
+
+    // Delete Figure
+    actionBar.querySelector('#bar-btn-del-fig')?.addEventListener('click', (e) => {
       e.stopPropagation();
       figure.remove();
       syncCallback();
@@ -3852,10 +4052,10 @@ export class AdminCMS {
       Toast.show('Gambar berhasil dihapus dari naskah.');
     });
 
-    actionBar.querySelector('#btn-edit-fig')?.addEventListener('click', (e) => {
+    // Edit in Modal
+    actionBar.querySelector('#bar-btn-edit-fig')?.addEventListener('click', (e) => {
       e.stopPropagation();
       actionBar.remove();
-      const img = figure.querySelector('img') as HTMLImageElement | null;
       const captionEl = figure.querySelector('.inline-caption-text') as HTMLElement | null;
       const sourceEl = figure.querySelector('.inline-caption-source') as HTMLElement | null;
       const existingData = {
@@ -3879,11 +4079,18 @@ export class AdminCMS {
       });
     });
 
-    // Auto dismiss on outside click
+    // Reposition on scroll of the left column
+    const scrollCol = figure.closest('[data-lenis-prevent]');
+    const onScrollHandler = () => updateBarPos();
+    scrollCol?.addEventListener('scroll', onScrollHandler, { passive: true });
+
+    // Dismiss on outside click
     const dismissHandler = (evt: MouseEvent) => {
       if (!actionBar.contains(evt.target as Node) && !figure.contains(evt.target as Node)) {
         actionBar.remove();
+        figure.classList.remove('is-selected');
         document.removeEventListener('click', dismissHandler);
+        scrollCol?.removeEventListener('scroll', onScrollHandler);
       }
     };
     setTimeout(() => document.addEventListener('click', dismissHandler), 60);

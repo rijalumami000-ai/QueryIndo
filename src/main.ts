@@ -46,6 +46,31 @@ window.addEventListener('modal-closed', () => {
   }
 });
 
+// Global Scroll Handler for Sticky Header, Progress Bar & Lenis
+function handleGlobalScroll() {
+  const scrollY = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0;
+  const navbar = document.querySelector('.navbar');
+  const scrollProgress = document.getElementById('navbar-scroll-progress');
+  const backToTopBtn = document.getElementById('btn-back-to-top');
+
+  const isScrolled = scrollY > 40;
+  document.body.classList.toggle('is-scrolled', isScrolled);
+  navbar?.classList.toggle('is-scrolled', isScrolled);
+
+  if (scrollProgress) {
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+    scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+  }
+
+  if (backToTopBtn) {
+    const show = scrollY > 300;
+    backToTopBtn.style.opacity = show ? '1' : '0';
+    backToTopBtn.style.pointerEvents = show ? 'auto' : 'none';
+    backToTopBtn.style.transform = show ? 'translateY(0)' : 'translateY(10px)';
+  }
+}
+
 // --------------------------------------------------------------------------
 // Application Initialization
 // --------------------------------------------------------------------------
@@ -53,6 +78,7 @@ async function init() {
   // 1. Lenis Smooth Scroll
   if (window.innerWidth > 768) {
     lenisInstance = new Lenis({ duration: 1.2, smoothWheel: true, touchMultiplier: 1.5 });
+    lenisInstance.on('scroll', handleGlobalScroll);
     const raf = (time: number) => { lenisInstance?.raf(time); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
   }
@@ -367,43 +393,17 @@ function setupEventListeners() {
     });
   }
 
-  // Sticky Header Scroll & Back to Top Controller
-  const navbar = document.querySelector('.navbar');
-  const scrollProgress = document.getElementById('navbar-scroll-progress');
-  const backToTopBtn = document.getElementById('btn-back-to-top');
-
-  backToTopBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
-  const handleWindowScroll = () => {
-    const scrollY = window.scrollY;
-
-    // 1. Toggle compact sticky navbar
-    if (navbar) {
-      if (scrollY > 50) {
-        navbar.classList.add('is-scrolled');
-      } else {
-        navbar.classList.remove('is-scrolled');
-      }
+  // Back to Top Button click handler
+  document.getElementById('btn-back-to-top')?.addEventListener('click', () => {
+    if (lenisInstance) {
+      lenisInstance.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  });
 
-    // 2. Update ambient reading scroll progress line
-    if (scrollProgress) {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
-      scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-    }
-
-    // 3. Back to top button visibility
-    if (backToTopBtn) {
-      const show = scrollY > 300;
-      backToTopBtn.style.opacity = show ? '1' : '0';
-      backToTopBtn.style.pointerEvents = show ? 'auto' : 'none';
-      backToTopBtn.style.transform = show ? 'translateY(0)' : 'translateY(10px)';
-    }
-  };
-
-  window.addEventListener('scroll', handleWindowScroll, { passive: true });
-  handleWindowScroll();
+  window.addEventListener('scroll', handleGlobalScroll, { passive: true });
+  handleGlobalScroll();
 }
 
 document.addEventListener('DOMContentLoaded', init);
