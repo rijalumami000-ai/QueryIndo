@@ -514,3 +514,77 @@
   padding: 0.1rem 0.4rem;
   border-radius: 6px;
 }
+
+/* Responsive Comments & Discussions for Mobile */
+@media (max-width: 640px) {
+  .comments-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-bottom: 1.15rem;
+  }
+  .comments-title-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .comments-main-title {
+    font-size: 1.05rem;
+  }
+  .comments-badge-counter {
+    font-size: 0.72rem;
+  }
+  .comments-guidelines-tip {
+    font-size: 0.72rem;
+  }
+  .comment-auth-gate-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.15rem;
+    gap: 1rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .auth-gate-left {
+    min-width: 100%;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .auth-gate-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .auth-gate-title {
+    font-size: 0.95rem;
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+  }
+  .auth-gate-desc {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+  .btn-comment-google-login {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+  .composer-author-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .composer-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+  .btn-post-comment {
+    width: 100%;
+    justify-content: center;
+  }
+}

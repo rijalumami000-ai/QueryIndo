@@ -39,12 +39,12 @@ export class FocusMode {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
-            <span>${lang === 'en' ? 'Exit Focus Mode' : 'Tutup Mode Fokus'}</span>
+            <span>${lang === 'en' ? 'Exit' : 'Tutup'}</span>
           </button>
           <div class="focus-meta-badge">
             <span>${wordCount} ${lang === 'en' ? 'words' : 'kata'}</span>
             <span>•</span>
-            <span id="focus-time-remaining">~${estMinutes} ${lang === 'en' ? 'min read' : 'menit baca'}</span>
+            <span id="focus-time-remaining" style="white-space: nowrap;">~${estMinutes} ${lang === 'en' ? 'min' : 'mnt'}</span>
           </div>
         </div>
 
@@ -206,8 +206,8 @@ export class FocusMode {
           const remainingMinutes = Math.max(0, Math.ceil(totalEstMinutes * (1 - ratio)));
           if (timeRemainingSpan) {
             timeRemainingSpan.textContent = remainingMinutes > 0
-              ? `~${remainingMinutes} ${lang === 'en' ? 'min left' : 'menit lagi'}`
-              : (lang === 'en' ? 'Finished reading' : 'Selesai dibaca');
+              ? `~${remainingMinutes} ${lang === 'en' ? 'min left' : 'mnt lagi'}`
+              : (lang === 'en' ? 'Finished' : 'Selesai');
           }
         }
       });

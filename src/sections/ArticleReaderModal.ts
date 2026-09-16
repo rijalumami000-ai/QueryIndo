@@ -104,55 +104,57 @@ export class ArticleReaderModal {
               <div class="author-role-text">${article.author.role}</div>
             </div>
           </div>
-          <div style="font-size: 0.825rem; color: var(--text-muted); text-align: right;">
-            <div>${store.preferences.language === 'en' ? 'Published' : 'Terbit'}: ${formatDate(article.publishedAt, store.preferences.language)}</div>
-            <div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:0.2rem;">⏱️ ${calculateReadTime(article.content, article.readTimeMinutes)} ${store.preferences.language === 'en' ? 'min read' : 'menit baca'}</div>
+          <div class="author-meta-right">
+            <span class="author-pub-date">${store.preferences.language === 'en' ? 'Published' : 'Terbit'}: ${formatDate(article.publishedAt, store.preferences.language)}</span>
+            <span class="author-read-pill">⏱️ ${calculateReadTime(article.content, article.readTimeMinutes)} ${store.preferences.language === 'en' ? 'min read' : 'menit baca'}</span>
           </div>
         </div>
       </div>
 
       <!-- Audio Player, Focus Mode & Text Size Toolbar -->
-      <div style="background:var(--bg-tertiary); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <button id="btn-audio-play" style="width:2.4rem; height:2.4rem; border-radius:50%; background:var(--accent-cyan); color:#000; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all 0.2s ease;" title="Play / Pause Audio">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </button>
-          <button id="btn-audio-stop" style="width:2.0rem; height:2.0rem; border-radius:50%; background:rgba(255,255,255,0.08); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all 0.2s ease;" title="Stop Audio">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
-          </button>
-          <div>
-            <div style="font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
-              <span>${store.t('audioNarrativeHeader')}</span>
-              <div class="audio-visualizer-wave" id="audio-visualizer-wave">
-                <span class="audio-bar"></span>
-                <span class="audio-bar"></span>
-                <span class="audio-bar"></span>
-                <span class="audio-bar"></span>
+      <div class="reader-toolbar-card">
+        <div class="reader-toolbar-top">
+          <div class="reader-audio-main">
+            <button id="btn-audio-play" class="btn-audio-circle-play" title="Play / Pause Audio">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <button id="btn-audio-stop" class="btn-audio-circle-stop" title="Stop Audio">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+            </button>
+            <div class="reader-audio-text-group">
+              <div class="reader-audio-header">
+                <span>${store.t('audioNarrativeHeader')}</span>
+                <div class="audio-visualizer-wave" id="audio-visualizer-wave">
+                  <span class="audio-bar"></span>
+                  <span class="audio-bar"></span>
+                  <span class="audio-bar"></span>
+                  <span class="audio-bar"></span>
+                </div>
               </div>
+              <div class="reader-audio-sub" id="audio-status-text">${store.t('audioNarrativeSub')}</div>
             </div>
-            <div style="font-size:0.75rem; color:var(--text-muted);" id="audio-status-text">${store.t('audioNarrativeSub')}</div>
+          </div>
+
+          <div class="reader-audio-playback-ctrl">
+            <div class="audio-speed-pills">
+              <button class="btn-audio-speed active" data-speed="1.0">1.0x</button>
+              <button class="btn-audio-speed" data-speed="1.25">1.25x</button>
+              <button class="btn-audio-speed" data-speed="1.5">1.5x</button>
+            </div>
+            <span class="reader-audio-timer" id="audio-timer-text">00:00 / ${initialDurationStr}</span>
           </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap;">
-          <!-- Audio Speed Control -->
-          <div class="audio-speed-pills">
-            <button class="btn-audio-speed active" data-speed="1.0">1.0x</button>
-            <button class="btn-audio-speed" data-speed="1.25">1.25x</button>
-            <button class="btn-audio-speed" data-speed="1.5">1.5x</button>
-          </div>
-
-          <span style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);" id="audio-timer-text">00:00 / ${initialDurationStr}</span>
-
+        <div class="reader-toolbar-bottom">
           <!-- Zen Focus Mode Button -->
-          <button id="btn-reader-focus-mode" style="padding: 0.35rem 0.85rem; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); color: #60a5fa; font-weight: 600; font-size: 0.775rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; transition: all 0.2s ease;">
+          <button id="btn-reader-focus-mode" class="btn-reader-zen-focus">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 2 2h3"/></svg>
             <span>${store.preferences.language === 'en' ? 'Focus Mode' : 'Mode Fokus'}</span>
           </button>
           
           <!-- Text Size Control Toggle -->
-          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);">
-            <span>${store.t('fontSizeLabel')}</span>
+          <div class="reader-font-size-group">
+            <span class="reader-font-size-label">${store.t('fontSizeLabel')}</span>
             <div class="font-size-toggle">
               <button class="btn-size ${!store.preferences.fontSize || store.preferences.fontSize === 'normal' ? 'active' : ''}" data-size="normal">A</button>
               <button class="btn-size ${store.preferences.fontSize === 'large' ? 'active' : ''}" data-size="large">A+</button>
