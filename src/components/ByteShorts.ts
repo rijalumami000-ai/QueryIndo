@@ -13,6 +13,9 @@ export interface StorySlide {
 
 export interface ByteStory {
   id: string;
+  articleId: string;
+  articleTitle: string;
+  articleImage: string;
   authorName: string;
   authorAvatar: string;
   badge: string;
@@ -33,8 +36,11 @@ export class ByteShorts {
       return [];
     }
 
-    this.stories = articles.slice(0, 6).map((art) => ({
+    this.stories = articles.slice(0, 8).map((art) => ({
       id: `story-${art.id}`,
+      articleId: art.id,
+      articleTitle: art.title,
+      articleImage: art.imageUrl || (art.author && art.author.avatar ? art.author.avatar : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80'),
       authorName: (art.author && art.author.name ? art.author.name.split(' ')[0] : 'Redaksi'),
       authorAvatar: (art.author && art.author.avatar ? art.author.avatar : art.imageUrl),
       badge: art.category.toUpperCase(),
@@ -45,8 +51,8 @@ export class ByteShorts {
           articleId: art.id,
           titleId: art.title,
           titleEn: art.title,
-          captionId: art.subtitle || (art.aiSummary && art.aiSummary[0]) || art.title,
-          captionEn: art.subtitle || (art.aiSummary && art.aiSummary[0]) || art.title,
+          captionId: art.subtitle || art.title,
+          captionEn: art.subtitle || art.title,
           imageUrl: art.imageUrl,
           category: art.category.toUpperCase()
         }
@@ -61,12 +67,12 @@ export class ByteShorts {
       return '';
     }
 
-    const sectionTitleText = lang === 'en' ? 'BYTESHORTS • VISUAL STORIES' : 'BYTESHORTS • BERITA KILAT';
-    const clickHintText = lang === 'en' ? 'Click story to preview →' : 'Klik story untuk pratinjau →';
+    const sectionTitleText = lang === 'en' ? 'FLASH STORIES • VISUAL DIGEST' : 'BERITA KILAT • KILAS TERKINI';
+    const clickHintText = lang === 'en' ? 'Click story to preview →' : 'Klik cerita untuk pratinjau →';
 
     return `
       <div style="margin: 1.25rem 0 0.5rem 0; padding: 0.85rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
-        <div style="font-size: 0.72rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-mono); letter-spacing: 0.06em; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 0.72rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-mono); letter-spacing: 0.06em; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
           <span style="display:inline-flex; align-items:center; gap:0.4rem;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             ${sectionTitleText}
@@ -74,17 +80,17 @@ export class ByteShorts {
           <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">${clickHintText}</span>
         </div>
 
-        <div style="display: flex; gap: 1.25rem; overflow-x: auto; padding-bottom: 0.35rem; scrollbar-width: none;">
+        <div style="display: flex; gap: 1.25rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none;">
           ${stories.map((story, idx) => `
-            <div class="byte-story-item" data-story-index="${idx}" style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem; cursor: pointer; flex-shrink: 0; transition: transform 0.2s ease;">
-              <div style="position: relative; width: 56px; height: 56px; border-radius: 50%; padding: 2px; background: ${story.isUnread ? 'linear-gradient(135deg, var(--accent-cyan), #3b82f6, #ec4899)' : 'var(--border-color)'};">
-                <img src="${story.authorAvatar}" alt="${story.authorName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-primary);" />
-                <span style="position: absolute; bottom: -2px; right: -2px; background: var(--accent-cyan); color: #000; font-size: 0.55rem; font-weight: 800; padding: 0.1rem 0.3rem; border-radius: 100px; text-transform: uppercase;">
+            <div class="byte-story-item" data-story-index="${idx}" style="display: flex; flex-direction: column; align-items: center; gap: 0.45rem; cursor: pointer; flex-shrink: 0; transition: transform 0.2s ease;">
+              <div style="position: relative; width: 72px; height: 72px; border-radius: 50%; padding: 2.5px; background: ${story.isUnread ? 'linear-gradient(135deg, var(--accent-cyan), #3b82f6, #ec4899)' : 'var(--border-color)'};">
+                <img src="${story.articleImage}" alt="${story.articleTitle}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--bg-primary);" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80'" />
+                <span style="position: absolute; bottom: -2px; right: -2px; background: var(--accent-cyan); color: #000; font-size: 0.55rem; font-weight: 800; padding: 0.1rem 0.35rem; border-radius: 100px; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
                   ${story.badge}
                 </span>
               </div>
-              <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-primary); max-width: 72px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${story.authorName}
+              <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-primary); max-width: 80px; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25;" title="${story.articleTitle}">
+                ${story.articleTitle}
               </span>
             </div>
           `).join('')}

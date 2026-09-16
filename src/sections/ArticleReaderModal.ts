@@ -88,8 +88,6 @@ export class ArticleReaderModal {
       <div class="reader-header">
         <div class="badge-group">
           <span class="tag-badge">${article.category.toUpperCase()}</span>
-          ${article.isFactChecked ? `<span class="tag-badge" style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border-color:var(--accent-emerald);">✓ VERIFIED FACT-CHECK</span>` : ''}
-          ${article.isSponsored ? `<span class="tag-badge" style="background:rgba(234,179,8,0.15); color:#eab308; border-color:#eab308;">SPONSORED BY ${article.sponsorName || 'PARTNER'}</span>` : ''}
           ${article.tags.map(t => `<span class="tag-badge" style="background:var(--bg-tertiary); color:var(--text-secondary); border-color:var(--border-color);">#${t}</span>`).join('')}
         </div>
         <h1 class="reader-title" id="reader-article-title">${article.title}</h1>

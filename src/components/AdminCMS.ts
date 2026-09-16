@@ -2975,9 +2975,6 @@ export class AdminCMS {
       <blockquote>"Kedaulatan digital dan komputasi cerdas menjadi pilar masa depan pertumbuhan ekonomi nasional."</blockquote>
     `;
 
-    const initialAiSummary = article ? article.aiSummary.join('\n') : `Pusat komputasi AI diperluas untuk dukung riset nasional.
-Investasi hardware mutakhir capai efisiensi hingga 40%.
-Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     const authorsList = AuthorService.getAuthors();
     const currentAuthorName = article ? article.author.name : (user?.fullName || 'Rijal Umami');
@@ -3010,9 +3007,6 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <button type="button" id="btn-generate-ai-summary" style="padding: 0.55rem 1.1rem; background: var(--gradient-ai); border: 1px solid var(--border-active); color: var(--accent-cyan); font-weight: 800; border-radius: var(--radius-full); font-size: 0.825rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-            Ringkasan AI
-          </button>
           <button type="submit" form="editor-fullscreen-form" style="padding: 0.6rem 1.6rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.875rem; box-shadow: var(--shadow-glow); cursor: pointer;">
             ${isEdit ? 'Simpan Perubahan' : 'Terbitkan Berita'}
           </button>
@@ -3059,16 +3053,16 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           </div>
 
           <!-- Manuscript Canvas Container -->
-          <div style="flex: 1; min-height: 380px; display: flex; flex-direction: column; position: relative;">
-            <div id="wysiwyg-editor-canvas" contenteditable="true" style="flex: 1; min-height: 380px; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-main); font-size: 1.05rem; line-height: 1.7; outline: none; overflow: visible;">
+          <div style="display: flex; flex-direction: column; position: relative; margin-bottom: 2rem;">
+            <div id="wysiwyg-editor-canvas" contenteditable="true" style="min-height: 480px; height: auto; box-sizing: border-box; padding: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-main); font-size: 1.05rem; line-height: 1.75; outline: none; margin-bottom: 1.5rem;">
               ${initialContent}
             </div>
 
-            <textarea id="edit-content" name="content" style="display: none; flex: 1; min-height: 380px; padding: 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.5; resize: vertical;">${initialContent}</textarea>
+            <textarea id="edit-content" name="content" style="display: none; min-height: 480px; height: auto; box-sizing: border-box; padding: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.5; resize: vertical; margin-bottom: 1.5rem;">${initialContent}</textarea>
           </div>
 
-          <!-- Real-Time Word & Reading Time Analytics Bar -->
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.65rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <!-- Real-Time Word & Reading Time Analytics Bar (Docked Bottom Footer) -->
+          <div style="position: sticky; bottom: -2rem; z-index: 50; margin: 0 -2.5rem -2rem -2.5rem; background: var(--bg-secondary); padding: 0.75rem 2.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); box-shadow: 0 -4px 16px rgba(0,0,0,0.3); backdrop-filter: blur(10px);">
             <div style="display: flex; gap: 1.25rem; font-family: var(--font-mono);">
               <span><strong id="cnt-words" style="color: var(--accent-cyan);">0</strong> Kata</span>
               <span><strong id="cnt-chars" style="color: var(--accent-violet);">0</strong> Karakter</span>
@@ -3090,8 +3084,6 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           <div class="reader-header" style="padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
             <div class="badge-group" style="margin-bottom: 0.75rem;">
               <span class="tag-badge" id="preview-category-badge" style="text-transform: uppercase;">${article ? article.category.toUpperCase() : 'TEKNO'}</span>
-              <span class="tag-badge" id="preview-factcheck-badge" style="display: ${article?.isFactChecked ? 'inline-block' : 'none'}; background: rgba(16,185,129,0.15); color: var(--accent-emerald);">✓ VERIFIED FACT-CHECK</span>
-              <span class="tag-badge" id="preview-sponsored-badge" style="display: ${article?.isSponsored ? 'inline-block' : 'none'}; background: rgba(234,179,8,0.15); color: #eab308;">SPONSORED BY PARTNER</span>
             </div>
             <h1 class="reader-title" id="preview-title" style="font-size: 1.5rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.75rem; color: var(--text-primary);">${article ? article.title : '[Judul Berita]'}</h1>
             <p class="reader-subtitle" id="preview-subtitle" style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.45;">${article ? article.subtitle : '[Sub-judul berita]'}</p>
@@ -3115,29 +3107,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
             </select>
           </div>
 
-          <!-- Editorial Transparency & Quality Badges Box -->
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 0.75rem;">
-            <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase;">Lencana Kualitas & Standar Redaksi</span>
-            
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.825rem; cursor: pointer; color: var(--text-primary);">
-              <input type="checkbox" id="edit-is-factchecked" ${article?.isFactChecked ? 'checked' : ''} />
-              <span>✓ Terverifikasi Cek Fakta (Fact-Checked)</span>
-            </label>
 
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.825rem; cursor: pointer; color: var(--text-primary);">
-              <input type="checkbox" id="edit-is-premium" ${article?.isPremium ? 'checked' : ''} />
-              <span>🔒 Riset Mendalam (QUERYINDO Pro)</span>
-            </label>
-
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.825rem; cursor: pointer; color: var(--text-primary);">
-              <input type="checkbox" id="edit-is-sponsored" ${article?.isSponsored ? 'checked' : ''} />
-              <span>📢 Kemitraan Bersponsor (Sponsored Post)</span>
-            </label>
-
-            <div id="sponsor-name-field" style="display: ${article?.isSponsored ? 'block' : 'none'};">
-              <input type="text" id="edit-sponsor-name" value="${article?.sponsorName || ''}" placeholder="Nama Brand Mitra (e.g. Google Cloud Indonesia)" style="width: 100%; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.8rem;" />
-            </div>
-          </div>
 
           <div>
             <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Tags Berita (Pisahkan Koma)</label>
@@ -3175,11 +3145,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
             <input type="text" id="edit-author-custom" value="${!isKnownAuthor ? currentAuthorName : ''}" placeholder="Tuliskan nama jurnalis manual..." style="display: ${!isKnownAuthor ? 'block' : 'none'}; width: 100%; margin-top: 0.5rem; padding: 0.55rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.85rem;" />
           </div>
 
-          <!-- AI Summary Sidebar Box -->
-          <div style="background: var(--gradient-ai); border: 1px solid var(--border-active); padding: 1rem; border-radius: var(--radius-md); margin-top: 0.5rem;">
-            <label style="display: block; font-weight: 800; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">Ringkasan Poin AI</label>
-            <textarea id="edit-ai-summary" rows="4" placeholder="Tuliskan 3 poin ringkasan utama (1 baris per poin)..." style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.8rem; resize: vertical;">${initialAiSummary}</textarea>
-          </div>
+
         </div>
       </form>
     `;
@@ -3199,16 +3165,11 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
     const previewTitle = editorPage.querySelector('#preview-title') as HTMLElement;
     const previewSubtitle = editorPage.querySelector('#preview-subtitle') as HTMLElement;
     const previewCategory = editorPage.querySelector('#preview-category-badge') as HTMLElement;
-    const previewFactCheck = editorPage.querySelector('#preview-factcheck-badge') as HTMLElement;
-    const previewSponsored = editorPage.querySelector('#preview-sponsored-badge') as HTMLElement;
     const previewBody = editorPage.querySelector('#preview-content-body') as HTMLElement;
 
     const editTitle = editorPage.querySelector('#edit-title') as HTMLInputElement;
     const editSubtitle = editorPage.querySelector('#edit-subtitle') as HTMLInputElement;
     const editCategory = editorPage.querySelector('#edit-category') as HTMLSelectElement;
-    const editIsFactChecked = editorPage.querySelector('#edit-is-factchecked') as HTMLInputElement;
-    const editIsSponsored = editorPage.querySelector('#edit-is-sponsored') as HTMLInputElement;
-    const sponsorNameField = editorPage.querySelector('#sponsor-name-field') as HTMLElement;
 
     const authorSelect = editorPage.querySelector('#edit-author-select') as HTMLSelectElement;
     const authorCustomInput = editorPage.querySelector('#edit-author-custom') as HTMLInputElement;
@@ -3270,21 +3231,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
       });
     }
 
-    // Toggle sponsor name field
-    editIsSponsored?.addEventListener('change', () => {
-      if (sponsorNameField) {
-        sponsorNameField.style.display = editIsSponsored.checked ? 'block' : 'none';
-      }
-      if (previewSponsored) {
-        previewSponsored.style.display = editIsSponsored.checked ? 'inline-block' : 'none';
-      }
-    });
 
-    editIsFactChecked?.addEventListener('change', () => {
-      if (previewFactCheck) {
-        previewFactCheck.style.display = editIsFactChecked.checked ? 'inline-block' : 'none';
-      }
-    });
 
     // Live preview sync function
     const syncLivePreview = () => {
@@ -3435,17 +3382,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
 
     editorPage.querySelector('#editor-back-btn')?.addEventListener('click', closeEditor);
 
-    // Generate AI Summary
-    editorPage.querySelector('#btn-generate-ai-summary')?.addEventListener('click', () => {
-      const title = editTitle.value.trim() || 'Berita Teknologi';
-      const aiSummaryArea = editorPage.querySelector('#edit-ai-summary') as HTMLTextAreaElement;
-      aiSummaryArea.value = [
-        `Inisiatif ${title} memperkuat daya saing ekosistem digital nasional.`,
-        'Penerapan standar operasional tingkat tinggi menekan risiko dan mengoptimalkan efisiensi.',
-        'Langkah strategis ini diproyeksikan memberikan dampak positif bagi industri tekno Indonesia.'
-      ].join('\n');
-      Toast.show('Ringkasan AI berhasil digenerasi!');
-    });
+
 
     // Submit Fullscreen Form Handler
     const form = editorPage.querySelector('#editor-fullscreen-form') as HTMLFormElement;
@@ -3466,15 +3403,7 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
       const authorAvatar = matchedAuthor?.avatar || user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80';
       const authorRole = matchedAuthor?.role || 'Jurnalis Redaksi';
 
-      const aiSummaryText = (editorPage.querySelector('#edit-ai-summary') as HTMLTextAreaElement).value;
       const content = wysiwygCanvas.innerHTML;
-
-      const isFactChecked = (editorPage.querySelector('#edit-is-factchecked') as HTMLInputElement).checked;
-      const isPremium = (editorPage.querySelector('#edit-is-premium') as HTMLInputElement).checked;
-      const isSponsored = (editorPage.querySelector('#edit-is-sponsored') as HTMLInputElement).checked;
-      const sponsorName = (editorPage.querySelector('#edit-sponsor-name') as HTMLInputElement)?.value || undefined;
-
-      const aiSummary = aiSummaryText.split('\n').filter(line => line.trim().length > 0);
       const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
 
       if (isEdit && article) {
@@ -3489,12 +3418,11 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
             role: authorRole,
             avatar: authorAvatar
           },
-          aiSummary,
+          aiSummary: article.aiSummary || [],
           content,
-          isFactChecked,
-          isPremium,
-          isSponsored,
-          sponsorName: isSponsored ? sponsorName : undefined
+          isFactChecked: false,
+          isPremium: false,
+          isSponsored: false
         });
         Toast.show('Perubahan naskah berita berhasil disimpan.');
       } else {
@@ -3516,13 +3444,12 @@ Regulasi keamanan siber menjamin perlindungan kedaulatan data.`;
           isFeatured: false,
           isTrending: false,
           isBreaking: false,
-          isFactChecked,
-          isPremium,
-          isSponsored,
-          sponsorName: isSponsored ? sponsorName : undefined,
+          isFactChecked: false,
+          isPremium: false,
+          isSponsored: false,
           viewsCount: 0,
           likesCount: 0,
-          aiSummary,
+          aiSummary: [],
           content
         };
         await ArticleService.createArticle(newArt);
