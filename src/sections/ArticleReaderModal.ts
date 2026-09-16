@@ -29,11 +29,25 @@ export class ArticleReaderModal {
   private static readerLenis: Lenis | null = null;
   private static currentArticleSpeechText: string = '';
 
-  public static open(articleIdOrSlug: string, updateUrl: boolean = true): void {
-    const article = findArticleBySlugOrId(articleIdOrSlug);
+  public static async open(articleIdOrSlug: string, updateUrl: boolean = true): Promise<void> {
+    let article = findArticleBySlugOrId(articleIdOrSlug);
     const readerModal = document.getElementById('reader-modal');
     const modalReaderContent = document.getElementById('modal-reader-content');
-    if (!article || !readerModal || !modalReaderContent) return;
+    if (!readerModal || !modalReaderContent) return;
+
+    if (!article) {
+      try {
+        await ArticleService.syncWithBackend();
+        article = findArticleBySlugOrId(articleIdOrSlug);
+      } catch (err) {
+        console.warn('Gagal sinkronisasi data artikel:', err);
+      }
+    }
+
+    if (!article) {
+      console.warn(`Artikel tidak ditemukan untuk param: ${articleIdOrSlug}`);
+      return;
+    }
 
     // Trigger modal opened event (stops global main lenis)
     window.dispatchEvent(new CustomEvent('modal-opened'));

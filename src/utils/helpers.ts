@@ -13,9 +13,10 @@ export function escapeHtml(str: string): string {
 export function slugifyTitle(title: string): string {
   if (!title) return '';
   return title
+    .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-');
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 export function calculateReadTime(content?: string, fallback: number = 4): number {

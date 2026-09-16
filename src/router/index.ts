@@ -84,8 +84,14 @@ export class Router {
   }
 
   public static navigateToArticle(slugOrId: string, title?: string): void {
-    const slug = title ? slugifyTitle(title) : slugOrId;
-    this.navigateTo(`/berita/${slug}`);
+    if (!slugOrId && !title) return;
+    let target = slugOrId;
+    if (!target || target.startsWith('art-')) {
+      target = title ? slugifyTitle(title) : (slugOrId || '');
+    } else {
+      target = slugifyTitle(target);
+    }
+    this.navigateTo(`/berita/${target}`);
   }
 
   public static navigateToPage(pageId: string): void {

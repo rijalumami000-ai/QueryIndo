@@ -85,14 +85,32 @@ export class ArticleService {
 
   public static getArticleBySlugOrId(idOrSlug: string): Article | undefined {
     if (!idOrSlug) return undefined;
-    const decoded = decodeURIComponent(idOrSlug).trim().replace(/^\/+/, '').replace(/^article\//, '');
-    const cleanSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    return this.getArticles().find(a =>
-      a.id === decoded ||
-      a.slug === decoded ||
-      a.slug.toLowerCase() === decoded.toLowerCase() ||
-      cleanSlug(a.title) === decoded.toLowerCase()
-    );
+    const decoded = decodeURIComponent(idOrSlug).trim().replace(/^\/+/, '').replace(/^(article|berita)\//, '');
+    const cleanSlug = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const normalizeAlphaNum = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const targetDecoded = decoded.toLowerCase();
+    const targetClean = cleanSlug(decoded);
+    const targetNorm = normalizeAlphaNum(decoded);
+
+    return this.getArticles().find(a => {
+      if (!a) return false;
+      const aId = (a.id || '').toLowerCase();
+      const aSlug = (a.slug || '').toLowerCase();
+      const aTitle = (a.title || '').toLowerCase();
+
+      return (
+        aId === targetDecoded ||
+        aSlug === targetDecoded ||
+        aSlug === targetClean ||
+        cleanSlug(aTitle) === targetClean ||
+        (targetNorm.length > 3 && (
+          normalizeAlphaNum(aId) === targetNorm ||
+          normalizeAlphaNum(aSlug) === targetNorm ||
+          normalizeAlphaNum(aTitle) === targetNorm
+        ))
+      );
+    });
   }
 
   public static async createArticle(article: Article): Promise<Article> {
