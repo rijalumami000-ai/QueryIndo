@@ -95,98 +95,113 @@
 }
 
 /* ==========================================================================
-   Inline Image WYSIWYG Controls & Integrated Canvas Tools
+   Microsoft Word-Style Interactive Inline Images (Selection, 8 Handles, Layout Pill)
    ========================================================================== */
 
 #wysiwyg-editor-canvas .article-inline-image {
   position: relative;
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
   user-select: none;
-  border-radius: var(--radius-md);
-  border: 1.5px solid rgba(0, 242, 254, 0.25);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  background: var(--bg-secondary);
-  overflow: visible;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: var(--radius-sm);
+  display: block;
+  max-width: 100%;
+  cursor: default;
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
 }
 
-#wysiwyg-editor-canvas .article-inline-image:hover,
+#wysiwyg-editor-canvas .article-inline-image.align-center {
+  float: none;
+  margin: 1.5rem auto;
+  display: block;
+  clear: both;
+}
+
+#wysiwyg-editor-canvas .article-inline-image.align-left {
+  float: left;
+  margin: 0.5rem 1.5rem 0.75rem 0;
+  max-width: 48%;
+  clear: left;
+}
+
+#wysiwyg-editor-canvas .article-inline-image.align-right {
+  float: right;
+  margin: 0.5rem 0 0.75rem 1.5rem;
+  max-width: 48%;
+  clear: right;
+}
+
+/* Hover & Selected States */
+#wysiwyg-editor-canvas .article-inline-image:hover {
+  outline: 1.5px dashed rgba(0, 242, 254, 0.45);
+  outline-offset: 2px;
+}
+
 #wysiwyg-editor-canvas .article-inline-image.is-selected {
-  border-color: var(--accent-cyan) !important;
-  box-shadow: 0 6px 28px rgba(0, 242, 254, 0.22);
+  outline: 2px solid #00f2fe !important;
+  outline-offset: 2px;
+  box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25);
 }
 
 #wysiwyg-editor-canvas .article-inline-image.is-dragging {
-  opacity: 0.4;
-  border-style: dashed;
+  opacity: 0.35;
+  outline: 2px dashed #00f2fe !important;
 }
 
-/* Integrated In-Canvas Controls Header */
-.figure-canvas-tools {
-  background: rgba(11, 17, 32, 0.98);
-  border-bottom: 1px solid var(--border-color);
-  border-top-left-radius: calc(var(--radius-md) - 1px);
-  border-top-right-radius: calc(var(--radius-md) - 1px);
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* 8-Point Microsoft Word Resize Handles */
+.word-resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border: 1.5px solid #00f2fe;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  z-index: 40;
+  display: none;
+}
+
+#wysiwyg-editor-canvas .article-inline-image.is-selected .word-resize-handle {
+  display: block;
+}
+
+/* Corners */
+.word-resize-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+.word-resize-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.word-resize-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.word-resize-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+
+/* Edges */
+.word-resize-handle.handle-n { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.word-resize-handle.handle-s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.word-resize-handle.handle-w { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.word-resize-handle.handle-e { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
+
+/* Word-Style Floating Layout Options Capsule (Wrap Text) */
+.word-layout-badge {
+  position: absolute;
+  top: -38px;
+  right: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(11, 17, 32, 0.96);
+  border: 1px solid var(--accent-cyan);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.5rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 242, 254, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   user-select: none;
-  z-index: 10;
-  position: relative;
+  animation: popIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.figure-canvas-tools .tools-row {
+#wysiwyg-editor-canvas .article-inline-image.is-selected .word-layout-badge {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
 }
 
-.figure-canvas-tools .tools-row-crop {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 0.35rem;
-}
-
-.tools-drag-handle {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--accent-cyan);
-  font-family: var(--font-mono);
-  cursor: grab;
-  padding: 0.22rem 0.5rem;
-  border-radius: 4px;
-  background: rgba(0, 242, 254, 0.12);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  letter-spacing: 0.04em;
-  border: 1px solid rgba(0, 242, 254, 0.25);
-}
-.tools-drag-handle:active {
-  cursor: grabbing;
-}
-
-.tools-label {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.tools-divider {
-  width: 1px;
-  height: 14px;
-  background: rgba(255, 255, 255, 0.15);
-  margin: 0 0.15rem;
-}
-
-.btn-tool-pill {
-  padding: 0.22rem 0.6rem;
+.word-layout-btn {
+  padding: 0.2rem 0.55rem;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
@@ -196,87 +211,72 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast);
-  line-height: 1.3;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  line-height: 1.2;
 }
 
-.btn-tool-pill:hover {
+.word-layout-btn:hover {
   background: var(--bg-primary);
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
 }
 
-.btn-tool-pill.active {
+.word-layout-btn.active {
   background: var(--accent-cyan);
   color: #000;
   border-color: var(--accent-cyan);
   font-weight: 800;
 }
 
-.btn-tool-pill.danger:hover {
+.word-layout-btn.danger:hover {
   background: var(--accent-rose);
   color: #fff;
   border-color: var(--accent-rose);
 }
 
-.tool-crop-slider {
-  width: 80px;
-  height: 4px;
-  accent-color: var(--accent-cyan);
-  cursor: pointer;
+.word-layout-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 0.1rem;
 }
 
-.tool-crop-val {
+/* Floating Size Dimension Tooltip during Dragging */
+.word-dim-badge {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
   font-size: 0.68rem;
-  font-family: var(--font-mono);
-  color: var(--accent-cyan);
-  min-width: 36px;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 60;
+  white-space: nowrap;
 }
 
-/* Bottom Interactive Drag-to-Crop Handle */
-.crop-resize-handle {
-  background: rgba(11, 17, 32, 0.95);
-  border: 1px dashed rgba(0, 242, 254, 0.4);
-  border-top: none;
-  padding: 0.35rem 0;
-  text-align: center;
-  cursor: ns-resize;
-  color: var(--accent-cyan);
-  font-size: 0.62rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
-  letter-spacing: 0.06em;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-}
-
-.crop-resize-handle:hover {
-  background: rgba(0, 242, 254, 0.18);
-  border-color: var(--accent-cyan);
-}
-
+/* Figure Caption */
 #wysiwyg-editor-canvas .article-inline-image figcaption {
-  margin: 0.5rem 0.65rem 0.65rem;
+  margin: 0.4rem 0 0.2rem;
   font-size: 0.825rem;
   color: var(--text-secondary);
   outline: none;
   min-height: 1.4rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed transparent;
+  background: transparent;
   user-select: text;
 }
 
 #wysiwyg-editor-canvas .article-inline-image figcaption:hover,
 #wysiwyg-editor-canvas .article-inline-image figcaption:focus {
-  border-color: rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.05);
 }
 

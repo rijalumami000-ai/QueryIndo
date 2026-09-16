@@ -3289,6 +3289,44 @@ export class AdminCMS {
       syncAll();
     });
 
+    // Click outside figures deselects all selected figures smoothly
+    wysiwygCanvas.addEventListener('click', (e) => {
+      const targetFig = (e.target as HTMLElement).closest('.article-inline-image');
+      if (!targetFig) {
+        wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => {
+          f.classList.remove('is-selected');
+          f.setAttribute('draggable', 'false');
+        });
+      }
+    });
+
+    // Native Backspace or Delete removes currently selected figure
+    wysiwygCanvas.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const selectedFig = wysiwygCanvas.querySelector('.article-inline-image.is-selected') as HTMLElement | null;
+        if (selectedFig) {
+          const activeEl = document.activeElement;
+          if (activeEl && selectedFig.querySelector('figcaption')?.contains(activeEl)) {
+            return;
+          }
+          e.preventDefault();
+          const nextSibling = selectedFig.nextElementSibling as HTMLElement | null || selectedFig.previousElementSibling as HTMLElement | null;
+          selectedFig.remove();
+          syncAll();
+          if (nextSibling) {
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(nextSibling);
+            range.collapse(true);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+            nextSibling.focus();
+          }
+          Toast.show('Gambar berhasil dihapus dari naskah.');
+        }
+      }
+    });
+
     rawTextarea.addEventListener('input', () => {
       wysiwygCanvas.innerHTML = rawTextarea.value;
       this.hydrateCanvasFigures(wysiwygCanvas, syncAll);
@@ -3512,18 +3550,16 @@ export class AdminCMS {
   }
 
   // ==========================================================================
-  // Inline Article Image Modal & Canvas Management (Link/URL Only)
+  // Inline Article Image Engine (Microsoft Word Concept: Handles & Layout Options)
   // ==========================================================================
 
   private openInlineImageModal(
     _parentContainer: HTMLElement,
-    existingData: { url: string; align: string; ratio: string; focus: string; caption: string; source: string } | null,
+    existingData: { url: string; align: string; caption: string; source: string } | null,
     onConfirm: (figureHtml: string) => void
   ) {
     const isEdit = existingData !== null;
     let selectedAlign = existingData?.align || 'center';
-    let selectedRatio = existingData?.ratio || '16-9';
-    let selectedFocus = existingData?.focus || 'center';
 
     const modalOverlay = document.createElement('div');
     modalOverlay.id = 'inline-img-modal-overlay';
@@ -3534,105 +3570,58 @@ export class AdminCMS {
     `;
 
     modalOverlay.innerHTML = `
-      <div class="inline-img-modal-card">
+      <div class="inline-img-modal-card" style="max-width: 520px;">
         <!-- Header -->
-        <div style="padding: 1.2rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+        <div style="padding: 1.1rem 1.4rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
           <div>
             <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <span>${isEdit ? 'Ubah Pengaturan Gambar Naskah' : 'Sisipkan Gambar ke Naskah (URL / Link)'}</span>
+              <span>${isEdit ? 'Ubah Informasi Gambar Naskah' : 'Sisipkan Gambar (URL / Tautan)'}</span>
             </h3>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Gunakan tautan gambar online langsung (Google Drive, Unsplash, CDN, dll.)</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Sederhana seperti Microsoft Word: masukkan tautan, atur tata letak & keterangan.</p>
           </div>
           <button type="button" id="modal-inline-close-btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); width: 28px; height: 28px; border-radius: 50%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
         </div>
 
         <!-- Body -->
-        <div style="padding: 1.25rem 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.15rem; max-height: calc(88vh - 130px);">
+        <div style="padding: 1.25rem 1.4rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; max-height: calc(85vh - 120px);">
           <!-- URL Input -->
           <div>
-            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem;">
-              URL Gambar (Link Langsung)
+            <label style="display: block; font-size: 0.76rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem;">
+              URL / Link Tautan Gambar
             </label>
             <input type="url" id="modal-inline-url" required value="${existingData ? escapeHtml(existingData.url) : ''}" placeholder="https://images.unsplash.com/... atau tautan Google Drive / CDN" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem; outline: none; font-family: var(--font-mono);" />
-            <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; display: block;">Tautan Google Drive (Share link) akan otomatis dinormalisasi ke direct view.</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Tautan Google Drive (Share link) akan otomatis dinormalisasi.</span>
           </div>
 
-          <!-- Live Interactive Preview Box -->
-          <div>
-            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-              Pratinjau Hasil Pembingkaian (Live Preview)
-            </label>
-            <div id="modal-inline-preview-container" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; padding: 0.75rem; display: flex; flex-direction: column; align-items: center;">
-              <div id="modal-inline-preview-frame" style="width: 100%; max-width: 440px; border-radius: var(--radius-sm); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; position: relative;">
-                <img id="modal-inline-preview-img" src="${existingData?.url || ''}" alt="Pratinjau Gambar" style="display: ${existingData?.url ? 'block' : 'none'}; width: 100%; height: 100%; object-fit: cover;" />
-                <div id="modal-inline-preview-placeholder" style="display: ${existingData?.url ? 'none' : 'flex'}; padding: 2.2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.78rem; flex-direction: column; align-items: center; gap: 0.5rem;">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  <span>Masukkan URL gambar di atas untuk melihat pembingkaian & crop</span>
-                </div>
+          <!-- Live Image Preview Box -->
+          <div id="modal-inline-preview-container" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; padding: 0.75rem; display: flex; flex-direction: column; align-items: center;">
+            <div id="modal-inline-preview-frame" style="width: 100%; max-height: 200px; border-radius: var(--radius-sm); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;">
+              <img id="modal-inline-preview-img" src="${existingData?.url || ''}" alt="Pratinjau Gambar" style="display: ${existingData?.url ? 'block' : 'none'}; max-width: 100%; max-height: 200px; object-fit: contain;" />
+              <div id="modal-inline-preview-placeholder" style="display: ${existingData?.url ? 'none' : 'flex'}; padding: 1.8rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.78rem; flex-direction: column; align-items: center; gap: 0.4rem;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Masukkan URL gambar untuk melihat pratinjau</span>
               </div>
-              <div id="modal-inline-preview-caption-text" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; font-style: italic;">
-                ${existingData?.caption ? escapeHtml(existingData.caption) : 'Keterangan gambar akan muncul di sini'}
-              </div>
+            </div>
+            <div id="modal-inline-preview-caption-text" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; font-style: italic;">
+              ${existingData?.caption ? escapeHtml(existingData.caption) : 'Keterangan gambar akan muncul di sini'}
             </div>
           </div>
 
-          <!-- Placement & Alignment Choices -->
+          <!-- Placement (Wrap Text ala Word) -->
           <div>
-            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-              Tata Letak & Perataan Naskah (Alignment)
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+              Tata Letak Teks (Layout / Wrap Text)
             </label>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-              <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'center' ? 'active' : ''}" data-val="center">
-                ▣ Lebar Penuh (Tengah)
-              </button>
               <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'left' ? 'active' : ''}" data-val="left">
-                ⇦ Samping Kiri (Wrap)
+                ⇦ Wrap Kiri
+              </button>
+              <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'center' ? 'active' : ''}" data-val="center">
+                ▣ In Line (Tengah)
               </button>
               <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'right' ? 'active' : ''}" data-val="right">
-                Samping Kanan (Wrap) ⇨
-              </button>
-            </div>
-          </div>
-
-          <!-- Aspect Ratio & Framing -->
-          <div>
-            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-              Rasio Aspek & Pembingkaian (Aspect Ratio)
-            </label>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '16-9' ? 'active' : ''}" data-val="16-9">
-                16:9 (Standar Berita)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '21-9' ? 'active' : ''}" data-val="21-9">
-                21:9 (Sinematik)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '4-3' ? 'active' : ''}" data-val="4-3">
-                4:3 (Klasik)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '1-1' ? 'active' : ''}" data-val="1-1">
-                1:1 (Persegi)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === 'auto' ? 'active' : ''}" data-val="auto">
-                Asli (Auto)
-              </button>
-            </div>
-          </div>
-
-          <!-- Crop Focus / Object Position -->
-          <div>
-            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
-              Fokus Pemotongan (Crop Focus)
-            </label>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'center' ? 'active' : ''}" data-val="center">
-                Tengah (Center)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'top' ? 'active' : ''}" data-val="top">
-                Atas (Kepala / Potret Tokoh)
-              </button>
-              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'bottom' ? 'active' : ''}" data-val="bottom">
-                Bawah (Bottom)
+                Wrap Kanan ⇨
               </button>
             </div>
           </div>
@@ -3640,13 +3629,13 @@ export class AdminCMS {
           <!-- Caption & Photo Source Credit -->
           <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.75rem;">
             <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
-                Keterangan Gambar (Caption)
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">
+                Keterangan Foto (Caption)
               </label>
               <input type="text" id="modal-inline-caption" value="${existingData ? escapeHtml(existingData.caption) : ''}" placeholder="Penjelasan konteks foto..." style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
             </div>
             <div>
-              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.3rem;">
                 Sumber Foto / Kredit
               </label>
               <input type="text" id="modal-inline-source" value="${existingData ? escapeHtml(existingData.source) : ''}" placeholder="Contoh: Reuters / ANTARA" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
@@ -3655,11 +3644,11 @@ export class AdminCMS {
         </div>
 
         <!-- Footer Actions -->
-        <div style="padding: 1rem 1.5rem; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
-          <button type="button" id="modal-inline-cancel-btn" style="padding: 0.55rem 1.25rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 0.825rem; font-weight: 600; cursor: pointer;">
+        <div style="padding: 1rem 1.4rem; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" id="modal-inline-cancel-btn" style="padding: 0.5rem 1.15rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 0.825rem; font-weight: 600; cursor: pointer;">
             Batal
           </button>
-          <button type="button" id="modal-inline-confirm-btn" style="padding: 0.55rem 1.5rem; background: var(--gradient-brand); color: #000; border-radius: var(--radius-full); font-size: 0.825rem; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-glow);">
+          <button type="button" id="modal-inline-confirm-btn" style="padding: 0.5rem 1.4rem; background: var(--gradient-brand); color: #000; border-radius: var(--radius-full); font-size: 0.825rem; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-glow);">
             ${isEdit ? 'Perbarui Gambar' : 'Sisipkan ke Naskah'}
           </button>
         </div>
@@ -3669,14 +3658,13 @@ export class AdminCMS {
     document.body.appendChild(modalOverlay);
 
     const urlInput = modalOverlay.querySelector('#modal-inline-url') as HTMLInputElement;
-    const previewFrame = modalOverlay.querySelector('#modal-inline-preview-frame') as HTMLElement;
     const previewImg = modalOverlay.querySelector('#modal-inline-preview-img') as HTMLImageElement;
     const previewPlaceholder = modalOverlay.querySelector('#modal-inline-preview-placeholder') as HTMLElement;
     const previewCaption = modalOverlay.querySelector('#modal-inline-preview-caption-text') as HTMLElement;
     const captionInput = modalOverlay.querySelector('#modal-inline-caption') as HTMLInputElement;
     const sourceInput = modalOverlay.querySelector('#modal-inline-source') as HTMLInputElement;
 
-    const updatePreviewFrame = () => {
+    const updatePreview = () => {
       const rawUrl = urlInput.value.trim();
       const normUrl = ImageUtils.normalizeImageUrl(rawUrl);
       if (normUrl !== rawUrl) {
@@ -3692,17 +3680,6 @@ export class AdminCMS {
         previewPlaceholder.style.display = 'flex';
       }
 
-      // Aspect ratio
-      if (selectedRatio === '16-9') previewFrame.style.aspectRatio = '16 / 9';
-      else if (selectedRatio === '21-9') previewFrame.style.aspectRatio = '21 / 9';
-      else if (selectedRatio === '4-3') previewFrame.style.aspectRatio = '4 / 3';
-      else if (selectedRatio === '1-1') previewFrame.style.aspectRatio = '1 / 1';
-      else previewFrame.style.aspectRatio = 'auto';
-
-      // Crop focus
-      previewImg.style.objectPosition = `center ${selectedFocus}`;
-
-      // Caption preview
       const capText = captionInput.value.trim();
       const srcText = sourceInput.value.trim();
       if (capText || srcText) {
@@ -3712,15 +3689,13 @@ export class AdminCMS {
       }
     };
 
-    updatePreviewFrame();
+    updatePreview();
 
-    // Event listeners
-    urlInput.addEventListener('input', updatePreviewFrame);
-    urlInput.addEventListener('paste', () => setTimeout(updatePreviewFrame, 40));
-    captionInput.addEventListener('input', updatePreviewFrame);
-    sourceInput.addEventListener('input', updatePreviewFrame);
+    urlInput.addEventListener('input', updatePreview);
+    urlInput.addEventListener('paste', () => setTimeout(updatePreview, 40));
+    captionInput.addEventListener('input', updatePreview);
+    sourceInput.addEventListener('input', updatePreview);
 
-    // Option pills: Alignment
     modalOverlay.querySelectorAll('.opt-align').forEach(btn => {
       btn.addEventListener('click', () => {
         modalOverlay.querySelectorAll('.opt-align').forEach(b => b.classList.remove('active'));
@@ -3729,27 +3704,6 @@ export class AdminCMS {
       });
     });
 
-    // Option pills: Ratio
-    modalOverlay.querySelectorAll('.opt-ratio').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalOverlay.querySelectorAll('.opt-ratio').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedRatio = btn.getAttribute('data-val') || '16-9';
-        updatePreviewFrame();
-      });
-    });
-
-    // Option pills: Focus
-    modalOverlay.querySelectorAll('.opt-focus').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalOverlay.querySelectorAll('.opt-focus').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedFocus = btn.getAttribute('data-val') || 'center';
-        updatePreviewFrame();
-      });
-    });
-
-    // Close modal handlers
     const closeModal = () => modalOverlay.remove();
     modalOverlay.querySelector('#modal-inline-close-btn')?.addEventListener('click', closeModal);
     modalOverlay.querySelector('#modal-inline-cancel-btn')?.addEventListener('click', closeModal);
@@ -3757,7 +3711,6 @@ export class AdminCMS {
       if (e.target === modalOverlay) closeModal();
     });
 
-    // Confirm handler
     modalOverlay.querySelector('#modal-inline-confirm-btn')?.addEventListener('click', () => {
       const finalUrl = ImageUtils.normalizeImageUrl(urlInput.value.trim());
       if (!finalUrl) {
@@ -3770,9 +3723,9 @@ export class AdminCMS {
       const finalSource = sourceInput.value.trim();
 
       const figureHtml = `
-        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" contenteditable="false">
+        <figure class="article-inline-image align-${selectedAlign}" data-align="${selectedAlign}" contenteditable="false">
           <div class="inline-image-frame" contenteditable="false">
-            <img src="${finalUrl}" alt="${escapeHtml(finalCaption || 'Ilustrasi Berita')}" loading="lazy" style="object-position: center ${selectedFocus};" />
+            <img src="${finalUrl}" alt="${escapeHtml(finalCaption || 'Ilustrasi Berita')}" loading="lazy" />
           </div>
           <figcaption contenteditable="true" placeholder="Tulis keterangan foto atau kredit sumber di sini...">
             ${finalCaption ? `<span class="inline-caption-text">${escapeHtml(finalCaption)}</span>` : ''}
@@ -3787,15 +3740,16 @@ export class AdminCMS {
   }
 
   // ==========================================================================
-  // In-Canvas Inline Figure Engine (Safe Sibling Insertion, Free Move & Crop)
+  // In-Canvas Figure Engine (Word-Style Handles & Sibling Mechanics)
   // ==========================================================================
 
-  // Clean HTML serializer: strips temporary editing toolbars and crop handles
+  // Clean HTML serializer: strips temporary editing handles and badges
   private getCleanArticleHtml(wysiwygCanvas: HTMLElement): string {
     const clone = wysiwygCanvas.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('.figure-canvas-tools, .crop-resize-handle').forEach(el => el.remove());
+    clone.querySelectorAll('.figure-canvas-tools, .crop-resize-handle, .word-resize-handle, .word-layout-badge, .word-dim-badge').forEach(el => el.remove());
     clone.querySelectorAll('.article-inline-image').forEach(fig => {
       fig.removeAttribute('contenteditable');
+      fig.removeAttribute('draggable');
       fig.classList.remove('is-selected', 'is-dragging');
       const frame = fig.querySelector('.inline-image-frame') as HTMLElement | null;
       if (frame) {
@@ -3821,7 +3775,7 @@ export class AdminCMS {
     });
   }
 
-  // Hydrate a single figure with integrated on-canvas tools & interactive crop handle
+  // Hydrate a single figure with Word-style 8-point handles & floating Layout Options badge
   private hydrateSingleFigure(figure: HTMLElement, wysiwygCanvas: HTMLElement, syncCallback: () => void) {
     figure.setAttribute('contenteditable', 'false');
 
@@ -3848,243 +3802,141 @@ export class AdminCMS {
     // Live sync when editor types directly into caption
     figcaption.oninput = () => syncCallback();
 
-    // Remove any previously attached tools/handles to avoid duplicates
-    figure.querySelector('.figure-canvas-tools')?.remove();
-    figure.querySelector('.crop-resize-handle')?.remove();
+    // Prevent figcaption clicks from bubbling to figure selection
+    figcaption.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
 
-    // Read existing attributes
+    // Clean up existing handles/badges to avoid duplicates
+    figure.querySelectorAll('.figure-canvas-tools, .crop-resize-handle, .word-resize-handle, .word-layout-badge, .word-dim-badge').forEach(el => el.remove());
+
+    // 1. Create 8 Microsoft Word-Style Resize Handles
+    const handlePositions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+    handlePositions.forEach(pos => {
+      const h = document.createElement('div');
+      h.className = `word-resize-handle handle-${pos}`;
+      h.setAttribute('contenteditable', 'false');
+      h.title = 'Tarik untuk mengubah ukuran gambar (seperti Microsoft Word)';
+      figure.appendChild(h);
+
+      // Mouse drag resizing
+      h.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startW = figure.getBoundingClientRect().width;
+        const startH = frame ? frame.getBoundingClientRect().height : figure.getBoundingClientRect().height;
+        const canvasW = wysiwygCanvas.clientWidth - 32;
+
+        document.body.style.userSelect = 'none';
+
+        // Floating dimension tooltip
+        let dimBadge = figure.querySelector('.word-dim-badge') as HTMLElement | null;
+        if (!dimBadge) {
+          dimBadge = document.createElement('div');
+          dimBadge.className = 'word-dim-badge';
+          dimBadge.setAttribute('contenteditable', 'false');
+          figure.appendChild(dimBadge);
+        }
+
+        const updateDim = (w: number, h: number) => {
+          if (dimBadge) {
+            dimBadge.textContent = `${Math.round(w)} × ${Math.round(h)} px`;
+          }
+        };
+        updateDim(startW, startH);
+
+        const onMouseMove = (moveEvt: MouseEvent) => {
+          const diffX = moveEvt.clientX - startX;
+          const diffY = moveEvt.clientY - startY;
+
+          let newW = startW;
+          let newH = startH;
+
+          // Width adjustment
+          if (pos === 'e' || pos === 'se' || pos === 'ne') {
+            newW = Math.max(140, Math.min(canvasW, startW + diffX));
+            figure.style.width = `${Math.round(newW)}px`;
+            figure.style.maxWidth = '100%';
+          } else if (pos === 'w' || pos === 'sw' || pos === 'nw') {
+            newW = Math.max(140, Math.min(canvasW, startW - diffX));
+            figure.style.width = `${Math.round(newW)}px`;
+            figure.style.maxWidth = '100%';
+          }
+
+          // Height adjustment (Crop)
+          if (pos === 's' || pos === 'se' || pos === 'sw') {
+            newH = Math.max(90, Math.min(900, startH + diffY));
+            if (frame) {
+              frame.style.height = `${Math.round(newH)}px`;
+              frame.style.aspectRatio = 'auto';
+            }
+            if (img) img.style.objectFit = 'cover';
+          } else if (pos === 'n' || pos === 'ne' || pos === 'nw') {
+            newH = Math.max(90, Math.min(900, startH - diffY));
+            if (frame) {
+              frame.style.height = `${Math.round(newH)}px`;
+              frame.style.aspectRatio = 'auto';
+            }
+            if (img) img.style.objectFit = 'cover';
+          }
+
+          updateDim(newW, newH);
+        };
+
+        const onMouseUp = () => {
+          document.body.style.userSelect = '';
+          dimBadge?.remove();
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+          syncCallback();
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    });
+
+    // 2. Create Floating Word-Style Layout Options Badge (Wrap Text)
     const align = figure.getAttribute('data-align') || (figure.classList.contains('align-left') ? 'left' : figure.classList.contains('align-right') ? 'right' : 'center');
-    const ratio = figure.getAttribute('data-ratio') || (figure.classList.contains('ratio-21-9') ? '21-9' : figure.classList.contains('ratio-4-3') ? '4-3' : figure.classList.contains('ratio-1-1') ? '1-1' : figure.classList.contains('ratio-auto') ? 'auto' : figure.classList.contains('ratio-custom') ? 'custom' : '16-9');
-    const focus = figure.getAttribute('data-focus') || 'center';
-    const curHeightVal = parseInt(figure.getAttribute('data-height') || '') || (frame ? Math.round(frame.getBoundingClientRect().height) : 320);
 
-    // Create On-Canvas Tools Header
-    const tools = document.createElement('div');
-    tools.className = 'figure-canvas-tools';
-    tools.setAttribute('contenteditable', 'false');
-
-    tools.innerHTML = `
-      <!-- Row 1: Geser & Tata Letak -->
-      <div class="tools-row tools-row-move">
-        <span class="tools-drag-handle" title="Tarik mouse untuk memindahkan posisi gambar antar paragraf" draggable="true">⠿ GESER</span>
-        <div class="tools-divider"></div>
-        <button type="button" class="btn-tool-pill btn-tool-up" title="Pindah Gambar ke Atas Paragraf Sebelumnya">▲ Naik</button>
-        <button type="button" class="btn-tool-pill btn-tool-down" title="Pindah Gambar ke Bawah Paragraf Setelahnya">▼ Turun</button>
-        <div class="tools-divider"></div>
-        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'left' ? 'active' : ''}" data-align="left" title="Rata Samping Kiri (Wrap Teks)">⇦ Kiri</button>
-        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'center' ? 'active' : ''}" data-align="center" title="Lebar Penuh Tengah">▣ Tengah</button>
-        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'right' ? 'active' : ''}" data-align="right" title="Rata Samping Kanan (Wrap Teks)">Kanan ⇨</button>
-        <div class="tools-divider"></div>
-        <button type="button" class="btn-tool-pill btn-tool-edit" title="Ubah Link URL & Keterangan">✎ Ubah Link</button>
-        <button type="button" class="btn-tool-pill btn-tool-delete danger" title="Hapus Gambar dari Naskah">🗑 Hapus</button>
-      </div>
-
-      <!-- Row 2: Crop Rasio, Fokus & Slider Tinggi Bebas -->
-      <div class="tools-row tools-row-crop">
-        <span class="tools-label">CROP:</span>
-        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '16-9' ? 'active' : ''}" data-ratio="16-9">16:9</button>
-        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '21-9' ? 'active' : ''}" data-ratio="21-9">21:9</button>
-        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '4-3' ? 'active' : ''}" data-ratio="4-3">4:3</button>
-        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '1-1' ? 'active' : ''}" data-ratio="1-1">1:1</button>
-        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === 'auto' ? 'active' : ''}" data-ratio="auto">Asli</button>
-
-        <div class="tools-divider"></div>
-        <span class="tools-label">FOKUS:</span>
-        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'top' ? 'active' : ''}" data-focus="top" title="Fokus Atas (Kepala/Wajah)">👤 Atas</button>
-        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'center' ? 'active' : ''}" data-focus="center" title="Fokus Tengah">🎯 Tengah</button>
-        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'bottom' ? 'active' : ''}" data-focus="bottom" title="Fokus Bawah">⬇ Bawah</button>
-
-        <div class="tools-divider"></div>
-        <span class="tools-label">↕ TINGGI:</span>
-        <input type="range" class="tool-crop-slider" min="120" max="650" step="10" value="${curHeightVal}" title="Geser untuk mengubah tinggi crop bebas secara langsung" />
-        <span class="tool-crop-val">${curHeightVal}px</span>
-      </div>
+    const badge = document.createElement('div');
+    badge.className = 'word-layout-badge';
+    badge.setAttribute('contenteditable', 'false');
+    badge.innerHTML = `
+      <button type="button" class="word-layout-btn opt-wrap ${align === 'left' ? 'active' : ''}" data-align="left" title="Wrap Kiri: Teks mengalir di kanan gambar">⇦ Wrap Kiri</button>
+      <button type="button" class="word-layout-btn opt-wrap ${align === 'center' ? 'active' : ''}" data-align="center" title="Tengah / In Line: Sejajar naskah penuh">▣ Tengah</button>
+      <button type="button" class="word-layout-btn opt-wrap ${align === 'right' ? 'active' : ''}" data-align="right" title="Wrap Kanan: Teks mengalir di kiri gambar">Wrap Kanan ⇨</button>
+      <div class="word-layout-divider"></div>
+      <button type="button" class="word-layout-btn opt-edit" title="Ubah link gambar atau keterangan">✎ Ubah</button>
+      <button type="button" class="word-layout-btn opt-delete danger" title="Hapus gambar dari naskah">🗑 Hapus</button>
     `;
+    figure.appendChild(badge);
 
-    figure.prepend(tools);
-
-    // Create Bottom Interactive Drag-to-Crop Handle
-    const resizeHandle = document.createElement('div');
-    resizeHandle.className = 'crop-resize-handle';
-    resizeHandle.setAttribute('contenteditable', 'false');
-    resizeHandle.title = 'Tarik mouse ke atas/bawah untuk memotong (crop) tinggi foto secara bebas';
-    resizeHandle.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 15 12 20 17 15"/><polyline points="7 9 12 4 17 9"/></svg>
-      <span>TARIK KE ATAS/BAWAH UNTUK CROP BEBAS</span>
-    `;
-    if (frame) {
-      frame.after(resizeHandle);
-    } else {
-      figure.appendChild(resizeHandle);
-    }
-
-    // --- Wire Event Handlers ---
-    // 1. Move Up
-    tools.querySelector('.btn-tool-up')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const prev = figure.previousElementSibling;
-      if (prev) {
-        prev.before(figure);
-        syncCallback();
-        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else {
-        Toast.show('Gambar sudah di posisi paling atas naskah.', 'info');
-      }
-    });
-
-    // 2. Move Down
-    tools.querySelector('.btn-tool-down')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const next = figure.nextElementSibling;
-      if (next) {
-        next.after(figure);
-        syncCallback();
-        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else {
-        Toast.show('Gambar sudah di posisi paling bawah naskah.', 'info');
-      }
-    });
-
-    // 3. Alignment
-    tools.querySelectorAll('.btn-tool-align').forEach(btn => {
+    // Layout Option Buttons (Wrap Text)
+    badge.querySelectorAll('.opt-wrap').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const a = (btn.getAttribute('data-align') || 'center') as 'left' | 'center' | 'right';
         figure.classList.remove('align-left', 'align-center', 'align-right');
         figure.classList.add(`align-${a}`);
         figure.setAttribute('data-align', a);
-        tools.querySelectorAll('.btn-tool-align').forEach(b => b.classList.remove('active'));
+        badge.querySelectorAll('.opt-wrap').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         syncCallback();
       });
     });
 
-    // 4. Aspect Ratio Preset Buttons
-    const slider = tools.querySelector('.tool-crop-slider') as HTMLInputElement | null;
-    const valLabel = tools.querySelector('.tool-crop-val') as HTMLElement | null;
-
-    tools.querySelectorAll('.btn-tool-ratio').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const r = btn.getAttribute('data-ratio') || '16-9';
-        figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto', 'ratio-custom');
-        figure.classList.add(`ratio-${r}`);
-        figure.setAttribute('data-ratio', r);
-        figure.removeAttribute('data-height');
-        if (frame) {
-          frame.style.height = '';
-          if (r === '16-9') frame.style.aspectRatio = '16 / 9';
-          else if (r === '21-9') frame.style.aspectRatio = '21 / 9';
-          else if (r === '4-3') frame.style.aspectRatio = '4 / 3';
-          else if (r === '1-1') frame.style.aspectRatio = '1 / 1';
-          else frame.style.aspectRatio = 'auto';
-        }
-        tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if (valLabel && frame) {
-          valLabel.textContent = `${Math.round(frame.getBoundingClientRect().height)}px`;
-        }
-        syncCallback();
-      });
-    });
-
-    // 5. Focal Point Buttons
-    tools.querySelectorAll('.btn-tool-focus').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const f = btn.getAttribute('data-focus') || 'center';
-        figure.setAttribute('data-focus', f);
-        if (img) img.style.objectPosition = `center ${f}`;
-        tools.querySelectorAll('.btn-tool-focus').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        syncCallback();
-      });
-    });
-
-    // 6. Height Crop Slider
-    slider?.addEventListener('input', (e) => {
-      e.stopPropagation();
-      const h = slider.value;
-      if (valLabel) valLabel.textContent = `${h}px`;
-      if (frame) {
-        frame.style.aspectRatio = 'auto';
-        frame.style.height = `${h}px`;
-      }
-      if (img) img.style.objectFit = 'cover';
-      figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto');
-      figure.classList.add('ratio-custom');
-      figure.setAttribute('data-height', `${h}px`);
-      figure.setAttribute('data-ratio', 'custom');
-      tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
-      syncCallback();
-    });
-
-    // 7. Interactive Bottom Drag-to-Crop Handle
-    resizeHandle.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startY = e.clientY;
-      const startH = frame ? frame.offsetHeight : 300;
-      document.body.style.cursor = 'ns-resize';
-      document.body.style.userSelect = 'none';
-
-      const onMouseMove = (moveEvt: MouseEvent) => {
-        const diffY = moveEvt.clientY - startY;
-        const newH = Math.max(120, Math.min(750, Math.round(startH + diffY)));
-        if (frame) {
-          frame.style.aspectRatio = 'auto';
-          frame.style.height = `${newH}px`;
-        }
-        if (img) img.style.objectFit = 'cover';
-        figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto');
-        figure.classList.add('ratio-custom');
-        figure.setAttribute('data-height', `${newH}px`);
-        figure.setAttribute('data-ratio', 'custom');
-        if (slider) slider.value = String(newH);
-        if (valLabel) valLabel.textContent = `${newH}px`;
-        tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
-      };
-
-      const onMouseUp = () => {
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-        syncCallback();
-      };
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
-    });
-
-    // 8. Dedicated Drag Handle for Repositioning Between Paragraphs
-    const dragHandle = tools.querySelector('.tools-drag-handle') as HTMLElement | null;
-    dragHandle?.addEventListener('dragstart', (e) => {
-      e.stopPropagation();
-      figure.classList.add('is-dragging');
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', 'queryindo-figure');
-      }
-      (wysiwygCanvas as any)._draggedFigure = figure;
-    });
-
-    dragHandle?.addEventListener('dragend', () => {
-      figure.classList.remove('is-dragging');
-      delete (wysiwygCanvas as any)._draggedFigure;
-      syncCallback();
-    });
-
-    // 9. Edit in Modal
-    tools.querySelector('.btn-tool-edit')?.addEventListener('click', (e) => {
+    // Edit in Modal
+    badge.querySelector('.opt-edit')?.addEventListener('click', (e) => {
       e.stopPropagation();
       const captionText = figure.querySelector('.inline-caption-text')?.textContent || '';
       const captionSource = figure.querySelector('.inline-caption-source')?.textContent?.replace(/^\(Foto:\s*|\)$/g, '') || '';
       const existingData = {
         url: img?.src || '',
         align: figure.getAttribute('data-align') || 'center',
-        ratio: figure.getAttribute('data-ratio') || '16-9',
-        focus: figure.getAttribute('data-focus') || 'center',
         caption: captionText,
         source: captionSource
       };
@@ -4094,18 +3946,23 @@ export class AdminCMS {
         temp.innerHTML = updatedFigureHtml;
         const newFig = temp.querySelector('.article-inline-image') as HTMLElement | null;
         if (newFig) {
+          if (figure.style.width) newFig.style.width = figure.style.width;
+          const newFrame = newFig.querySelector('.inline-image-frame') as HTMLElement | null;
+          if (newFrame && frame && frame.style.height) {
+            newFrame.style.height = frame.style.height;
+          }
           figure.replaceWith(newFig);
           this.hydrateSingleFigure(newFig, wysiwygCanvas, syncCallback);
           syncCallback();
-          Toast.show('Pengaturan gambar naskah berhasil diperbarui.');
+          Toast.show('Pengaturan gambar berhasil diperbarui.');
         }
       });
     });
 
-    // 10. Delete
-    tools.querySelector('.btn-tool-delete')?.addEventListener('click', (e) => {
+    // Delete Button
+    badge.querySelector('.opt-delete')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      const nextSibling = figure.nextElementSibling as HTMLElement | null;
+      const nextSibling = figure.nextElementSibling as HTMLElement | null || figure.previousElementSibling as HTMLElement | null;
       figure.remove();
       syncCallback();
       if (nextSibling) {
@@ -4118,6 +3975,42 @@ export class AdminCMS {
         nextSibling.focus();
       }
       Toast.show('Gambar berhasil dihapus dari naskah.');
+    });
+
+    // 3. Selection & Caret Safety
+    figure.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('figcaption, .word-layout-badge')) return;
+      e.stopPropagation();
+
+      wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => {
+        if (f !== figure) {
+          f.classList.remove('is-selected');
+          f.setAttribute('draggable', 'false');
+        }
+      });
+
+      figure.classList.add('is-selected');
+      figure.setAttribute('draggable', 'true');
+    });
+
+    // Drag-and-drop to move between paragraphs
+    figure.addEventListener('dragstart', (e) => {
+      if (!figure.classList.contains('is-selected')) {
+        e.preventDefault();
+        return;
+      }
+      figure.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'queryindo-figure');
+      }
+      (wysiwygCanvas as any)._draggedFigure = figure;
+    });
+
+    figure.addEventListener('dragend', () => {
+      figure.classList.remove('is-dragging');
+      delete (wysiwygCanvas as any)._draggedFigure;
+      syncCallback();
     });
   }
 
