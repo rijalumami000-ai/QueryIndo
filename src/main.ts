@@ -1,6 +1,9 @@
 import './styles/main.css';
 import type { CategoryId } from './types/news';
 import { ArticleService } from './services/articleService';
+import { AuthorService } from './services/authorService';
+import { ShoppingCarousel } from './components/ShoppingCarousel';
+import { AdBanner } from './components/AdBanner';
 import { AdminCMS } from './components/AdminCMS';
 import { ApiService } from './services/apiService';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
@@ -59,10 +62,15 @@ async function init() {
   store.updateBookmarkBadge();
   UserAuthModal.updateUserNavbarState();
 
-  // 3. Fetch Articles & Indices from Backend
+  // 3. Fetch Articles, Authors, Shopping Products, Ads & Indices from Backend
   try {
     await ApiService.checkBackendHealth();
-    await ArticleService.syncWithBackend();
+    await Promise.allSettled([
+      ArticleService.syncWithBackend(),
+      AuthorService.syncWithBackend(),
+      ShoppingCarousel.syncWithBackend(),
+      AdBanner.syncWithBackend()
+    ]);
   } catch (err) {
     console.warn('Backend unavailable, using local mock data', err);
   }

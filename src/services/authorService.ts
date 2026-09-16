@@ -298,7 +298,7 @@ export class AuthorService {
     return this.getAuthors().find(a => a.name.toLowerCase() === name.toLowerCase());
   }
 
-  public static addAuthor(data: Omit<AuthorProfile, 'id' | 'joinedAt'>): AuthorProfile {
+  public static async addAuthor(data: Omit<AuthorProfile, 'id' | 'joinedAt'>): Promise<AuthorProfile> {
     const authors = this.getAuthors();
     const newAuthor: AuthorProfile = {
       ...data,
@@ -309,11 +309,11 @@ export class AuthorService {
     };
     authors.push(newAuthor);
     this.saveAuthors(authors);
-    ApiService.createAuthor(newAuthor).catch(() => {});
+    await ApiService.createAuthor(newAuthor);
     return newAuthor;
   }
 
-  public static updateAuthor(id: string, updated: Partial<AuthorProfile>): boolean {
+  public static async updateAuthor(id: string, updated: Partial<AuthorProfile>): Promise<boolean> {
     const authors = this.getAuthors();
     const idx = authors.findIndex(a => a.id === id);
     if (idx === -1) return false;
@@ -323,17 +323,17 @@ export class AuthorService {
       ...updated
     };
     this.saveAuthors(authors);
-    ApiService.updateAuthor(id, updated).catch(() => {});
+    await ApiService.updateAuthor(id, updated);
     return true;
   }
 
-  public static deleteAuthor(id: string): boolean {
+  public static async deleteAuthor(id: string): Promise<boolean> {
     const authors = this.getAuthors();
     const filtered = authors.filter(a => a.id !== id);
     if (filtered.length === authors.length) return false;
 
     this.saveAuthors(filtered);
-    ApiService.deleteAuthor(id).catch(() => {});
+    await ApiService.deleteAuthor(id);
     return true;
   }
 

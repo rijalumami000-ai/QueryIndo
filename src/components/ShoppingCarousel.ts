@@ -133,7 +133,7 @@ export class ShoppingCarousel {
         if (serverData.config) {
           localStorage.setItem(this.STORAGE_KEY_CONFIG, JSON.stringify(serverData.config));
         }
-        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
+        if (Array.isArray(serverData.products)) {
           localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(serverData.products));
         }
       }
@@ -150,10 +150,10 @@ export class ShoppingCarousel {
     }
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      return this.DEFAULT_PRODUCTS;
+      if (Array.isArray(parsed)) return parsed;
+      return [];
     } catch {
-      return this.DEFAULT_PRODUCTS;
+      return [];
     }
   }
 
@@ -161,8 +161,7 @@ export class ShoppingCarousel {
     localStorage.setItem(this.STORAGE_KEY_PRODUCTS, JSON.stringify(products));
   }
 
-
-  public static addProduct(data: Omit<ShoppingProduct, 'id' | 'clicks'>): ShoppingProduct {
+  public static async addProduct(data: Omit<ShoppingProduct, 'id' | 'clicks'>): Promise<ShoppingProduct> {
     const products = this.getProducts();
     const newProduct: ShoppingProduct = {
       ...data,
@@ -171,26 +170,26 @@ export class ShoppingCarousel {
     };
     products.unshift(newProduct);
     this.saveProducts(products);
-    ApiService.createShoppingProduct(newProduct).catch(() => {});
+    await ApiService.createShoppingProduct(newProduct);
     return newProduct;
   }
 
-  public static updateProduct(id: string, updated: Partial<ShoppingProduct>): boolean {
+  public static async updateProduct(id: string, updated: Partial<ShoppingProduct>): Promise<boolean> {
     const products = this.getProducts();
     const idx = products.findIndex(p => p.id === id);
     if (idx === -1) return false;
     products[idx] = { ...products[idx], ...updated };
     this.saveProducts(products);
-    ApiService.updateShoppingProduct(id, updated).catch(() => {});
+    await ApiService.updateShoppingProduct(id, updated);
     return true;
   }
 
-  public static deleteProduct(id: string): boolean {
+  public static async deleteProduct(id: string): Promise<boolean> {
     const products = this.getProducts();
     const filtered = products.filter(p => p.id !== id);
     if (filtered.length === products.length) return false;
     this.saveProducts(filtered);
-    ApiService.deleteShoppingProduct(id).catch(() => {});
+    await ApiService.deleteShoppingProduct(id);
     return true;
   }
 

@@ -1827,7 +1827,7 @@ export class AdminCMS {
 
     // Delete Author
     modalElem.querySelectorAll('.btn-delete-author').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-author-id');
         const name = btn.getAttribute('data-author-name') || 'Jurnalis';
         if (!id) return;
@@ -1838,7 +1838,7 @@ export class AdminCMS {
           : `Yakin ingin menghapus jurnalis "${name}" dari dewan redaksi?`;
 
         if (confirm(confirmMsg)) {
-          const success = AuthorService.deleteAuthor(id);
+          const success = await AuthorService.deleteAuthor(id);
           if (success) {
             Toast.show(`Jurnalis "${name}" berhasil dihapus.`);
             modalElem.innerHTML = this.renderAdminModalHTML();
@@ -2019,7 +2019,7 @@ export class AdminCMS {
 
     const form = overlay.querySelector('#author-crud-form') as HTMLFormElement;
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = (overlay.querySelector('#form-author-name') as HTMLInputElement).value.trim();
         const division = (overlay.querySelector('#form-author-division') as HTMLSelectElement).value;
@@ -2037,7 +2037,7 @@ export class AdminCMS {
         }
 
         if (isEdit && author) {
-          AuthorService.updateAuthor(author.id, {
+          await AuthorService.updateAuthor(author.id, {
             name,
             role,
             division,
@@ -2050,7 +2050,7 @@ export class AdminCMS {
           });
           Toast.show(`Profil jurnalis "${name}" berhasil diperbarui!`);
         } else {
-          AuthorService.addAuthor({
+          await AuthorService.addAuthor({
             name,
             role,
             division,
@@ -2403,12 +2403,12 @@ export class AdminCMS {
 
     // Delete Product
     modalElem.querySelectorAll('.btn-delete-shop-product').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-product-id');
         const title = btn.getAttribute('data-product-title') || 'Produk';
         if (!id) return;
         if (confirm(`Yakin ingin menghapus produk "${title}" dari daftar rekomendasi?`)) {
-          ShoppingCarousel.deleteProduct(id);
+          await ShoppingCarousel.deleteProduct(id);
           Toast.show(`Produk "${title}" telah dihapus.`);
           modalElem.innerHTML = this.renderAdminModalHTML();
           this.bindAdminEvents(modalElem);
@@ -2564,7 +2564,7 @@ export class AdminCMS {
 
     // Handle Form Submit
     const form = overlay.querySelector('#form-shopping-product') as HTMLFormElement;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const title = (overlay.querySelector('#form-shop-title') as HTMLInputElement).value.trim();
@@ -2586,7 +2586,7 @@ export class AdminCMS {
       }
 
       if (isEdit && product) {
-        ShoppingCarousel.updateProduct(product.id, {
+        await ShoppingCarousel.updateProduct(product.id, {
           title,
           category,
           imageUrl,
@@ -2598,7 +2598,7 @@ export class AdminCMS {
         });
         Toast.show(`Produk "${title}" berhasil diperbarui.`);
       } else {
-        ShoppingCarousel.addProduct({
+        await ShoppingCarousel.addProduct({
           title,
           category,
           imageUrl,
