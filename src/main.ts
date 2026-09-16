@@ -367,17 +367,43 @@ function setupEventListeners() {
     });
   }
 
-  // Back to Top Button
+  // Sticky Header Scroll & Back to Top Controller
+  const navbar = document.querySelector('.navbar');
+  const scrollProgress = document.getElementById('navbar-scroll-progress');
   const backToTopBtn = document.getElementById('btn-back-to-top');
+
   backToTopBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  window.addEventListener('scroll', () => {
+
+  const handleWindowScroll = () => {
+    const scrollY = window.scrollY;
+
+    // 1. Toggle compact sticky navbar
+    if (navbar) {
+      if (scrollY > 50) {
+        navbar.classList.add('is-scrolled');
+      } else {
+        navbar.classList.remove('is-scrolled');
+      }
+    }
+
+    // 2. Update ambient reading scroll progress line
+    if (scrollProgress) {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+      scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    // 3. Back to top button visibility
     if (backToTopBtn) {
-      const show = window.scrollY > 300;
+      const show = scrollY > 300;
       backToTopBtn.style.opacity = show ? '1' : '0';
       backToTopBtn.style.pointerEvents = show ? 'auto' : 'none';
       backToTopBtn.style.transform = show ? 'translateY(0)' : 'translateY(10px)';
     }
-  });
+  };
+
+  window.addEventListener('scroll', handleWindowScroll, { passive: true });
+  handleWindowScroll();
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -301,3 +301,145 @@
   color: var(--accent-rose);
   border-color: var(--accent-rose);
 }
+
+/* ==========================================================================
+   Article In-Content Inline Media & Editorial Figures
+   ========================================================================== */
+.article-inline-image {
+  margin: 1.75rem 0;
+  display: block;
+  box-sizing: border-box;
+  clear: both;
+  transition: all 0.2s ease;
+  user-select: text;
+}
+
+.article-inline-image.align-center {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  clear: both;
+}
+
+.article-inline-image.align-left {
+  float: left;
+  width: 46%;
+  max-width: 380px;
+  margin: 0.5rem 1.75rem 1rem 0;
+  clear: left;
+}
+
+.article-inline-image.align-right {
+  float: right;
+  width: 46%;
+  max-width: 380px;
+  margin: 0.5rem 0 1rem 1.75rem;
+  clear: right;
+}
+
+.article-inline-image .inline-image-frame {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.article-inline-image .inline-image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.article-inline-image:hover .inline-image-frame img {
+  transform: scale(1.015);
+}
+
+/* Aspect Ratio Modifiers */
+.article-inline-image.ratio-16-9 .inline-image-frame {
+  aspect-ratio: 16 / 9;
+}
+.article-inline-image.ratio-21-9 .inline-image-frame {
+  aspect-ratio: 21 / 9;
+}
+.article-inline-image.ratio-4-3 .inline-image-frame {
+  aspect-ratio: 4 / 3;
+}
+.article-inline-image.ratio-1-1 .inline-image-frame {
+  aspect-ratio: 1 / 1;
+}
+.article-inline-image.ratio-auto .inline-image-frame {
+  aspect-ratio: auto;
+  max-height: 520px;
+}
+.article-inline-image.ratio-auto .inline-image-frame img {
+  height: auto;
+  max-height: 520px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+/* Focus / Crop Alignment */
+.article-inline-image[data-focus="top"] img {
+  object-position: center top !important;
+}
+.article-inline-image[data-focus="center"] img {
+  object-position: center center !important;
+}
+.article-inline-image[data-focus="bottom"] img {
+  object-position: center bottom !important;
+}
+
+/* Caption and Attribution */
+.article-inline-image figcaption {
+  margin-top: 0.55rem;
+  font-size: 0.825rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.article-inline-image.align-center figcaption {
+  text-align: center;
+  justify-content: center;
+}
+
+.article-inline-image .inline-caption-text {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.article-inline-image .inline-caption-source {
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+/* Clearfix for rich content so floats don't overflow after paragraphs */
+.article-rich-content::after,
+#wysiwyg-editor-canvas::after,
+.focus-content-body::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive adjustment for Mobile (float collapses cleanly to 100%) */
+@media (max-width: 640px) {
+  .article-inline-image.align-left,
+  .article-inline-image.align-right {
+    float: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 1.25rem 0 !important;
+  }
+}

@@ -10,6 +10,7 @@ import { AdBanner, type AdCampaign, type AdPlacement } from './AdBanner';
 import { ShoppingCarousel, type ShoppingProduct } from './ShoppingCarousel';
 import { ReaderPoll, type PollData } from './ReaderPoll';
 import { SocialMediaService, type SocialLink, type SocialPlatform, PLATFORM_METAS } from '../services/socialMediaService';
+import { escapeHtml } from '../utils/helpers';
 
 export class AdminCMS {
   private articles: Article[];
@@ -3042,7 +3043,10 @@ export class AdminCMS {
               <button type="button" class="btn-tb" data-cmd="insertUnorderedList" title="Daftar Bullet (List)">List</button>
               <button type="button" class="btn-tb" data-cmd="insertOrderedList" title="Daftar Angka">123</button>
               <button type="button" class="btn-tb" id="btn-tb-link" title="Sisipkan Tautan (Link)">Link</button>
-              <button type="button" class="btn-tb" id="btn-tb-img" title="Sisipkan Gambar">Img</button>
+              <button type="button" class="btn-tb" id="btn-tb-img" title="Sisipkan Gambar Berita (URL Link)" style="display:inline-flex; align-items:center; gap:0.3rem; color:var(--accent-cyan); font-weight:700;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Gambar (URL)</span>
+              </button>
             </div>
 
             <!-- View Switcher Toggle -->
@@ -3329,15 +3333,62 @@ export class AdminCMS {
       }
     });
 
-    // Insert Image
+    // Insert Editorial In-Content Image via URL Modal
     editorPage.querySelector('#btn-tb-img')?.addEventListener('click', () => {
-      const imgUrl = prompt('Masukkan URL gambar:', 'https://images.unsplash.com/');
-      if (imgUrl) {
-        document.execCommand('insertImage', false, imgUrl);
+      // Preserve active cursor range in wysiwyg canvas
+      const sel = window.getSelection();
+      let savedRange: Range | null = null;
+      if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        if (wysiwygCanvas.contains(r.commonAncestorContainer)) {
+          savedRange = r.cloneRange();
+        }
+      }
+
+      this.openInlineImageModal(editorPage, null, (figureHtml) => {
         wysiwygCanvas.focus();
+        if (savedRange) {
+          savedRange.deleteContents();
+          const temp = document.createElement('div');
+          temp.innerHTML = figureHtml;
+          const frag = document.createDocumentFragment();
+          while (temp.firstChild) frag.appendChild(temp.firstChild);
+          savedRange.insertNode(frag);
+          savedRange.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(savedRange);
+        } else {
+          wysiwygCanvas.insertAdjacentHTML('beforeend', figureHtml);
+        }
         rawTextarea.value = wysiwygCanvas.innerHTML;
         updateAnalytics();
+        syncLivePreview();
+        Toast.show('Gambar berhasil disisipkan ke naskah!');
+      });
+    });
+
+    // Interactive In-Canvas Image Figure Actions (Click to Align, Edit, Delete)
+    wysiwygCanvas.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const figure = target.closest('.article-inline-image') as HTMLElement | null;
+      if (!figure) {
+        editorPage.querySelector('#inline-image-action-bar')?.remove();
+        wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => f.classList.remove('is-selected'));
+        return;
       }
+
+      // If editor clicked inside figcaption, allow typing directly
+      if (target.closest('figcaption')) return;
+
+      e.preventDefault();
+      wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => f.classList.remove('is-selected'));
+      figure.classList.add('is-selected');
+
+      this.showInlineImageActionBar(figure, editorPage, () => {
+        rawTextarea.value = wysiwygCanvas.innerHTML;
+        updateAnalytics();
+        syncLivePreview();
+      });
     });
 
     // Toggle Visual vs HTML Mode
@@ -3461,5 +3512,380 @@ export class AdminCMS {
       this.refreshTable(parentModal);
       closeEditor();
     });
+  }
+
+  // ==========================================================================
+  // Inline Article Image Modal & Canvas Management (Link/URL Only)
+  // ==========================================================================
+
+  private openInlineImageModal(
+    _parentContainer: HTMLElement,
+    existingData: { url: string; align: string; ratio: string; focus: string; caption: string; source: string } | null,
+    onConfirm: (figureHtml: string) => void
+  ) {
+    const isEdit = existingData !== null;
+    let selectedAlign = existingData?.align || 'center';
+    let selectedRatio = existingData?.ratio || '16-9';
+    let selectedFocus = existingData?.focus || 'center';
+
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'inline-img-modal-overlay';
+    modalOverlay.style.cssText = `
+      position: fixed; inset: 0; z-index: 6000;
+      background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+    `;
+
+    modalOverlay.innerHTML = `
+      <div class="inline-img-modal-card">
+        <!-- Header -->
+        <div style="padding: 1.2rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>${isEdit ? 'Ubah Pengaturan Gambar Naskah' : 'Sisipkan Gambar ke Naskah (URL / Link)'}</span>
+            </h3>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Gunakan tautan gambar online langsung (Google Drive, Unsplash, CDN, dll.)</p>
+          </div>
+          <button type="button" id="modal-inline-close-btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); width: 28px; height: 28px; border-radius: 50%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 1.25rem 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.15rem; max-height: calc(88vh - 130px);">
+          <!-- URL Input -->
+          <div>
+            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem;">
+              URL Gambar (Link Langsung)
+            </label>
+            <input type="url" id="modal-inline-url" required value="${existingData ? escapeHtml(existingData.url) : ''}" placeholder="https://images.unsplash.com/... atau tautan Google Drive / CDN" style="width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem; outline: none; font-family: var(--font-mono);" />
+            <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; display: block;">Tautan Google Drive (Share link) akan otomatis dinormalisasi ke direct view.</span>
+          </div>
+
+          <!-- Live Interactive Preview Box -->
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+              Pratinjau Hasil Pembingkaian (Live Preview)
+            </label>
+            <div id="modal-inline-preview-container" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; padding: 0.75rem; display: flex; flex-direction: column; align-items: center;">
+              <div id="modal-inline-preview-frame" style="width: 100%; max-width: 440px; border-radius: var(--radius-sm); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; position: relative;">
+                <img id="modal-inline-preview-img" src="${existingData?.url || ''}" alt="Pratinjau Gambar" style="display: ${existingData?.url ? 'block' : 'none'}; width: 100%; height: 100%; object-fit: cover;" />
+                <div id="modal-inline-preview-placeholder" style="display: ${existingData?.url ? 'none' : 'flex'}; padding: 2.2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.78rem; flex-direction: column; align-items: center; gap: 0.5rem;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>Masukkan URL gambar di atas untuk melihat pembingkaian & crop</span>
+                </div>
+              </div>
+              <div id="modal-inline-preview-caption-text" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; font-style: italic;">
+                ${existingData?.caption ? escapeHtml(existingData.caption) : 'Keterangan gambar akan muncul di sini'}
+              </div>
+            </div>
+          </div>
+
+          <!-- Placement & Alignment Choices -->
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+              Tata Letak & Perataan Naskah (Alignment)
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'center' ? 'active' : ''}" data-val="center">
+                ▣ Lebar Penuh (Tengah)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'left' ? 'active' : ''}" data-val="left">
+                ⇦ Samping Kiri (Wrap)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-align ${selectedAlign === 'right' ? 'active' : ''}" data-val="right">
+                Samping Kanan (Wrap) ⇨
+              </button>
+            </div>
+          </div>
+
+          <!-- Aspect Ratio & Framing -->
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+              Rasio Aspek & Pembingkaian (Aspect Ratio)
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '16-9' ? 'active' : ''}" data-val="16-9">
+                16:9 (Standar Berita)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '21-9' ? 'active' : ''}" data-val="21-9">
+                21:9 (Sinematik)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '4-3' ? 'active' : ''}" data-val="4-3">
+                4:3 (Klasik)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === '1-1' ? 'active' : ''}" data-val="1-1">
+                1:1 (Persegi)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-ratio ${selectedRatio === 'auto' ? 'active' : ''}" data-val="auto">
+                Asli (Auto)
+              </button>
+            </div>
+          </div>
+
+          <!-- Crop Focus / Object Position -->
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem;">
+              Fokus Pemotongan (Crop Focus)
+            </label>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'center' ? 'active' : ''}" data-val="center">
+                Tengah (Center)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'top' ? 'active' : ''}" data-val="top">
+                Atas (Kepala / Potret Tokoh)
+              </button>
+              <button type="button" class="inline-img-option-pill opt-focus ${selectedFocus === 'bottom' ? 'active' : ''}" data-val="bottom">
+                Bawah (Bottom)
+              </button>
+            </div>
+          </div>
+
+          <!-- Caption & Photo Source Credit -->
+          <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.75rem;">
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                Keterangan Gambar (Caption)
+              </label>
+              <input type="text" id="modal-inline-caption" value="${existingData ? escapeHtml(existingData.caption) : ''}" placeholder="Penjelasan konteks foto..." style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                Sumber Foto / Kredit
+              </label>
+              <input type="text" id="modal-inline-source" value="${existingData ? escapeHtml(existingData.source) : ''}" placeholder="Contoh: Reuters / ANTARA" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.825rem;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div style="padding: 1rem 1.5rem; background: var(--bg-secondary); border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" id="modal-inline-cancel-btn" style="padding: 0.55rem 1.25rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 0.825rem; font-weight: 600; cursor: pointer;">
+            Batal
+          </button>
+          <button type="button" id="modal-inline-confirm-btn" style="padding: 0.55rem 1.5rem; background: var(--gradient-brand); color: #000; border-radius: var(--radius-full); font-size: 0.825rem; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-glow);">
+            ${isEdit ? 'Perbarui Gambar' : 'Sisipkan ke Naskah'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalOverlay);
+
+    const urlInput = modalOverlay.querySelector('#modal-inline-url') as HTMLInputElement;
+    const previewFrame = modalOverlay.querySelector('#modal-inline-preview-frame') as HTMLElement;
+    const previewImg = modalOverlay.querySelector('#modal-inline-preview-img') as HTMLImageElement;
+    const previewPlaceholder = modalOverlay.querySelector('#modal-inline-preview-placeholder') as HTMLElement;
+    const previewCaption = modalOverlay.querySelector('#modal-inline-preview-caption-text') as HTMLElement;
+    const captionInput = modalOverlay.querySelector('#modal-inline-caption') as HTMLInputElement;
+    const sourceInput = modalOverlay.querySelector('#modal-inline-source') as HTMLInputElement;
+
+    const updatePreviewFrame = () => {
+      const rawUrl = urlInput.value.trim();
+      const normUrl = ImageUtils.normalizeImageUrl(rawUrl);
+      if (normUrl !== rawUrl) {
+        urlInput.value = normUrl;
+      }
+
+      if (normUrl) {
+        previewImg.src = normUrl;
+        previewImg.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+      } else {
+        previewImg.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+      }
+
+      // Aspect ratio
+      if (selectedRatio === '16-9') previewFrame.style.aspectRatio = '16 / 9';
+      else if (selectedRatio === '21-9') previewFrame.style.aspectRatio = '21 / 9';
+      else if (selectedRatio === '4-3') previewFrame.style.aspectRatio = '4 / 3';
+      else if (selectedRatio === '1-1') previewFrame.style.aspectRatio = '1 / 1';
+      else previewFrame.style.aspectRatio = 'auto';
+
+      // Crop focus
+      previewImg.style.objectPosition = `center ${selectedFocus}`;
+
+      // Caption preview
+      const capText = captionInput.value.trim();
+      const srcText = sourceInput.value.trim();
+      if (capText || srcText) {
+        previewCaption.innerHTML = `${escapeHtml(capText)} ${srcText ? `<strong style="color:var(--accent-cyan); font-style:normal;">(Foto: ${escapeHtml(srcText)})</strong>` : ''}`;
+      } else {
+        previewCaption.textContent = 'Keterangan gambar akan muncul di sini';
+      }
+    };
+
+    updatePreviewFrame();
+
+    // Event listeners
+    urlInput.addEventListener('input', updatePreviewFrame);
+    urlInput.addEventListener('paste', () => setTimeout(updatePreviewFrame, 40));
+    captionInput.addEventListener('input', updatePreviewFrame);
+    sourceInput.addEventListener('input', updatePreviewFrame);
+
+    // Option pills: Alignment
+    modalOverlay.querySelectorAll('.opt-align').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalOverlay.querySelectorAll('.opt-align').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedAlign = btn.getAttribute('data-val') || 'center';
+      });
+    });
+
+    // Option pills: Ratio
+    modalOverlay.querySelectorAll('.opt-ratio').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalOverlay.querySelectorAll('.opt-ratio').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedRatio = btn.getAttribute('data-val') || '16-9';
+        updatePreviewFrame();
+      });
+    });
+
+    // Option pills: Focus
+    modalOverlay.querySelectorAll('.opt-focus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalOverlay.querySelectorAll('.opt-focus').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedFocus = btn.getAttribute('data-val') || 'center';
+        updatePreviewFrame();
+      });
+    });
+
+    // Close modal handlers
+    const closeModal = () => modalOverlay.remove();
+    modalOverlay.querySelector('#modal-inline-close-btn')?.addEventListener('click', closeModal);
+    modalOverlay.querySelector('#modal-inline-cancel-btn')?.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // Confirm handler
+    modalOverlay.querySelector('#modal-inline-confirm-btn')?.addEventListener('click', () => {
+      const finalUrl = ImageUtils.normalizeImageUrl(urlInput.value.trim());
+      if (!finalUrl) {
+        Toast.show('Harap masukkan URL tautan gambar yang valid.', 'warning');
+        urlInput.focus();
+        return;
+      }
+
+      const finalCaption = captionInput.value.trim();
+      const finalSource = sourceInput.value.trim();
+
+      const figureHtml = `
+        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" contenteditable="false">
+          <div class="inline-image-frame">
+            <img src="${finalUrl}" alt="${escapeHtml(finalCaption || 'Ilustrasi Berita')}" loading="lazy" style="object-position: center ${selectedFocus};" />
+          </div>
+          ${(finalCaption || finalSource) ? `
+            <figcaption contenteditable="true">
+              ${finalCaption ? `<span class="inline-caption-text">${escapeHtml(finalCaption)}</span>` : ''}
+              ${finalSource ? `<span class="inline-caption-source">(Foto: ${escapeHtml(finalSource)})</span>` : ''}
+            </figcaption>
+          ` : ''}
+        </figure>
+        <p><br></p>
+      `;
+
+      closeModal();
+      onConfirm(figureHtml);
+    });
+  }
+
+  private showInlineImageActionBar(
+    figure: HTMLElement,
+    parentContainer: HTMLElement,
+    syncCallback: () => void
+  ) {
+    // Remove existing action bar
+    parentContainer.querySelector('#inline-image-action-bar')?.remove();
+
+    const rect = figure.getBoundingClientRect();
+    const actionBar = document.createElement('div');
+    actionBar.id = 'inline-image-action-bar';
+    actionBar.style.cssText = `
+      position: fixed;
+      top: ${Math.max(10, rect.top - 46)}px;
+      left: ${Math.max(10, Math.min(window.innerWidth - 380, rect.left + (rect.width / 2) - 170))}px;
+      z-index: 5000;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      border-radius: var(--radius-full);
+      padding: 0.35rem 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      backdrop-filter: blur(16px);
+    `;
+
+    const curAlign = figure.getAttribute('data-align') || 'center';
+
+    actionBar.innerHTML = `
+      <button type="button" class="btn-action-pill ${curAlign === 'left' ? 'active' : ''}" id="btn-align-left" title="Rata Kiri (Float Left)">⇦ Kiri</button>
+      <button type="button" class="btn-action-pill ${curAlign === 'center' ? 'active' : ''}" id="btn-align-center" title="Lebar Penuh Tengah">▣ Tengah</button>
+      <button type="button" class="btn-action-pill ${curAlign === 'right' ? 'active' : ''}" id="btn-align-right" title="Rata Kanan (Float Right)">Kanan ⇨</button>
+      <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+      <button type="button" class="btn-action-pill" id="btn-edit-fig" title="Ubah Rasio, Fokus & Keterangan">✎ Ubah</button>
+      <button type="button" class="btn-action-pill danger" id="btn-del-fig" title="Hapus Gambar">🗑 Hapus</button>
+    `;
+
+    document.body.appendChild(actionBar);
+
+    const setAlign = (newAlign: 'left' | 'center' | 'right') => {
+      figure.classList.remove('align-left', 'align-center', 'align-right');
+      figure.classList.add(`align-${newAlign}`);
+      figure.setAttribute('data-align', newAlign);
+      syncCallback();
+      actionBar.remove();
+    };
+
+    actionBar.querySelector('#btn-align-left')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('left'); });
+    actionBar.querySelector('#btn-align-center')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('center'); });
+    actionBar.querySelector('#btn-align-right')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('right'); });
+
+    actionBar.querySelector('#btn-del-fig')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      figure.remove();
+      syncCallback();
+      actionBar.remove();
+      Toast.show('Gambar berhasil dihapus dari naskah.');
+    });
+
+    actionBar.querySelector('#btn-edit-fig')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      actionBar.remove();
+      const img = figure.querySelector('img') as HTMLImageElement | null;
+      const captionEl = figure.querySelector('.inline-caption-text') as HTMLElement | null;
+      const sourceEl = figure.querySelector('.inline-caption-source') as HTMLElement | null;
+      const existingData = {
+        url: img?.src || '',
+        align: figure.getAttribute('data-align') || 'center',
+        ratio: figure.getAttribute('data-ratio') || '16-9',
+        focus: figure.getAttribute('data-focus') || 'center',
+        caption: captionEl?.textContent || '',
+        source: sourceEl?.textContent?.replace(/^\(Foto:\s*|\)$/g, '') || ''
+      };
+
+      this.openInlineImageModal(parentContainer, existingData, (newFigureHtml) => {
+        const temp = document.createElement('div');
+        temp.innerHTML = newFigureHtml;
+        const newFigure = temp.querySelector('.article-inline-image');
+        if (newFigure) {
+          figure.replaceWith(newFigure);
+          syncCallback();
+          Toast.show('Pengaturan gambar naskah berhasil diperbarui.');
+        }
+      });
+    });
+
+    // Auto dismiss on outside click
+    const dismissHandler = (evt: MouseEvent) => {
+      if (!actionBar.contains(evt.target as Node) && !figure.contains(evt.target as Node)) {
+        actionBar.remove();
+        document.removeEventListener('click', dismissHandler);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', dismissHandler), 60);
   }
 }
