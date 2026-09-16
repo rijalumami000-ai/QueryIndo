@@ -46,16 +46,18 @@ window.addEventListener('modal-closed', () => {
   }
 });
 
-// Global Scroll Handler for Sticky Header, Progress Bar & Lenis
+// Global Scroll Handler for Sticky Header, Progress Bar & Category Bar
 function handleGlobalScroll() {
   const scrollY = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0;
   const navbar = document.querySelector('.navbar');
+  const categoryBar = document.querySelector('.category-bar');
   const scrollProgress = document.getElementById('navbar-scroll-progress');
   const backToTopBtn = document.getElementById('btn-back-to-top');
 
   const isScrolled = scrollY > 40;
   document.body.classList.toggle('is-scrolled', isScrolled);
   navbar?.classList.toggle('is-scrolled', isScrolled);
+  categoryBar?.classList.toggle('is-scrolled', isScrolled);
 
   if (scrollProgress) {
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -71,6 +73,9 @@ function handleGlobalScroll() {
   }
 }
 
+// Native window scroll listener for all devices (desktop, tablet, mobile)
+window.addEventListener('scroll', handleGlobalScroll, { passive: true });
+
 // --------------------------------------------------------------------------
 // Application Initialization
 // --------------------------------------------------------------------------
@@ -82,6 +87,7 @@ async function init() {
     const raf = (time: number) => { lenisInstance?.raf(time); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
   }
+  handleGlobalScroll();
 
   // 2. Initialize Store Badges
   store.updateCurrentDateBadge();

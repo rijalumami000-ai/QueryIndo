@@ -218,7 +218,8 @@
     max-width: 100%;
   }
   .navbar.is-scrolled ~ main .category-bar,
-  body.is-scrolled .category-bar {
+  body.is-scrolled .category-bar,
+  .category-bar.is-scrolled {
     top: 3rem;
   }
   .navbar.is-scrolled .navbar-content,

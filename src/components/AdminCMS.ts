@@ -3249,8 +3249,16 @@ export class AdminCMS {
         previewCategory.textContent = editCategory.value.toUpperCase();
       }
       if (previewBody) {
-        previewBody.innerHTML = wysiwygCanvas.style.display !== 'none' ? wysiwygCanvas.innerHTML : rawTextarea.value;
+        previewBody.innerHTML = wysiwygCanvas.style.display !== 'none'
+          ? this.getCleanArticleHtml(wysiwygCanvas)
+          : rawTextarea.value;
       }
+    };
+
+    // Unified sync function for content, analytics, and live preview
+    const syncAll = () => {
+      rawTextarea.value = this.getCleanArticleHtml(wysiwygCanvas);
+      updateAnalytics();
     };
 
     // Analytics Counter Updater
@@ -3267,6 +3275,8 @@ export class AdminCMS {
       syncLivePreview();
     };
 
+    // Initial hydration of existing figures in canvas
+    this.hydrateCanvasFigures(wysiwygCanvas, syncAll);
     updateAnalytics();
 
     // Listeners for Live Metadata Changes
@@ -3276,12 +3286,12 @@ export class AdminCMS {
 
     // Sync Content WYSIWYG <-> Textarea
     wysiwygCanvas.addEventListener('input', () => {
-      rawTextarea.value = wysiwygCanvas.innerHTML;
-      updateAnalytics();
+      syncAll();
     });
 
     rawTextarea.addEventListener('input', () => {
       wysiwygCanvas.innerHTML = rawTextarea.value;
+      this.hydrateCanvasFigures(wysiwygCanvas, syncAll);
       updateAnalytics();
     });
 
@@ -3292,8 +3302,7 @@ export class AdminCMS {
         if (cmd) {
           document.execCommand(cmd, false);
           wysiwygCanvas.focus();
-          rawTextarea.value = wysiwygCanvas.innerHTML;
-          updateAnalytics();
+          syncAll();
         }
       });
     });
@@ -3317,8 +3326,7 @@ export class AdminCMS {
           }
         }
         wysiwygCanvas.focus();
-        rawTextarea.value = wysiwygCanvas.innerHTML;
-        updateAnalytics();
+        syncAll();
       });
     });
 
@@ -3328,119 +3336,57 @@ export class AdminCMS {
       if (url) {
         document.execCommand('createLink', false, url);
         wysiwygCanvas.focus();
-        rawTextarea.value = wysiwygCanvas.innerHTML;
-        updateAnalytics();
+        syncAll();
       }
     });
 
     // Insert Editorial In-Content Image via URL Modal
     editorPage.querySelector('#btn-tb-img')?.addEventListener('click', () => {
-      // Preserve active cursor range in wysiwyg canvas
+      // Find the active top-level block inside wysiwygCanvas before opening modal
+      let targetBlock: HTMLElement | null = null;
       const sel = window.getSelection();
-      let savedRange: Range | null = null;
       if (sel && sel.rangeCount > 0) {
         const r = sel.getRangeAt(0);
-        if (wysiwygCanvas.contains(r.commonAncestorContainer)) {
-          savedRange = r.cloneRange();
+        let node: Node | null = r.startContainer;
+        while (node && node !== wysiwygCanvas) {
+          if (node.parentElement === wysiwygCanvas && node instanceof HTMLElement) {
+            targetBlock = node;
+            break;
+          }
+          node = node.parentElement;
         }
       }
 
       this.openInlineImageModal(editorPage, null, (figureHtml) => {
         wysiwygCanvas.focus();
-        if (savedRange) {
-          savedRange.deleteContents();
-          const temp = document.createElement('div');
-          temp.innerHTML = figureHtml;
-          const frag = document.createDocumentFragment();
-          while (temp.firstChild) frag.appendChild(temp.firstChild);
-          savedRange.insertNode(frag);
-          savedRange.collapse(false);
-          sel?.removeAllRanges();
-          sel?.addRange(savedRange);
-        } else {
-          wysiwygCanvas.insertAdjacentHTML('beforeend', figureHtml);
-        }
-        rawTextarea.value = wysiwygCanvas.innerHTML;
-        updateAnalytics();
-        syncLivePreview();
-        Toast.show('Gambar berhasil disisipkan ke naskah!');
+        this.insertInlineImage(figureHtml, wysiwygCanvas, targetBlock, syncAll);
       });
     });
 
-    // Free Drag-and-Drop for Images Between Paragraphs
-    let draggedFigure: HTMLElement | null = null;
-
-    wysiwygCanvas.addEventListener('dragstart', (e) => {
-      const target = e.target as HTMLElement;
-      const fig = target.closest('.article-inline-image') as HTMLElement | null;
-      if (fig) {
-        draggedFigure = fig;
-        fig.classList.add('is-dragging');
-        editorPage.querySelector('#inline-image-action-bar')?.remove();
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/html', fig.outerHTML);
-        }
-      }
-    });
-
-    wysiwygCanvas.addEventListener('dragend', () => {
-      if (draggedFigure) {
-        draggedFigure.classList.remove('is-dragging');
-        draggedFigure = null;
-        rawTextarea.value = wysiwygCanvas.innerHTML;
-        updateAnalytics();
-        syncLivePreview();
-      }
-    });
-
+    // Drag-over and drop support for figure dragging between paragraphs
     wysiwygCanvas.addEventListener('dragover', (e) => {
-      if (!draggedFigure) return;
+      const dragged = (wysiwygCanvas as any)._draggedFigure as HTMLElement | null;
+      if (!dragged) return;
       e.preventDefault();
-      const target = (e.target as HTMLElement).closest('#wysiwyg-editor-canvas > p, #wysiwyg-editor-canvas > h2, #wysiwyg-editor-canvas > h3, #wysiwyg-editor-canvas > blockquote') as HTMLElement | null;
-      if (target && target !== draggedFigure) {
+      const target = (e.target as HTMLElement).closest('#wysiwyg-editor-canvas > p, #wysiwyg-editor-canvas > h2, #wysiwyg-editor-canvas > h3, #wysiwyg-editor-canvas > blockquote, #wysiwyg-editor-canvas > figure') as HTMLElement | null;
+      if (target && target !== dragged) {
         const rect = target.getBoundingClientRect();
         if (e.clientY > rect.top + rect.height / 2) {
-          target.after(draggedFigure);
+          target.after(dragged);
         } else {
-          target.before(draggedFigure);
+          target.before(dragged);
         }
       }
     });
 
     wysiwygCanvas.addEventListener('drop', (e) => {
-      if (!draggedFigure) return;
+      const dragged = (wysiwygCanvas as any)._draggedFigure as HTMLElement | null;
+      if (!dragged) return;
       e.preventDefault();
-      draggedFigure.classList.remove('is-dragging');
-      draggedFigure = null;
-      rawTextarea.value = wysiwygCanvas.innerHTML;
-      updateAnalytics();
-      syncLivePreview();
+      dragged.classList.remove('is-dragging');
+      delete (wysiwygCanvas as any)._draggedFigure;
+      syncAll();
       Toast.show('Posisi gambar berhasil dipindahkan.');
-    });
-
-    // Interactive In-Canvas Image Figure Actions (Click to Align, Crop, Move, Delete)
-    // NOTE: NEVER call e.preventDefault() so editor cursor & caret placement never freeze!
-    wysiwygCanvas.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const figure = target.closest('.article-inline-image') as HTMLElement | null;
-      if (!figure) {
-        editorPage.querySelector('#inline-image-action-bar')?.remove();
-        wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => f.classList.remove('is-selected'));
-        return;
-      }
-
-      // If user clicked inside figcaption, allow typing directly in caption
-      if (target.closest('figcaption')) return;
-
-      wysiwygCanvas.querySelectorAll('.article-inline-image.is-selected').forEach(f => f.classList.remove('is-selected'));
-      figure.classList.add('is-selected');
-
-      this.showInlineImageActionBar(figure, editorPage, wysiwygCanvas, () => {
-        rawTextarea.value = wysiwygCanvas.innerHTML;
-        updateAnalytics();
-        syncLivePreview();
-      });
     });
 
     // Toggle Visual vs HTML Mode
@@ -3459,6 +3405,7 @@ export class AdminCMS {
       wysiwygCanvas.style.display = 'block';
       rawTextarea.style.display = 'none';
       wysiwygCanvas.innerHTML = rawTextarea.value;
+      this.hydrateCanvasFigures(wysiwygCanvas, syncAll);
       updateAnalytics();
     });
 
@@ -3473,7 +3420,7 @@ export class AdminCMS {
 
       rawTextarea.style.display = 'block';
       wysiwygCanvas.style.display = 'none';
-      rawTextarea.value = wysiwygCanvas.innerHTML;
+      rawTextarea.value = this.getCleanArticleHtml(wysiwygCanvas);
     });
 
     // Close & Return
@@ -3484,8 +3431,6 @@ export class AdminCMS {
     };
 
     editorPage.querySelector('#editor-back-btn')?.addEventListener('click', closeEditor);
-
-
 
     // Submit Fullscreen Form Handler
     const form = editorPage.querySelector('#editor-fullscreen-form') as HTMLFormElement;
@@ -3506,7 +3451,7 @@ export class AdminCMS {
       const authorAvatar = matchedAuthor?.avatar || user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80';
       const authorRole = matchedAuthor?.role || 'Jurnalis Redaksi';
 
-      const content = wysiwygCanvas.innerHTML;
+      const content = this.getCleanArticleHtml(wysiwygCanvas);
       const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
 
       if (isEdit && article) {
@@ -3825,18 +3770,15 @@ export class AdminCMS {
       const finalSource = sourceInput.value.trim();
 
       const figureHtml = `
-        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" draggable="true">
+        <figure class="article-inline-image align-${selectedAlign} ratio-${selectedRatio}" data-align="${selectedAlign}" data-ratio="${selectedRatio}" data-focus="${selectedFocus}" contenteditable="false">
           <div class="inline-image-frame" contenteditable="false">
             <img src="${finalUrl}" alt="${escapeHtml(finalCaption || 'Ilustrasi Berita')}" loading="lazy" style="object-position: center ${selectedFocus};" />
           </div>
-          ${(finalCaption || finalSource) ? `
-            <figcaption contenteditable="true">
-              ${finalCaption ? `<span class="inline-caption-text">${escapeHtml(finalCaption)}</span>` : ''}
-              ${finalSource ? `<span class="inline-caption-source">(Foto: ${escapeHtml(finalSource)})</span>` : ''}
-            </figcaption>
-          ` : ''}
+          <figcaption contenteditable="true" placeholder="Tulis keterangan foto atau kredit sumber di sini...">
+            ${finalCaption ? `<span class="inline-caption-text">${escapeHtml(finalCaption)}</span>` : ''}
+            ${finalSource ? `<span class="inline-caption-source">(Foto: ${escapeHtml(finalSource)})</span>` : ''}
+          </figcaption>
         </figure>
-        <p><br></p>
       `;
 
       closeModal();
@@ -3844,149 +3786,184 @@ export class AdminCMS {
     });
   }
 
-  private showInlineImageActionBar(
-    figure: HTMLElement,
-    parentContainer: HTMLElement,
-    _wysiwygCanvas: HTMLElement,
-    syncCallback: () => void
-  ) {
-    // Remove existing action bar
-    parentContainer.querySelector('#inline-image-action-bar')?.remove();
+  // ==========================================================================
+  // In-Canvas Inline Figure Engine (Safe Sibling Insertion, Free Move & Crop)
+  // ==========================================================================
 
-    const frame = figure.querySelector('.inline-image-frame') as HTMLElement | null;
-    const img = figure.querySelector('img') as HTMLImageElement | null;
-    const curAlign = figure.getAttribute('data-align') || 'center';
-    let curRatio = figure.getAttribute('data-ratio') || '16-9';
-    let curFocus = figure.getAttribute('data-focus') || 'center';
+  // Clean HTML serializer: strips temporary editing toolbars and crop handles
+  private getCleanArticleHtml(wysiwygCanvas: HTMLElement): string {
+    const clone = wysiwygCanvas.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.figure-canvas-tools, .crop-resize-handle').forEach(el => el.remove());
+    clone.querySelectorAll('.article-inline-image').forEach(fig => {
+      fig.removeAttribute('contenteditable');
+      fig.classList.remove('is-selected', 'is-dragging');
+      const frame = fig.querySelector('.inline-image-frame') as HTMLElement | null;
+      if (frame) {
+        frame.removeAttribute('contenteditable');
+      }
+      const figcaption = fig.querySelector('figcaption') as HTMLElement | null;
+      if (figcaption) {
+        figcaption.removeAttribute('contenteditable');
+        figcaption.removeAttribute('placeholder');
+        if (!figcaption.textContent?.trim()) {
+          figcaption.remove();
+        }
+      }
+    });
+    return clone.innerHTML;
+  }
+
+  // Hydrate all figures inside wysiwyg editor canvas
+  private hydrateCanvasFigures(wysiwygCanvas: HTMLElement, syncCallback: () => void) {
+    const figures = wysiwygCanvas.querySelectorAll<HTMLElement>('.article-inline-image');
+    figures.forEach(fig => {
+      this.hydrateSingleFigure(fig, wysiwygCanvas, syncCallback);
+    });
+  }
+
+  // Hydrate a single figure with integrated on-canvas tools & interactive crop handle
+  private hydrateSingleFigure(figure: HTMLElement, wysiwygCanvas: HTMLElement, syncCallback: () => void) {
+    figure.setAttribute('contenteditable', 'false');
+
+    let frame = figure.querySelector('.inline-image-frame') as HTMLElement | null;
+    let img = figure.querySelector('img') as HTMLImageElement | null;
+    if (!frame && img) {
+      frame = document.createElement('div');
+      frame.className = 'inline-image-frame';
+      img.before(frame);
+      frame.appendChild(img);
+    }
+    if (frame) {
+      frame.setAttribute('contenteditable', 'false');
+    }
+
+    let figcaption = figure.querySelector('figcaption') as HTMLElement | null;
+    if (!figcaption) {
+      figcaption = document.createElement('figcaption');
+      figure.appendChild(figcaption);
+    }
+    figcaption.setAttribute('contenteditable', 'true');
+    figcaption.setAttribute('placeholder', 'Tulis keterangan foto atau kredit sumber di sini...');
+
+    // Live sync when editor types directly into caption
+    figcaption.oninput = () => syncCallback();
+
+    // Remove any previously attached tools/handles to avoid duplicates
+    figure.querySelector('.figure-canvas-tools')?.remove();
+    figure.querySelector('.crop-resize-handle')?.remove();
+
+    // Read existing attributes
+    const align = figure.getAttribute('data-align') || (figure.classList.contains('align-left') ? 'left' : figure.classList.contains('align-right') ? 'right' : 'center');
+    const ratio = figure.getAttribute('data-ratio') || (figure.classList.contains('ratio-21-9') ? '21-9' : figure.classList.contains('ratio-4-3') ? '4-3' : figure.classList.contains('ratio-1-1') ? '1-1' : figure.classList.contains('ratio-auto') ? 'auto' : figure.classList.contains('ratio-custom') ? 'custom' : '16-9');
+    const focus = figure.getAttribute('data-focus') || 'center';
     const curHeightVal = parseInt(figure.getAttribute('data-height') || '') || (frame ? Math.round(frame.getBoundingClientRect().height) : 320);
 
-    const actionBar = document.createElement('div');
-    actionBar.id = 'inline-image-action-bar';
-    actionBar.setAttribute('data-lenis-prevent', 'true');
-    actionBar.style.cssText = `
-      position: fixed;
-      z-index: 5000;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid var(--accent-cyan);
-      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.65), 0 0 16px rgba(0, 242, 254, 0.2);
-      border-radius: var(--radius-lg);
-      padding: 0.45rem 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      max-width: 95vw;
-      animation: popIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-    `;
+    // Create On-Canvas Tools Header
+    const tools = document.createElement('div');
+    tools.className = 'figure-canvas-tools';
+    tools.setAttribute('contenteditable', 'false');
 
-    actionBar.innerHTML = `
-      <!-- Row 1: Geser Posisi & Perataan -->
-      <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-        <span style="font-size: 0.68rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; font-family: var(--font-mono); display: flex; align-items: center; gap: 0.2rem;">
-          <span>⠿</span> Geser:
-        </span>
-        <button type="button" class="btn-action-pill" id="bar-btn-up" title="Geser ke Atas Paragraf Sebelumnya">▲ Naik</button>
-        <button type="button" class="btn-action-pill" id="bar-btn-down" title="Geser ke Bawah Paragraf Setelahnya">▼ Turun</button>
-        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
-        <button type="button" class="btn-action-pill ${curAlign === 'left' ? 'active' : ''}" id="bar-btn-align-left" title="Rata Kiri (Wrap Teks)">⇦ Kiri</button>
-        <button type="button" class="btn-action-pill ${curAlign === 'center' ? 'active' : ''}" id="bar-btn-align-center" title="Lebar Penuh Tengah">▣ Tengah</button>
-        <button type="button" class="btn-action-pill ${curAlign === 'right' ? 'active' : ''}" id="bar-btn-align-right" title="Rata Kanan (Wrap Teks)">Kanan ⇨</button>
-
-        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
-        <button type="button" class="btn-action-pill" id="bar-btn-edit-fig" title="Ubah Tautan URL & Keterangan">✎ Ubah</button>
-        <button type="button" class="btn-action-pill danger" id="bar-btn-del-fig" title="Hapus Gambar">🗑 Hapus</button>
+    tools.innerHTML = `
+      <!-- Row 1: Geser & Tata Letak -->
+      <div class="tools-row tools-row-move">
+        <span class="tools-drag-handle" title="Tarik mouse untuk memindahkan posisi gambar antar paragraf" draggable="true">⠿ GESER</span>
+        <div class="tools-divider"></div>
+        <button type="button" class="btn-tool-pill btn-tool-up" title="Pindah Gambar ke Atas Paragraf Sebelumnya">▲ Naik</button>
+        <button type="button" class="btn-tool-pill btn-tool-down" title="Pindah Gambar ke Bawah Paragraf Setelahnya">▼ Turun</button>
+        <div class="tools-divider"></div>
+        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'left' ? 'active' : ''}" data-align="left" title="Rata Samping Kiri (Wrap Teks)">⇦ Kiri</button>
+        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'center' ? 'active' : ''}" data-align="center" title="Lebar Penuh Tengah">▣ Tengah</button>
+        <button type="button" class="btn-tool-pill btn-tool-align ${align === 'right' ? 'active' : ''}" data-align="right" title="Rata Samping Kanan (Wrap Teks)">Kanan ⇨</button>
+        <div class="tools-divider"></div>
+        <button type="button" class="btn-tool-pill btn-tool-edit" title="Ubah Link URL & Keterangan">✎ Ubah Link</button>
+        <button type="button" class="btn-tool-pill btn-tool-delete danger" title="Hapus Gambar dari Naskah">🗑 Hapus</button>
       </div>
 
-      <!-- Row 2: Crop Rasio, Fokus & Tinggi Bebas -->
-      <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 0.35rem;">
-        <span style="font-size: 0.68rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; font-family: var(--font-mono);">
-          Crop:
-        </span>
-        <button type="button" class="btn-action-pill ${curRatio === '16-9' ? 'active' : ''}" data-ratio="16-9">16:9</button>
-        <button type="button" class="btn-action-pill ${curRatio === '21-9' ? 'active' : ''}" data-ratio="21-9">21:9</button>
-        <button type="button" class="btn-action-pill ${curRatio === '4-3' ? 'active' : ''}" data-ratio="4-3">4:3</button>
-        <button type="button" class="btn-action-pill ${curRatio === '1-1' ? 'active' : ''}" data-ratio="1-1">1:1</button>
-        <button type="button" class="btn-action-pill ${curRatio === 'auto' ? 'active' : ''}" data-ratio="auto">Asli</button>
+      <!-- Row 2: Crop Rasio, Fokus & Slider Tinggi Bebas -->
+      <div class="tools-row tools-row-crop">
+        <span class="tools-label">CROP:</span>
+        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '16-9' ? 'active' : ''}" data-ratio="16-9">16:9</button>
+        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '21-9' ? 'active' : ''}" data-ratio="21-9">21:9</button>
+        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '4-3' ? 'active' : ''}" data-ratio="4-3">4:3</button>
+        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === '1-1' ? 'active' : ''}" data-ratio="1-1">1:1</button>
+        <button type="button" class="btn-tool-pill btn-tool-ratio ${ratio === 'auto' ? 'active' : ''}" data-ratio="auto">Asli</button>
 
-        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
+        <div class="tools-divider"></div>
+        <span class="tools-label">FOKUS:</span>
+        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'top' ? 'active' : ''}" data-focus="top" title="Fokus Atas (Kepala/Wajah)">👤 Atas</button>
+        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'center' ? 'active' : ''}" data-focus="center" title="Fokus Tengah">🎯 Tengah</button>
+        <button type="button" class="btn-tool-pill btn-tool-focus ${focus === 'bottom' ? 'active' : ''}" data-focus="bottom" title="Fokus Bawah">⬇ Bawah</button>
 
-        <!-- Fokus Potong -->
-        <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">Fokus:</span>
-        <button type="button" class="btn-action-pill ${curFocus === 'top' ? 'active' : ''}" data-focus="top" title="Fokus Atas (Kepala/Wajah)">👤 Atas</button>
-        <button type="button" class="btn-action-pill ${curFocus === 'center' ? 'active' : ''}" data-focus="center" title="Fokus Tengah">🎯 Tengah</button>
-        <button type="button" class="btn-action-pill ${curFocus === 'bottom' ? 'active' : ''}" data-focus="bottom" title="Fokus Bawah">⬇ Bawah</button>
-
-        <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></div>
-
-        <!-- Tinggi Crop Bebas -->
-        <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">↕ Tinggi:</span>
-        <input type="range" id="bar-crop-slider" min="140" max="600" step="20" value="${curHeightVal}" style="width: 70px; height: 4px; accent-color: var(--accent-cyan); cursor: pointer;" title="Geser untuk mengubah tinggi crop bebas secara langsung" />
-        <span id="bar-crop-val" style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--accent-cyan); min-width: 38px;">${curHeightVal}px</span>
+        <div class="tools-divider"></div>
+        <span class="tools-label">↕ TINGGI:</span>
+        <input type="range" class="tool-crop-slider" min="120" max="650" step="10" value="${curHeightVal}" title="Geser untuk mengubah tinggi crop bebas secara langsung" />
+        <span class="tool-crop-val">${curHeightVal}px</span>
       </div>
     `;
 
-    parentContainer.appendChild(actionBar);
+    figure.prepend(tools);
 
-    const updateBarPos = () => {
-      if (!figure.isConnected) {
-        actionBar.remove();
-        return;
-      }
-      const rect = figure.getBoundingClientRect();
-      const top = Math.max(65, rect.top - 82);
-      const left = Math.max(15, Math.min(window.innerWidth - 480, rect.left));
-      actionBar.style.top = `${top}px`;
-      actionBar.style.left = `${left}px`;
-    };
+    // Create Bottom Interactive Drag-to-Crop Handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'crop-resize-handle';
+    resizeHandle.setAttribute('contenteditable', 'false');
+    resizeHandle.title = 'Tarik mouse ke atas/bawah untuk memotong (crop) tinggi foto secara bebas';
+    resizeHandle.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 15 12 20 17 15"/><polyline points="7 9 12 4 17 9"/></svg>
+      <span>TARIK KE ATAS/BAWAH UNTUK CROP BEBAS</span>
+    `;
+    if (frame) {
+      frame.after(resizeHandle);
+    } else {
+      figure.appendChild(resizeHandle);
+    }
 
-    updateBarPos();
-
-    // Move Up
-    actionBar.querySelector('#bar-btn-up')?.addEventListener('click', (e) => {
+    // --- Wire Event Handlers ---
+    // 1. Move Up
+    tools.querySelector('.btn-tool-up')?.addEventListener('click', (e) => {
       e.stopPropagation();
       const prev = figure.previousElementSibling;
       if (prev) {
         prev.before(figure);
         syncCallback();
-        updateBarPos();
         figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
-        Toast.show('Gambar sudah di posisi teratas.', 'info');
+        Toast.show('Gambar sudah di posisi paling atas naskah.', 'info');
       }
     });
 
-    // Move Down
-    actionBar.querySelector('#bar-btn-down')?.addEventListener('click', (e) => {
+    // 2. Move Down
+    tools.querySelector('.btn-tool-down')?.addEventListener('click', (e) => {
       e.stopPropagation();
       const next = figure.nextElementSibling;
       if (next) {
         next.after(figure);
         syncCallback();
-        updateBarPos();
         figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
-        Toast.show('Gambar sudah di posisi terbawah.', 'info');
+        Toast.show('Gambar sudah di posisi paling bawah naskah.', 'info');
       }
     });
 
-    // Alignment
-    const setAlign = (newAlign: 'left' | 'center' | 'right') => {
-      figure.classList.remove('align-left', 'align-center', 'align-right');
-      figure.classList.add(`align-${newAlign}`);
-      figure.setAttribute('data-align', newAlign);
-      actionBar.querySelectorAll('#bar-btn-align-left, #bar-btn-align-center, #bar-btn-align-right').forEach(b => b.classList.remove('active'));
-      actionBar.querySelector(`#bar-btn-align-${newAlign}`)?.classList.add('active');
-      syncCallback();
-      updateBarPos();
-    };
+    // 3. Alignment
+    tools.querySelectorAll('.btn-tool-align').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const a = (btn.getAttribute('data-align') || 'center') as 'left' | 'center' | 'right';
+        figure.classList.remove('align-left', 'align-center', 'align-right');
+        figure.classList.add(`align-${a}`);
+        figure.setAttribute('data-align', a);
+        tools.querySelectorAll('.btn-tool-align').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        syncCallback();
+      });
+    });
 
-    actionBar.querySelector('#bar-btn-align-left')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('left'); });
-    actionBar.querySelector('#bar-btn-align-center')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('center'); });
-    actionBar.querySelector('#bar-btn-align-right')?.addEventListener('click', (e) => { e.stopPropagation(); setAlign('right'); });
+    // 4. Aspect Ratio Preset Buttons
+    const slider = tools.querySelector('.tool-crop-slider') as HTMLInputElement | null;
+    const valLabel = tools.querySelector('.tool-crop-val') as HTMLElement | null;
 
-    // Ratio Switcher
-    actionBar.querySelectorAll('[data-ratio]').forEach(btn => {
+    tools.querySelectorAll('.btn-tool-ratio').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const r = btn.getAttribute('data-ratio') || '16-9';
@@ -4002,29 +3979,29 @@ export class AdminCMS {
           else if (r === '1-1') frame.style.aspectRatio = '1 / 1';
           else frame.style.aspectRatio = 'auto';
         }
-        actionBar.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+        tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        if (valLabel && frame) {
+          valLabel.textContent = `${Math.round(frame.getBoundingClientRect().height)}px`;
+        }
         syncCallback();
-        updateBarPos();
       });
     });
 
-    // Focus Switcher
-    actionBar.querySelectorAll('[data-focus]').forEach(btn => {
+    // 5. Focal Point Buttons
+    tools.querySelectorAll('.btn-tool-focus').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const f = btn.getAttribute('data-focus') || 'center';
         figure.setAttribute('data-focus', f);
         if (img) img.style.objectPosition = `center ${f}`;
-        actionBar.querySelectorAll('[data-focus]').forEach(b => b.classList.remove('active'));
+        tools.querySelectorAll('.btn-tool-focus').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         syncCallback();
       });
     });
 
-    // Height Crop Slider
-    const slider = actionBar.querySelector('#bar-crop-slider') as HTMLInputElement | null;
-    const valLabel = actionBar.querySelector('#bar-crop-val') as HTMLElement | null;
+    // 6. Height Crop Slider
     slider?.addEventListener('input', (e) => {
       e.stopPropagation();
       const h = slider.value;
@@ -4038,61 +4015,162 @@ export class AdminCMS {
       figure.classList.add('ratio-custom');
       figure.setAttribute('data-height', `${h}px`);
       figure.setAttribute('data-ratio', 'custom');
-      actionBar.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+      tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
       syncCallback();
-      updateBarPos();
     });
 
-    // Delete Figure
-    actionBar.querySelector('#bar-btn-del-fig')?.addEventListener('click', (e) => {
+    // 7. Interactive Bottom Drag-to-Crop Handle
+    resizeHandle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      figure.remove();
-      syncCallback();
-      actionBar.remove();
-      Toast.show('Gambar berhasil dihapus dari naskah.');
+      const startY = e.clientY;
+      const startH = frame ? frame.offsetHeight : 300;
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+
+      const onMouseMove = (moveEvt: MouseEvent) => {
+        const diffY = moveEvt.clientY - startY;
+        const newH = Math.max(120, Math.min(750, Math.round(startH + diffY)));
+        if (frame) {
+          frame.style.aspectRatio = 'auto';
+          frame.style.height = `${newH}px`;
+        }
+        if (img) img.style.objectFit = 'cover';
+        figure.classList.remove('ratio-16-9', 'ratio-21-9', 'ratio-4-3', 'ratio-1-1', 'ratio-auto');
+        figure.classList.add('ratio-custom');
+        figure.setAttribute('data-height', `${newH}px`);
+        figure.setAttribute('data-ratio', 'custom');
+        if (slider) slider.value = String(newH);
+        if (valLabel) valLabel.textContent = `${newH}px`;
+        tools.querySelectorAll('.btn-tool-ratio').forEach(b => b.classList.remove('active'));
+      };
+
+      const onMouseUp = () => {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        syncCallback();
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
     });
 
-    // Edit in Modal
-    actionBar.querySelector('#bar-btn-edit-fig')?.addEventListener('click', (e) => {
+    // 8. Dedicated Drag Handle for Repositioning Between Paragraphs
+    const dragHandle = tools.querySelector('.tools-drag-handle') as HTMLElement | null;
+    dragHandle?.addEventListener('dragstart', (e) => {
       e.stopPropagation();
-      actionBar.remove();
-      const captionEl = figure.querySelector('.inline-caption-text') as HTMLElement | null;
-      const sourceEl = figure.querySelector('.inline-caption-source') as HTMLElement | null;
+      figure.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'queryindo-figure');
+      }
+      (wysiwygCanvas as any)._draggedFigure = figure;
+    });
+
+    dragHandle?.addEventListener('dragend', () => {
+      figure.classList.remove('is-dragging');
+      delete (wysiwygCanvas as any)._draggedFigure;
+      syncCallback();
+    });
+
+    // 9. Edit in Modal
+    tools.querySelector('.btn-tool-edit')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const captionText = figure.querySelector('.inline-caption-text')?.textContent || '';
+      const captionSource = figure.querySelector('.inline-caption-source')?.textContent?.replace(/^\(Foto:\s*|\)$/g, '') || '';
       const existingData = {
         url: img?.src || '',
         align: figure.getAttribute('data-align') || 'center',
         ratio: figure.getAttribute('data-ratio') || '16-9',
         focus: figure.getAttribute('data-focus') || 'center',
-        caption: captionEl?.textContent || '',
-        source: sourceEl?.textContent?.replace(/^\(Foto:\s*|\)$/g, '') || ''
+        caption: captionText,
+        source: captionSource
       };
 
-      this.openInlineImageModal(parentContainer, existingData, (newFigureHtml) => {
+      this.openInlineImageModal(wysiwygCanvas.closest('#manuscript-editor-fullscreen') as HTMLElement || document.body, existingData, (updatedFigureHtml) => {
         const temp = document.createElement('div');
-        temp.innerHTML = newFigureHtml;
-        const newFigure = temp.querySelector('.article-inline-image');
-        if (newFigure) {
-          figure.replaceWith(newFigure);
+        temp.innerHTML = updatedFigureHtml;
+        const newFig = temp.querySelector('.article-inline-image') as HTMLElement | null;
+        if (newFig) {
+          figure.replaceWith(newFig);
+          this.hydrateSingleFigure(newFig, wysiwygCanvas, syncCallback);
           syncCallback();
           Toast.show('Pengaturan gambar naskah berhasil diperbarui.');
         }
       });
     });
 
-    // Reposition on scroll of the left column
-    const scrollCol = figure.closest('[data-lenis-prevent]');
-    const onScrollHandler = () => updateBarPos();
-    scrollCol?.addEventListener('scroll', onScrollHandler, { passive: true });
-
-    // Dismiss on outside click
-    const dismissHandler = (evt: MouseEvent) => {
-      if (!actionBar.contains(evt.target as Node) && !figure.contains(evt.target as Node)) {
-        actionBar.remove();
-        figure.classList.remove('is-selected');
-        document.removeEventListener('click', dismissHandler);
-        scrollCol?.removeEventListener('scroll', onScrollHandler);
+    // 10. Delete
+    tools.querySelector('.btn-tool-delete')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nextSibling = figure.nextElementSibling as HTMLElement | null;
+      figure.remove();
+      syncCallback();
+      if (nextSibling) {
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(nextSibling);
+        range.collapse(true);
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        nextSibling.focus();
       }
-    };
-    setTimeout(() => document.addEventListener('click', dismissHandler), 60);
+      Toast.show('Gambar berhasil dihapus dari naskah.');
+    });
+  }
+
+  // Insert Inline Image Safely as a Top-Level Sibling Block
+  private insertInlineImage(
+    figureHtml: string,
+    wysiwygCanvas: HTMLElement,
+    targetBlock: HTMLElement | null,
+    syncCallback: () => void
+  ) {
+    const temp = document.createElement('div');
+    temp.innerHTML = figureHtml;
+    const figure = temp.querySelector('.article-inline-image') as HTMLElement | null;
+    if (!figure) return;
+
+    figure.setAttribute('contenteditable', 'false');
+
+    // Insert as a clean top-level sibling
+    if (targetBlock && wysiwygCanvas.contains(targetBlock)) {
+      const isBlockEmpty = !targetBlock.textContent?.trim() && (!targetBlock.querySelector('img') || targetBlock.innerHTML === '<br>');
+      if (isBlockEmpty && targetBlock.tagName.toLowerCase() === 'p') {
+        targetBlock.replaceWith(figure);
+      } else {
+        targetBlock.after(figure);
+      }
+    } else {
+      wysiwygCanvas.appendChild(figure);
+    }
+
+    // Ensure there is always an editable sibling paragraph after the figure
+    let nextBlock = figure.nextElementSibling as HTMLElement | null;
+    if (!nextBlock || nextBlock.tagName.toLowerCase() === 'figure') {
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      figure.after(p);
+      nextBlock = p;
+    }
+
+    // Hydrate controls onto the new figure
+    this.hydrateSingleFigure(figure, wysiwygCanvas, syncCallback);
+
+    // Place caret cleanly in the trailing paragraph
+    if (nextBlock) {
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(nextBlock);
+      range.collapse(true);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      nextBlock.focus();
+    }
+
+    syncCallback();
+    Toast.show('Gambar berhasil disisipkan ke naskah!');
   }
 }

@@ -656,7 +656,8 @@ body.is-scrolled .brand-word-indo {
 }
 
 .navbar.is-scrolled ~ main .category-bar,
-body.is-scrolled .category-bar {
+body.is-scrolled .category-bar,
+.category-bar.is-scrolled {
   top: 3.4rem;
   box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
   border-color: rgba(0, 242, 254, 0.18);
