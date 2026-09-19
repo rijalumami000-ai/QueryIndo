@@ -56,7 +56,7 @@ export class HeroSection {
       featuredArticleContainer.innerHTML = `
         <article class="hero-card" data-article-id="${featuredArticle.id}" data-article-slug="${featuredArticle.slug || ''}" data-article-title="${escapeHtml(featuredArticle.title)}">
           <div class="hero-img-wrapper">
-            <img src="${getSafeImageUrl(featuredArticle.imageUrl)}" alt="${escapeHtml(featuredArticle.title)}" class="hero-img" loading="eager" ${IMG_ONERROR} />
+            <img src="${getSafeImageUrl(featuredArticle.imageUrl)}" alt="${escapeHtml(featuredArticle.title)}" class="hero-img" loading="eager" fetchpriority="high" decoding="async" ${IMG_ONERROR} />
             <div class="hero-overlay"></div>
           </div>
           <div class="hero-content">
@@ -68,7 +68,7 @@ export class HeroSection {
             <p class="hero-subtitle">${featuredArticle.subtitle}</p>
             <div class="meta-row">
               <div class="meta-author">
-                <img src="${featuredArticle.author.avatar}" alt="${featuredArticle.author.name}" class="author-avatar" />
+                <img src="${featuredArticle.author.avatar}" alt="${featuredArticle.author.name}" class="author-avatar" loading="lazy" decoding="async" />
                 <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
                   ${featuredArticle.author.name}
                   ${ImageUtils.getVerifiedBadgeHTML(15, 'Founder & Pemimpin Redaksi Terverifikasi')}

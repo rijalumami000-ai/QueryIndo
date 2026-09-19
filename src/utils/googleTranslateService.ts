@@ -2,10 +2,34 @@ import { store } from '../state/store';
 
 export class GoogleTranslateService {
   private static isInitialized = false;
+  private static isScriptLoaded = false;
+
+  /**
+   * Loads the Google Translate script dynamically on-demand only
+   */
+  private static loadScript(): Promise<void> {
+    if (this.isScriptLoaded || document.getElementById('google-translate-script')) {
+      this.isScriptLoaded = true;
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = 'google-translate-script';
+      script.type = 'text/javascript';
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      script.onload = () => {
+        this.isScriptLoaded = true;
+        resolve();
+      };
+      script.onerror = () => reject(new Error('Failed to load Google Translate'));
+      document.head.appendChild(script);
+    });
+  }
 
   /**
    * Initializes the Google Translate listener and synchronizes
-   * the stored language preference.
+   * the stored language preference. Script is NOT loaded if language is 'id'.
    */
   public static init(): void {
     if (this.isInitialized) return;
@@ -13,10 +37,12 @@ export class GoogleTranslateService {
 
     const savedLang = store.preferences.language || (localStorage.getItem('byte_lang') as 'id' | 'en') || 'id';
 
-    // Synchronize cookie on initial load
+    // Only load external script if English was previously explicitly selected
     if (savedLang === 'en') {
       this.setCookie('en');
-      this.triggerTranslationCombo('en');
+      this.loadScript().then(() => {
+        this.triggerTranslationCombo('en');
+      }).catch(() => {});
     }
   }
 
@@ -28,24 +54,20 @@ export class GoogleTranslateService {
     store.setLanguage(lang);
     this.setCookie(lang);
 
-    const combo = document.querySelector<HTMLSelectElement>('.goog-te-combo');
-    if (combo) {
-      combo.value = lang;
-      combo.dispatchEvent(new Event('change'));
-    }
-
     // When switching from English back to Indonesian, a quick reload guarantees
-    // clean restoration of the original Indonesian text without translation artifacts
+    // clean restoration of original text and unloads translation listeners
     if (currentLang === 'en' && lang === 'id') {
       setTimeout(() => {
         window.location.reload();
-      }, 150);
+      }, 100);
       return;
     }
 
-    // If switching to English and combo wasn't immediately ready
+    // When switching to English, load script on-demand and trigger combo
     if (lang === 'en') {
-      this.triggerTranslationCombo('en');
+      this.loadScript().then(() => {
+        this.triggerTranslationCombo('en');
+      }).catch(() => {});
     }
   }
 
@@ -54,7 +76,9 @@ export class GoogleTranslateService {
    */
   public static refreshModalTranslation(): void {
     if (store.preferences.language === 'en') {
-      this.triggerTranslationCombo('en');
+      this.loadScript().then(() => {
+        this.triggerTranslationCombo('en');
+      }).catch(() => {});
     }
   }
 
@@ -69,10 +93,10 @@ export class GoogleTranslateService {
           combo.value = lang;
           combo.dispatchEvent(new Event('change'));
         }
-      } else if (attempts >= 12) {
+      } else if (attempts >= 15) {
         clearInterval(interval);
       }
-    }, 200);
+    }, 150);
   }
 
   private static setCookie(lang: 'id' | 'en'): void {

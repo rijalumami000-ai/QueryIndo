@@ -27,6 +27,7 @@ import Lenis from 'lenis';
 
 export class ArticleReaderModal {
   private static readerLenis: Lenis | null = null;
+  private static currentScrollHandler: (() => void) | null = null;
 
   public static async open(articleIdOrSlug: string, updateUrl: boolean = true): Promise<void> {
     let article = findArticleBySlugOrId(articleIdOrSlug);
@@ -212,18 +213,29 @@ export class ArticleReaderModal {
       }
     }
 
-    // Reading Progress Bar Scroll Handler
+    // Reading Progress Bar Scroll Handler (Cleaned up, Throttled via rAF)
     const progressBar = document.getElementById('reader-progress-bar');
+    if (this.currentScrollHandler) {
+      readerModal.removeEventListener('scroll', this.currentScrollHandler);
+      this.currentScrollHandler = null;
+    }
     if (progressBar && readerModal) {
+      let isTicking = false;
       const handleScroll = () => {
-        const scrollTop = readerModal.scrollTop;
-        const scrollHeight = readerModal.scrollHeight - readerModal.clientHeight;
-        if (scrollHeight > 0) {
-          const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-          progressBar.style.width = `${pct}%`;
-        }
+        if (isTicking) return;
+        isTicking = true;
+        requestAnimationFrame(() => {
+          isTicking = false;
+          const scrollTop = readerModal.scrollTop;
+          const scrollHeight = readerModal.scrollHeight - readerModal.clientHeight;
+          if (scrollHeight > 0) {
+            const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
+            progressBar.style.width = `${pct}%`;
+          }
+        });
       };
-      readerModal.addEventListener('scroll', handleScroll);
+      this.currentScrollHandler = handleScroll;
+      readerModal.addEventListener('scroll', handleScroll, { passive: true });
     }
 
     // Related Articles Click Handlers
@@ -383,6 +395,10 @@ export class ArticleReaderModal {
     if (this.readerLenis) {
       this.readerLenis.destroy();
       this.readerLenis = null;
+    }
+    if (this.currentScrollHandler) {
+      readerModal.removeEventListener('scroll', this.currentScrollHandler);
+      this.currentScrollHandler = null;
     }
     readerModal.classList.remove('open');
     document.body.style.overflow = '';

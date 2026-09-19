@@ -46,69 +46,83 @@ window.addEventListener('modal-closed', () => {
   }
 });
 
-// Global Scroll Handler for Sticky Header, Progress Bar & Category Bar
-function handleGlobalScroll() {
-  const scrollY = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0;
-  const navbar = document.querySelector('.navbar');
-  const categoryBar = document.querySelector('.category-bar');
-  const scrollProgress = document.getElementById('navbar-scroll-progress');
-  const backToTopBtn = document.getElementById('btn-back-to-top');
+// Cached DOM Elements for Ultra-Fast 120fps Scroll Handling (Zero Layout Thrashing)
+let cachedNavbar: HTMLElement | null = null;
+let cachedCategoryBar: HTMLElement | null = null;
+let cachedScrollProgress: HTMLElement | null = null;
+let cachedBackToTopBtn: HTMLElement | null = null;
+let cachedDocHeight = 1;
+let isScrollTicking = false;
+let lastIsScrolled = false;
+let lastBackToTopVisible = false;
 
-  const isScrolled = scrollY > 40;
-  document.body.classList.toggle('is-scrolled', isScrolled);
-  navbar?.classList.toggle('is-scrolled', isScrolled);
-  categoryBar?.classList.toggle('is-scrolled', isScrolled);
-
-  if (scrollProgress) {
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
-    scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-  }
-
-  if (backToTopBtn) {
-    const show = scrollY > 300;
-    backToTopBtn.style.opacity = show ? '1' : '0';
-    backToTopBtn.style.pointerEvents = show ? 'auto' : 'none';
-    backToTopBtn.style.transform = show ? 'translateY(0)' : 'translateY(10px)';
-  }
+function updateCachedDimensions() {
+  cachedDocHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
 }
 
-// Native window scroll listener for all devices (desktop, tablet, mobile)
-window.addEventListener('scroll', handleGlobalScroll, { passive: true });
+// Global Scroll Handler with requestAnimationFrame Throttling
+function handleGlobalScroll() {
+  if (isScrollTicking) return;
+  isScrollTicking = true;
+
+  requestAnimationFrame(() => {
+    isScrollTicking = false;
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+    const isScrolled = scrollY > 40;
+    if (isScrolled !== lastIsScrolled) {
+      lastIsScrolled = isScrolled;
+      document.body.classList.toggle('is-scrolled', isScrolled);
+      cachedNavbar?.classList.toggle('is-scrolled', isScrolled);
+      cachedCategoryBar?.classList.toggle('is-scrolled', isScrolled);
+    }
+
+    if (cachedScrollProgress) {
+      const progress = (scrollY / cachedDocHeight) * 100;
+      cachedScrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    if (cachedBackToTopBtn) {
+      const show = scrollY > 300;
+      if (show !== lastBackToTopVisible) {
+        lastBackToTopVisible = show;
+        cachedBackToTopBtn.style.opacity = show ? '1' : '0';
+        cachedBackToTopBtn.style.pointerEvents = show ? 'auto' : 'none';
+        cachedBackToTopBtn.style.transform = show ? 'translateY(0)' : 'translateY(10px)';
+      }
+    }
+  });
+}
 
 // --------------------------------------------------------------------------
 // Application Initialization
 // --------------------------------------------------------------------------
 async function init() {
-  // 1. Lenis Smooth Scroll
+  // 1. Cache Elements & Layout Dimensions Once
+  cachedNavbar = document.querySelector('.navbar');
+  cachedCategoryBar = document.querySelector('.category-bar');
+  cachedScrollProgress = document.getElementById('navbar-scroll-progress');
+  cachedBackToTopBtn = document.getElementById('btn-back-to-top');
+  updateCachedDimensions();
+  window.addEventListener('resize', updateCachedDimensions, { passive: true });
+
+  // 2. Lenis Smooth Scroll (Ultra-Snappy 120fps Configuration)
   if (window.innerWidth > 768) {
-    lenisInstance = new Lenis({ duration: 1.2, smoothWheel: true, touchMultiplier: 1.5 });
+    lenisInstance = new Lenis({ duration: 0.6, lerp: 0.12, smoothWheel: true, touchMultiplier: 1.2 });
     lenisInstance.on('scroll', handleGlobalScroll);
     const raf = (time: number) => { lenisInstance?.raf(time); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
+  } else {
+    window.addEventListener('scroll', handleGlobalScroll, { passive: true });
   }
   handleGlobalScroll();
 
-  // 2. Initialize Store Badges
+  // 3. Initialize Store Badges
   store.updateCurrentDateBadge();
   store.updateBookmarkBadge();
   UserAuthModal.updateUserNavbarState();
 
-  // 3. Fetch Articles, Authors, Shopping Products, Ads & Indices from Backend
-  try {
-    await ApiService.checkBackendHealth();
-    await Promise.allSettled([
-      ArticleService.syncWithBackend(),
-      AuthorService.syncWithBackend(),
-      ShoppingCarousel.syncWithBackend(),
-      AdBanner.syncWithBackend()
-    ]);
-  } catch (err) {
-    console.warn('Backend unavailable, using local mock data', err);
-  }
-
-
-  // 4. Render All Sections
+  // 4. INSTANT First Paint (0ms) from local memory/cache
   FeedSection.renderCategories();
   HeroSection.renderBreakingBanner();
   HeroSection.render();
@@ -119,6 +133,22 @@ async function init() {
   DeepTechSection.render();
   FeedSection.renderFilterTags();
   FeedSection.render();
+
+  // 5. Asynchronous Background Sync (Non-blocking Stale-While-Revalidate)
+  Promise.allSettled([
+    ArticleService.syncWithBackend(),
+    AuthorService.syncWithBackend(),
+    ShoppingCarousel.syncWithBackend(),
+    AdBanner.syncWithBackend()
+  ]).then(() => {
+    updateCachedDimensions();
+    FeedSection.renderCategories();
+    HeroSection.renderBreakingBanner();
+    HeroSection.render();
+    BentoSection.render();
+    DeepTechSection.render();
+    FeedSection.render();
+  }).catch(() => {});
 
   // 5. ByteShorts & Social Channels
   const byteShortsContainer = document.getElementById('byteshorts-bar-container');
@@ -410,14 +440,11 @@ function setupEventListeners() {
   // Back to Top Button click handler
   document.getElementById('btn-back-to-top')?.addEventListener('click', () => {
     if (lenisInstance) {
-      lenisInstance.scrollTo(0, { duration: 1.2 });
+      lenisInstance.scrollTo(0, { duration: 0.8 });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
-
-  window.addEventListener('scroll', handleGlobalScroll, { passive: true });
-  handleGlobalScroll();
 }
 
 document.addEventListener('DOMContentLoaded', init);
