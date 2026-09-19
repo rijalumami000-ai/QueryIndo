@@ -1,61 +1,70 @@
 import type { Article } from '../types/news';
-import { ARTICLES } from '../data/mockNews';
 import { ApiService } from './apiService';
 import { ImageUtils } from '../utils/imageUtils';
 
 const STORAGE_KEY = 'queryindo_articles_v3';
-const DUMMY_IDS = new Set([
+export const DUMMY_IDS = new Set([
   'art-001', 'art-002', 'art-003', 'art-004', 'art-005', 'art-006',
   'art-007', 'art-008', 'art-009', 'art-010', 'art-011', 'art-012',
-  'art-013', 'art-014', 'art-015', 'art-016', 'art-017', 'art-018'
+  'art-013', 'art-014', 'art-015', 'art-016', 'art-017', 'art-018',
+  'art-official-01', 'art-official-02', 'art-official-03',
+  'art-official-04', 'art-official-05', 'art-official-06'
 ]);
 
-// Clear old cache keys once
+export function isMockArticleId(id: string): boolean {
+  if (!id) return true;
+  if (id.startsWith('art-official-')) return true;
+  return DUMMY_IDS.has(id);
+}
+
+// Clear old cache keys & purge any mock articles from existing local storage
 try {
   localStorage.removeItem('queryindo_articles_v2');
   localStorage.removeItem('byteindonesia_articles');
+
+  const rawOld = localStorage.getItem(STORAGE_KEY);
+  if (rawOld) {
+    const parsed = JSON.parse(rawOld);
+    if (Array.isArray(parsed)) {
+      const sanitized = parsed.filter(a => a && a.id && !isMockArticleId(a.id));
+      if (sanitized.length !== parsed.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+      }
+    }
+  }
 } catch {}
 
 export class ArticleService {
   private static cachedArticles: Article[] | null = null;
 
   public static getArticles(): Article[] {
-    if (this.cachedArticles !== null && this.cachedArticles.length > 0) {
+    if (this.cachedArticles !== null) {
       return this.cachedArticles;
     }
 
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) {
-      this.cachedArticles = [...ARTICLES];
-      this.saveArticles(this.cachedArticles);
-      return this.cachedArticles;
-    }
-
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        this.cachedArticles = parsed
-          .filter(a => a && a.id && !DUMMY_IDS.has(a.id))
-          .map(a => ({
-            ...a,
-            imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
-          }));
-        if (this.cachedArticles.length > 0) {
+    if (raw !== null) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          this.cachedArticles = parsed
+            .filter(a => a && a.id && !isMockArticleId(a.id))
+            .map(a => ({
+              ...a,
+              imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
+            }));
           return this.cachedArticles;
         }
-      }
-      this.cachedArticles = [...ARTICLES];
-      return this.cachedArticles;
-    } catch {
-      this.cachedArticles = [...ARTICLES];
-      return this.cachedArticles;
+      } catch {}
     }
-  }
 
+    this.cachedArticles = [];
+    return this.cachedArticles;
+  }
 
   public static saveArticles(articles: Article[]): void {
     const cleanArticles = (articles || [])
-      .filter(a => a && a.id && !DUMMY_IDS.has(a.id))
+      .filter(a => a && a.id && !isMockArticleId(a.id))
       .map(a => ({
         ...a,
         imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
@@ -68,15 +77,17 @@ export class ArticleService {
     }
   }
 
-  public static async syncWithBackend(): Promise<void> {
+  public static async syncWithBackend(): Promise<Article[]> {
     try {
       const serverArticles = await ApiService.getArticles();
-      if (Array.isArray(serverArticles)) {
+      if (Array.isArray(serverArticles) && serverArticles.length > 0) {
         this.saveArticles(serverArticles);
+        return this.cachedArticles || [];
       }
     } catch (err) {
       console.warn('Gagal sinkronisasi data artikel dari server:', err);
     }
+    return this.cachedArticles || [];
   }
 
   public static getArticleById(id: string): Article | undefined {

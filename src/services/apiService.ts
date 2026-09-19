@@ -11,7 +11,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const API_HEALTH_URL = import.meta.env.VITE_API_HEALTH_URL || (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/v1\/?$/, '/health') : '/health');
 
 export class ApiService {
-  public static isBackendAvailable = false;
+  public static isBackendAvailable = true;
 
   // Check Backend Server Health
   public static async checkBackendHealth(): Promise<boolean> {
@@ -27,24 +27,24 @@ export class ApiService {
     return false;
   }
 
-  // Fetch Articles from Go Backend or Fallback Dataset
+  // Fetch Articles from Go Backend
   public static async getArticles(category?: string, search?: string): Promise<Article[]> {
-    if (this.isBackendAvailable) {
-      try {
-        const url = new URL(`${API_BASE_URL}/articles`, window.location.origin);
-        if (category && category !== 'all') url.searchParams.append('category', category);
-        if (search) url.searchParams.append('search', search);
+    try {
+      const url = new URL(`${API_BASE_URL}/articles`, window.location.origin);
+      if (category && category !== 'all') url.searchParams.append('category', category);
+      if (search) url.searchParams.append('search', search);
 
-        const res = await fetch(url.toString());
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data)) {
-            return json.data;
-          }
+      const res = await fetch(url.toString());
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          this.isBackendAvailable = true;
+          return json.data;
         }
-      } catch (err) {
-        console.warn('Backend API request failed.', err);
       }
+    } catch (err) {
+      console.warn('Backend API request failed.', err);
+      this.isBackendAvailable = false;
     }
     return [];
   }
@@ -81,50 +81,50 @@ export class ApiService {
 
   // Create Article via Go Backend (Protected Endpoint)
   public static async createArticle(article: Article): Promise<boolean> {
-    if (this.isBackendAvailable) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/articles`, {
-          method: 'POST',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(article)
-        });
-        return res.ok;
-      } catch (err) {
-        console.error('Failed to post article to Go Backend', err);
-      }
+    try {
+      const res = await fetch(`${API_BASE_URL}/articles`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(article)
+      });
+      if (res.ok) this.isBackendAvailable = true;
+      return res.ok;
+    } catch (err) {
+      console.error('Failed to post article to Go Backend', err);
+      this.isBackendAvailable = false;
     }
     return false;
   }
 
   // Update Article via Go Backend (Protected Endpoint)
   public static async updateArticle(id: string, article: Partial<Article>): Promise<boolean> {
-    if (this.isBackendAvailable) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
-          method: 'PUT',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(article)
-        });
-        return res.ok;
-      } catch (err) {
-        console.error('Failed to update article on Go Backend', err);
-      }
+    try {
+      const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(article)
+      });
+      if (res.ok) this.isBackendAvailable = true;
+      return res.ok;
+    } catch (err) {
+      console.error('Failed to update article on Go Backend', err);
+      this.isBackendAvailable = false;
     }
     return false;
   }
 
   // Delete Article via Go Backend (Protected Endpoint)
   public static async deleteArticle(id: string): Promise<boolean> {
-    if (this.isBackendAvailable) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
-          method: 'DELETE',
-          headers: this.getAuthHeaders()
-        });
-        return res.ok;
-      } catch (err) {
-        console.error('Failed to delete article on Go Backend', err);
-      }
+    try {
+      const res = await fetch(`${API_BASE_URL}/articles/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+      if (res.ok) this.isBackendAvailable = true;
+      return res.ok;
+    } catch (err) {
+      console.error('Failed to delete article on Go Backend', err);
+      this.isBackendAvailable = false;
     }
     return false;
   }

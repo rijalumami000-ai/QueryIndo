@@ -5,7 +5,7 @@ import { ImageUtils } from '../utils/imageUtils';
 import { AdBanner } from '../components/AdBanner';
 import { ShoppingCarousel } from '../components/ShoppingCarousel';
 import { escapeHtml, formatDate, calculateReadTime, getSafeImageUrl, IMG_ONERROR } from '../utils/helpers';
-import type { Article } from '../types/news';
+
 
 export class BentoSection {
   public static renderBillboardAd(): void {
@@ -35,7 +35,7 @@ export class BentoSection {
     const section = container.closest('section') as HTMLElement;
 
     const articles = ArticleService.getArticles();
-    const featured = articles.find(a => a.id === 'art-008') || articles[1] || articles[0];
+    const featured = articles[1] || articles[0];
     if (!featured) {
       if (section) section.style.display = 'none';
       container.innerHTML = '';
@@ -43,10 +43,8 @@ export class BentoSection {
     }
     if (section) section.style.display = '';
 
-    const stackedArticles = [
-      articles.find(a => a.id === 'art-002'),
-      articles.find(a => a.id === 'art-005')
-    ].filter(Boolean) as Article[];
+    const otherArticles = articles.filter(a => a.id !== featured.id);
+    const stackedArticles = otherArticles.slice(0, 2);
 
     container.innerHTML = `
       <!-- Bento Large Featured Card (60%) -->

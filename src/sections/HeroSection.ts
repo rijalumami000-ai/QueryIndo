@@ -90,7 +90,10 @@ export class HeroSection {
 
     // Render Sidebar Trending
     if (trendingArticlesContainer) {
-      const trendingArticles = articles.filter(a => a.isTrending && a.id !== featuredArticle.id).slice(0, 4);
+      let trendingArticles = articles.filter(a => a.isTrending && a.id !== featuredArticle.id).slice(0, 4);
+      if (trendingArticles.length === 0) {
+        trendingArticles = articles.filter(a => a.id !== featuredArticle.id).slice(0, 4);
+      }
       trendingArticlesContainer.innerHTML = trendingArticles.map((art, idx) => `
         <div class="trending-item" data-article-id="${art.id}" data-article-slug="${art.slug || ''}" data-article-title="${escapeHtml(art.title)}">
           <div class="trending-num">0${idx + 1}</div>

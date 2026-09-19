@@ -20,45 +20,8 @@ export class ReaderComments {
   private static STORAGE_PREFIX = 'byte_comments_';
   private static LIKED_COMMENTS_KEY = 'byte_liked_comments';
 
-  // Realistic Pre-seeded comments for articles
-  private static DEFAULT_SEED_COMMENTS: Record<string, CommentItem[]> = {
-    'art-001': [
-      {
-        id: 'cmt-1',
-        articleId: 'art-001',
-        authorName: 'Dr. Irvan Kurniawan',
-        authorRole: 'AI Infrastructure Researcher',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-        content: 'Pembangunan superkomputer AI di IKN ini adalah tonggak besar kedaulatan komputasi nasional. Yang krusial sekarang adalah kesiapan talenta lokal dan keterbukaan akses API untuk kampus riset dan startup dalam negeri.',
-        createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-        likesCount: 14,
-        replies: [
-          {
-            id: 'cmt-1-1',
-            articleId: 'art-001',
-            authorName: 'Dimas Wicaksono',
-            authorRole: 'Cloud Architect',
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-            content: 'Sepakat Pak Irvan. Efisiensi PUE data center hijau IKN dengan sumber hidro dan surya juga akan menekan OPEX pelatihan model LLM Bahasa Indonesia.',
-            createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-            likesCount: 6,
-            parentId: 'cmt-1'
-          }
-        ]
-      },
-      {
-        id: 'cmt-2',
-        articleId: 'art-001',
-        authorName: 'Sarah Alatas',
-        authorRole: 'Tech VC Partner',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80',
-        content: 'Investasi kluster GPU H200 di Asia Tenggara sedang sangat kompetitif. Langkah Indonesia ini tepat waktu sebelum tertinggal dari Singapura dan Malaysia.',
-        createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-        likesCount: 9,
-        replies: []
-      }
-    ]
-  };
+  // Realistic Pre-seeded comments for articles (Cleaned)
+  private static DEFAULT_SEED_COMMENTS: Record<string, CommentItem[]> = {};
 
   // Get All Comments for an article (Structured with replies)
   public static getComments(articleId: string): CommentItem[] {

@@ -217,9 +217,15 @@ function setupRouting() {
   });
 }
 
-function openAdminCMSModal() {
+async function openAdminCMSModal() {
   if (!adminCmsModal || !adminCmsContainer) return;
   window.dispatchEvent(new CustomEvent('modal-opened'));
+
+  // If local cache has no articles, fetch from backend first
+  if (ArticleService.getArticles().length === 0) {
+    await ArticleService.syncWithBackend();
+  }
+
   adminCmsContainer.innerHTML = adminCMS.renderAdminModalHTML();
   adminCmsModal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -228,6 +234,18 @@ function openAdminCMSModal() {
   adminCmsContainer.querySelector('#admin-modal-close-btn')?.addEventListener('click', () => {
     closeAdminCMSModal();
     Router.navigateHome();
+  });
+
+  // Always keep admin articles synchronized with backend
+  ArticleService.syncWithBackend().then(() => {
+    if (adminCmsModal?.classList.contains('open')) {
+      adminCmsContainer.innerHTML = adminCMS.renderAdminModalHTML();
+      adminCMS.bindAdminEvents(adminCmsContainer);
+      adminCmsContainer.querySelector('#admin-modal-close-btn')?.addEventListener('click', () => {
+        closeAdminCMSModal();
+        Router.navigateHome();
+      });
+    }
   });
 }
 

@@ -126,72 +126,9 @@ export const UI_TRANSLATIONS = {
   }
 };
 
-// Hardcoded Fallback Translations for Mock Articles (100% Offline Resilience)
-const MOCK_ARTICLE_TRANSLATIONS: Record<string, { title: string; subtitle: string; aiSummary: string[] }> = {
-  'art-001': {
-    title: 'Indonesia Officially Operates First AI Supercomputer National Data Center in IKN',
-    subtitle: 'This high-performance computing facility with 100 Petaflops capacity is designed to accelerate digital sovereignty and national data research.',
-    aiSummary: [
-      'IKN National Data Center (PDN) officially operates an AI supercomputer cluster with 100 Petaflops capacity.',
-      'This facility prioritizes Indonesian Language processing (Nusantara Large Language Model) and real-time disaster analysis.',
-      'The entire infrastructure is 100% powered by renewable energy from the IKN Solar Power Plant (PLTS).'
-    ]
-  },
-  'art-002': {
-    title: 'Starlink & Indonesian Telcos Agree on National Roaming: Zero Blindspots in 3T Outer Areas',
-    subtitle: 'Strategic collaboration of Direct-to-Cell cellular signals brings 5G connectivity to remote islands of Indonesia without changing SIM cards.',
-    aiSummary: [
-      'Indonesian consortium cellular operators agree to integrate LEO satellite-based Direct-to-Cell technology.',
-      'Users do not need to buy additional satellite dishes; standard 4G/5G phones automatically catch emergency signals when tower BTS is out of reach.',
-      'Successful trials were conducted in Natuna Islands and remote Papua.'
-    ]
-  },
-  'art-003': {
-    title: 'AI Sovereignty Bill Officially Passed: Mandatory Algorithm Transparency & Synthetic Content Watermarking',
-    subtitle: 'New regulation asserts copyright protection for human creations, ethical automation, and heavy punishments for malicious deepfakes.',
-    aiSummary: [
-      'Indonesian Parliament passes the Bill on Governance & Sovereignty of Artificial Intelligence.',
-      'All digital platforms must include invisible metadata/watermarks (C2PA) on AI-generated images, audio, and videos.',
-      'Large AI model developers must submit safety audit reports before public releases.'
-    ]
-  },
-  'art-004': {
-    title: 'Snapdragon 8 Gen 5 Review on Local Flagship: 45 TOPS AI Performance & Extreme Battery Efficiency',
-    subtitle: 'In-depth testing of the latest mobile chipset: 120 FPS game rendering without overheating and offline LLM processing in your hand.',
-    aiSummary: [
-      'Snapdragon 8 Gen 5 brings NPU enhancements up to 45 TOPS for On-Device AI tasks.',
-      'Max temperature during heavy gaming consistently stays under 39°C thanks to the 2nm fabrication process.',
-      'Favorite feature: Two-way real-time spoken language translation without internet connection.'
-    ]
-  },
-  'art-005': {
-    title: 'BSSN Alert: Generation 4 Ransomware Wave Targets Financial & Logistics Sectors',
-    subtitle: 'This new type of cyber threat utilizes autonomous AI agents to scan server vulnerabilities in seconds.',
-    aiSummary: [
-      'BSSN releases early warning on AI ransomware variants that can adapt and penetrate traditional Firewalls.',
-      'Companies are advised to implement Zero-Trust architecture and multi-layered biometric authentication.',
-      'No data breach cases in major banks so far due to emergency lock protocols.'
-    ]
-  },
-  'art-006': {
-    title: 'Bandung Climate-Tech Startup Raises $15 Million Series A for Salt-Based Battery',
-    subtitle: 'Sodium battery technology based on locally refined salt is ready to become a cheap storage alternative for solar energy.',
-    aiSummary: [
-      'NusaVolt startup produces Sodium-ion batteries that are 40% cheaper than Lithium batteries.',
-      'Series A funding of $15 Million is led by green venture capital consortium in Asia.',
-      'The first commercial factory will be built in Karawang in the final quarter of this year.'
-    ]
-  },
-  'art-007': {
-    title: 'TypeScript 5.8 & Go 1.26 Ecosystem Guide: Latest Fullstack Computing Stack Trends 2026',
-    subtitle: 'Why the combination of TypeScript for frontend and Go for microservices becomes the gold standard of modern software engineering.',
-    aiSummary: [
-      'TypeScript 5.8 provides type-checking speed enhancements up to 2x.',
-      'Go 1.26 introduces an optional JIT-based compiler for extreme performance scenarios.',
-      'Top-tier Indonesian tech companies switch to this stack to save cloud infrastructure costs.'
-    ]
-  }
-};
+// Fallback Translations for Mock Articles (Cleaned)
+const MOCK_ARTICLE_TRANSLATIONS: Record<string, { title: string; subtitle: string; aiSummary: string[] }> = {};
+
 
 // Memory Cache for Dynamically Translated Content
 const translationCache: Record<string, { title: string; subtitle: string; aiSummary: string[] }> = {};

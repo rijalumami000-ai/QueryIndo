@@ -4,7 +4,7 @@ import { Router } from '../router';
 import { ImageUtils } from '../utils/imageUtils';
 import { AdBanner } from '../components/AdBanner';
 import { escapeHtml, calculateReadTime, getSafeImageUrl, IMG_ONERROR } from '../utils/helpers';
-import type { Article } from '../types/news';
+
 
 export class DeepTechSection {
   public static render(): void {
@@ -17,10 +17,11 @@ export class DeepTechSection {
     if (!container) return;
 
     const articles = ArticleService.getArticles();
-    const targetIds = ['art-009', 'art-004', 'art-010', 'art-018'];
-    let matrixArticles = targetIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
+    let matrixArticles = articles.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
     if (matrixArticles.length < 4) {
-      matrixArticles = articles.filter(a => a.category === 'ai' || a.category === 'developer' || a.category === 'cybersecurity' || a.category === 'telecom').slice(0, 4);
+      const existingIds = new Set(matrixArticles.map(a => a.id));
+      const fillers = articles.filter(a => !existingIds.has(a.id)).slice(0, 4 - matrixArticles.length);
+      matrixArticles = [...matrixArticles, ...fillers];
     }
 
     const section = container.closest('section') as HTMLElement;
@@ -93,11 +94,7 @@ export class DeepTechSection {
 
     if (wireContainer) {
       const articles = ArticleService.getArticles();
-      const wireIds = ['art-017', 'art-016', 'art-013', 'art-007'];
-      let wireArticles = wireIds.map(id => articles.find(a => a.id === id)).filter(Boolean) as Article[];
-      if (wireArticles.length < 4) {
-        wireArticles = articles.slice(4, 8);
-      }
+      let wireArticles = articles.slice(0, 4);
 
       const timePills = store.preferences.language === 'en'
         ? ['12 MIN AGO', '34 MIN AGO', '1 HOUR AGO', '2 HOURS AGO']
