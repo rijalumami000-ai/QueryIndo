@@ -1,6 +1,7 @@
 import { AuthorService, EDITORIAL_DIVISIONS } from '../services/authorService';
 import { ImageUtils } from '../utils/imageUtils';
 import { Toast } from '../utils/toast';
+import { Router } from '../router/index';
 
 export type InstitutionalPageId =
   | 'tentang-kami'
@@ -11,278 +12,229 @@ export type InstitutionalPageId =
   | 'disclaimer'
   | 'info-iklan';
 
-const PAGE_TITLES: Record<InstitutionalPageId, { id: string; en: string }> = {
-  'tentang-kami': { id: 'Tentang Kami', en: 'About Us' },
-  'hubungi-kami': { id: 'Hubungi Kami', en: 'Contact Us' },
-  'kode-etik': { id: 'Kode Etik Jurnalistik', en: 'Code of Ethics' },
-  'redaksi': { id: 'Susunan Redaksi', en: 'Editorial Board' },
-  'pedoman-media-siber': { id: 'Pedoman Media Siber', en: 'Cyber Media Guidelines' },
-  'disclaimer': { id: 'Disclaimer', en: 'Disclaimer' },
-  'info-iklan': { id: 'Info Iklan & Kemitraan', en: 'Advertising & Partnerships' },
+interface PageMeta {
+  title: { id: string; en: string };
+  lead: { id: string; en: string };
+  kicker: { id: string; en: string };
+}
+
+const PAGE_METADATA: Record<InstitutionalPageId, PageMeta> = {
+  'tentang-kami': {
+    title: { id: 'Tentang Kami', en: 'About Us' },
+    kicker: { id: 'Profil Perusahaan Pers', en: 'Company Profile' },
+    lead: {
+      id: 'Portal jurnalisme teknologi independen berskala nasional yang dikelola oleh PT Query Media Nusantara, menyajikan liputan teknologi, kecerdasan buatan, komputasi awan, dan transformasi digital Indonesia.',
+      en: 'A national independent technology journalism publication published by PT Query Media Nusantara, covering AI, cloud infrastructure, cybersecurity, and digital policy.'
+    }
+  },
+  'redaksi': {
+    title: { id: 'Susunan Redaksi', en: 'Editorial Board' },
+    kicker: { id: 'Boks Redaksi Resmi', en: 'Masthead' },
+    lead: {
+      id: 'Struktur kepemimpinan redaksi, dewan penasihat, redaktur pelaksana, dan jurnalis teknologi QUERYINDO sesuai amanat Pasal 12 UU Pers No. 40 Tahun 1999.',
+      en: 'Editorial leadership, advisory board, managing editors, and journalists of QUERYINDO in compliance with Indonesian Press Law.'
+    }
+  },
+  'kode-etik': {
+    title: { id: 'Kode Etik Jurnalistik', en: 'Code of Ethics' },
+    kicker: { id: 'Standar Etika Jurnalistik', en: 'Press Ethics' },
+    lead: {
+      id: '11 Pasal Kode Etik Jurnalistik (KEJ) yang disahkan oleh Dewan Pers Republik Indonesia sebagai pedoman moral dan profesional seluruh jurnalis QUERYINDO.',
+      en: 'The 11 Articles of the Journalistic Code of Ethics enacted by the Indonesian Press Council as the moral and professional standard for all QUERYINDO journalists.'
+    }
+  },
+  'pedoman-media-siber': {
+    title: { id: 'Pedoman Media Siber', en: 'Cyber Media Guidelines' },
+    kicker: { id: 'Regulasi Dewan Pers', en: 'Digital Press Policy' },
+    lead: {
+      id: 'Pedoman Pemberitaan Media Siber yang ditetapkan oleh Dewan Pers bersama organisasi pers Indonesia pada 3 Februari 2012 untuk menjamin jurnalisme digital yang sehat dan bertanggung jawab.',
+      en: 'Cyber Media Coverage Guidelines established by the Indonesian Press Council for accountable, verified digital journalism.'
+    }
+  },
+  'info-iklan': {
+    title: { id: 'Info Iklan & Kemitraan', en: 'Advertising & Media Kit' },
+    kicker: { id: 'Layanan Komersial', en: 'Commercial Inquiries' },
+    lead: {
+      id: 'Pilihan format periklanan display, konten bersponsor (advertorial), dan kemitraan strategis untuk menjangkau ekosistem teknologi, pelaku startup, dan pemangku kepentingan digital di Indonesia.',
+      en: 'Advertising formats, sponsored editorial content, and partnership solutions reaching technology executives, software engineers, and digital innovators across Indonesia.'
+    }
+  },
+  'hubungi-kami': {
+    title: { id: 'Hubungi Kami & Kantor Redaksi', en: 'Contact Newsroom' },
+    kicker: { id: 'Saluran Komunikasi', en: 'Contact & Inquiries' },
+    lead: {
+      id: 'Alamat kantor redaksi, saluran surel resmi, layanan Hak Jawab Dewan Pers, dan formulir korespondensi pembaca.',
+      en: 'Newsroom office address, official email directories, Right of Reply inquiries, and editorial contact form.'
+    }
+  },
+  'disclaimer': {
+    title: { id: 'Disclaimer (Penafian)', en: 'Legal Disclaimer' },
+    kicker: { id: 'Penafian Hukum', en: 'Legal Terms' },
+    lead: {
+      id: 'Ketentuan batasan tanggung jawab pemberitaan, penafian nasihat keuangan, perlindungan hak cipta (UU 28/2014), dan kepatuhan privasi data (UU PDP 27/2022).',
+      en: 'Terms regarding limitation of liability, non-financial advice notice, copyright protection, and data privacy compliance.'
+    }
+  }
 };
 
-// ──────────────────────────────────────────────
-// Shared UI Helpers with Clean SVG Icons
-// ──────────────────────────────────────────────
-
-function sectionTitle(text: string): string {
-  return `<h3 style="font-size:1.1rem; font-weight:800; color:var(--text-primary); margin:0 0 1rem 0; text-transform:uppercase; letter-spacing:0.06em; display:flex; align-items:center; gap:0.6rem;">
-    <span style="width:3px; height:1.25rem; background:var(--accent-cyan); border-radius:2px; flex-shrink:0;"></span>${text}</h3>`;
-}
-
-function infoCard(label: string, value: string, accent: string = 'var(--accent-cyan)'): string {
-  return `<div style="background:var(--bg-tertiary); padding:1rem 1.15rem; border-radius:var(--radius-md); border:1px solid var(--border-color); border-left:3px solid ${accent}; transition:border-color 0.2s;">
-    <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-mono); display:block; margin-bottom:0.3rem;">${label}</span>
-    <strong style="font-size:0.9rem; color:var(--text-primary); display:block; line-height:1.4;">${value}</strong>
-  </div>`;
-}
-
-function staffCard(role: string, name: string, desc: string, avatar?: string, email?: string): string {
-  const normalizedAvatar = avatar ? ImageUtils.normalizeImageUrl(avatar) : '';
-  const fallbackAvatar = ImageUtils.getInitialsAvatar(name);
-  const avatarHtml = normalizedAvatar
-    ? `<img src="${normalizedAvatar}" alt="${name}" onerror="this.onerror=null;this.src='${fallbackAvatar}';" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--accent-cyan); flex-shrink:0; background:var(--bg-secondary);" />`
-    : `<div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(139,92,246,0.2)); border:1px solid var(--accent-cyan); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent-cyan); font-size:1.05rem; flex-shrink:0;">${name.charAt(0)}</div>`;
-
-  return `<div style="background:var(--bg-tertiary); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem; transition:transform 0.2s, border-color 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(0,242,254,0.3)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)'" onmouseleave="this.style.transform='';this.style.borderColor='var(--border-color)';this.style.boxShadow=''">
-    <div>
-      <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
-        ${avatarHtml}
-        <div style="min-width:0; flex:1;">
-          <span style="font-size:0.68rem; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-mono); font-weight:700; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${role}</span>
-          <strong style="font-size:0.95rem; color:var(--text-primary); display:flex; align-items:center; gap:0.25rem; line-height:1.3;">
-            ${name}
-            ${ImageUtils.getVerifiedBadgeHTML(14, 'Dewan Redaksi Terverifikasi')}
-          </strong>
-        </div>
-      </div>
-      <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5; margin:0;">${desc}</p>
-    </div>
-    ${email ? `<div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); border-top:1px solid var(--border-color); padding-top:0.5rem; display:flex; align-items:center; gap:0.35rem;">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>
-      <span>${email}</span>
-    </div>` : ''}
-  </div>`;
-}
-
-function ethicsArticle(num: number, title: string, body: string, accent: string): string {
-  return `<div style="padding:1.15rem; background:var(--bg-tertiary); border-left:3px solid ${accent}; border-radius:0 var(--radius-md) var(--radius-md) 0; border-top:1px solid var(--border-color); border-right:1px solid var(--border-color); border-bottom:1px solid var(--border-color);">
-    <strong style="display:block; color:var(--text-primary); margin-bottom:0.35rem; font-size:0.92rem; letter-spacing:-0.01em;">Pasal ${num}: ${title}</strong>
-    <span style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6; display:block;">${body}</span>
-  </div>`;
-}
-
-
-
+const NAVIGATION_TABS: Array<{ id: InstitutionalPageId; label: { id: string; en: string }; iconSvg: string }> = [
+  {
+    id: 'tentang-kami',
+    label: { id: 'Tentang Kami', en: 'About Us' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>'
+  },
+  {
+    id: 'redaksi',
+    label: { id: 'Susunan Redaksi', en: 'Masthead' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  },
+  {
+    id: 'kode-etik',
+    label: { id: 'Kode Etik', en: 'Code of Ethics' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+  },
+  {
+    id: 'pedoman-media-siber',
+    label: { id: 'Pedoman Siber', en: 'Cyber Guidelines' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+  },
+  {
+    id: 'info-iklan',
+    label: { id: 'Info Iklan', en: 'Advertising' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
+  },
+  {
+    id: 'hubungi-kami',
+    label: { id: 'Hubungi Kami', en: 'Contact Us' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
+  },
+  {
+    id: 'disclaimer',
+    label: { id: 'Disclaimer', en: 'Disclaimer' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+  }
+];
 
 // ──────────────────────────────────────────────
-// Page Content Generators
+// Page 1: Tentang Kami (Human-crafted Editorial Prose)
 // ──────────────────────────────────────────────
 
 function renderTentangKami(): string {
   return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
+    <div class="inst-content-body">
+      <!-- Executive Mission Statement -->
+      <div class="inst-statement-box">
+        <p class="inst-statement-text">
+          "QUERYINDO berkomitmen menyajikan jurnalisme teknologi yang jernih, faktual, dan independen. Di tengah laju perkembangan komputasi dan maraknya disinformasi digital, kami hadir memberikan ulasan mendalam yang mengutamakan kepentingan publik dan kemajuan sains nasional."
+        </p>
+        <span class="inst-statement-caption">Pernyataan Dewan Redaksi QUERYINDO</span>
+      </div>
 
-      <!-- Hero Quote -->
-      <div style="background:var(--bg-tertiary); padding:2rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); position:relative;">
-        <p style="font-size:1.05rem; color:var(--text-secondary); line-height:1.75; border-left:3px solid var(--accent-cyan); padding-left:1.25rem; font-style:normal; margin:0;">
-          "QUERYINDO merupakan portal berita teknologi dan informasi digital nasional di bawah naungan <strong style="color:var(--text-primary);">PT Query Media Nusantara</strong>. Kami menyajikan jurnalisme teknologi yang kredibel, akurat, dan berwawasan luas untuk mendukung agenda transformasi digital Indonesia."
+      <!-- Profil & Sejarah Singkat -->
+      <div class="inst-editorial-prose">
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Profil & Latar Belakang</h3>
+        </div>
+        <p>
+          QUERYINDO (<code>queryindo.com</code>) didirikan pada awal tahun 2025 di bawah naungan <strong>PT Query Media Nusantara</strong> oleh sekelompok jurnalis media massa senior dan praktisi teknologi informasi. Kami melihat pentingnya kehadiran media spesialis yang mampu membedah isu-isu teknologi mutakhir—seperti kecerdasan buatan, keamanan siber, komputasi awan, infrastruktur jaringan, dan kebijakan publik digital—dengan bahasa yang lugas dan berbobot.
+        </p>
+        <p>
+          Dalam menjalankan kerja jurnalistik, redaksi QUERYINDO beroperasi secara independen, mematuhi Undang-Undang Republik Indonesia Nomor 40 Tahun 1999 tentang Pers, Kode Etik Jurnalistik, dan Pedoman Pemberitaan Media Siber yang ditetapkan Dewan Pers.
         </p>
       </div>
 
-      <!-- Visi & Misi -->
-      ${sectionTitle('Visi & Misi Redaksi')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
-        <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="width:36px; height:36px; border-radius:8px; background:rgba(0,242,254,0.1); display:flex; align-items:center; justify-content:center; color:var(--accent-cyan); margin-bottom:1rem;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </div>
-          <h4 style="font-size:0.92rem; font-weight:800; color:var(--accent-cyan); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono);">Visi</h4>
-          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.65; margin:0;">Menjadi media teknologi terpercaya dan inovatif di Asia Tenggara yang memberikan informasi terverifikasi, analisis mendalam, dan wawasan strategis bagi pemangku kepentingan digital Indonesia.</p>
+      <!-- Legalitas Badan Hukum (Clean Table Format) -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Identitas Perusahaan Pers</h3>
+          <p class="inst-sec-subtitle">Data legalitas badan hukum penerbit sesuai ketentuan Undang-Undang Pers.</p>
         </div>
-        <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="width:36px; height:36px; border-radius:8px; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; color:var(--accent-violet); margin-bottom:1rem;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <h4 style="font-size:0.92rem; font-weight:800; color:var(--accent-violet); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono);">Misi</h4>
-          <ul style="font-size:0.88rem; color:var(--text-secondary); line-height:1.65; padding-left:1.15rem; margin:0; display:flex; flex-direction:column; gap:0.4rem;">
-            <li>Menyajikan berita teknologi akurat, terverifikasi, dan bebas intervensi.</li>
-            <li>Mendorong literasi digital nasional melalui artikel edukatif dan riset.</li>
-            <li>Menjadi penghubung antara pembuat kebijakan, pelaku industri, dan publik.</li>
-            <li>Menjunjung tinggi standar jurnalisme Dewan Pers dengan transparansi penuh.</li>
-          </ul>
-        </div>
+        <table class="inst-meta-table">
+          <tbody>
+            <tr>
+              <th>Nama Badan Hukum</th>
+              <td>PT Query Media Nusantara</td>
+            </tr>
+            <tr>
+              <th>Pengesahan Kemenkumham RI</th>
+              <td>Nomor AHU-0091240.AH.01.01.TAHUN 2025</td>
+            </tr>
+            <tr>
+              <th>Nomor Pokok Wajib Pajak (NPWP)</th>
+              <td>09.321.456.7-012.000</td>
+            </tr>
+            <tr>
+              <th>Bidang Usaha (KBLI)</th>
+              <td>58130 (Aktivitas Penerbitan Surat Kabar, Jurnal, dan Buletin atau Majalah) &amp; 63122 (Portal Web Berita)</td>
+            </tr>
+            <tr>
+              <th>Domisili Kantor</th>
+              <td>Candipuro, Lampung Selatan, Lampung / Perwakilan Redaksi Jakarta</td>
+            </tr>
+            <tr>
+              <th>Status Perusahaan Pers</th>
+              <td>Memenuhi Standar Perusahaan Pers Dewan Pers Republik Indonesia</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Sejarah Pendirian -->
-      ${sectionTitle('Sejarah & Latar Belakang')}
-      <div style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:0.85rem;">
-        <p>QUERYINDO didirikan pada <strong style="color:var(--text-primary);">Maret 2025</strong> oleh sekelompok jurnalis teknologi senior dan insinyur perangkat lunak yang melihat kebutuhan mendesak akan media teknologi nasional yang kredibel dan mendalam. Di tengah pesatnya perkembangan AI dan maraknya disinformasi digital, QUERYINDO hadir dengan komitmen akurasi data dan independensi editorial.</p>
-        <p>QUERYINDO menjadi rujukan utama bagi pendiri startup, investor ventura, pengambil kebijakan, insinyur teknologi, dan masyarakat luas. Tim redaksi kami berpengalaman meliput bidang Kecerdasan Buatan, Keamanan Siber, Ekonomi Digital, Gadget, dan Infrastruktur Cloud.</p>
-      </div>
-
-      <!-- Tiga Pilar -->
-      ${sectionTitle('Tiga Pilar Jurnalisme')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
-        <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="width:32px; height:32px; border-radius:6px; background:rgba(0,242,254,0.1); display:flex; align-items:center; justify-content:center; color:var(--accent-cyan); margin-bottom:0.75rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <!-- Visi & Misi Redaksi -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Visi &amp; Misi</h3>
+        </div>
+        <div class="inst-split-grid">
+          <div class="inst-column-block">
+            <h4>Visi</h4>
+            <p>
+              Menjadi media teknologi rujukan utama yang kredibel, berintegritas, dan inovatif dalam mengawal perkembangan ekosistem sains dan transformasi digital di Indonesia.
+            </p>
           </div>
-          <strong style="display:block; font-size:0.9rem; color:var(--text-primary); margin-bottom:0.4rem;">Independensi Editorial</strong>
-          <span style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">Tanpa masukan politik maupun korporasi. Ruang redaksi beroperasi independen dari unit bisnis.</span>
-        </div>
-        <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="width:32px; height:32px; border-radius:6px; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; color:var(--accent-violet); margin-bottom:0.75rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          </div>
-          <strong style="display:block; font-size:0.9rem; color:var(--text-primary); margin-bottom:0.4rem;">Verifikasi Multi-Sumber</strong>
-          <span style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">Jurnalisme berbasis bukti dengan standar verifikasi minimal tiga sumber independen dan ralat terbuka.</span>
-        </div>
-        <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <div style="width:32px; height:32px; border-radius:6px; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; color:var(--accent-emerald); margin-bottom:0.75rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-          </div>
-          <strong style="display:block; font-size:0.9rem; color:var(--text-primary); margin-bottom:0.4rem;">Edukasi Digital</strong>
-          <span style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">Mendukung literasi teknologi masyarakat melalui penjelasan istilah teknis yang jernih dan relevan.</span>
-        </div>
-      </div>
-
-      <!-- Legalitas -->
-      ${sectionTitle('Legalitas & Lisensi')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem;">
-        ${infoCard('Badan Hukum', 'PT Byte Media Nusantara')}
-        ${infoCard('No. SK Kemenkumham', 'AHU-0091240.AH.01.01.TAHUN 2025', 'var(--accent-violet)')}
-        ${infoCard('Terdaftar Dewan Pers', 'ID-2910-BIMN (Verifikasi Administrasi & Faktual)', 'var(--accent-emerald)')}
-        ${infoCard('NPWP Perusahaan', '09.321.456.7-012.000')}
-        ${infoCard('Domisili Hukum', 'DKI Jakarta, Indonesia', 'var(--accent-violet)')}
-        ${infoCard('Tahun Berdiri', '2025', 'var(--accent-emerald)')}
-      </div>
-    </section>
-  `;
-}
-
-
-function renderHubungiKami(): string {
-  return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-
-      <!-- Kantor Pusat -->
-      ${sectionTitle('Alamat Kantor & Kontak')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
-        <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <h4 style="font-size:0.9rem; font-weight:800; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem; text-transform:uppercase; font-family:var(--font-mono); letter-spacing:0.05em;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Kantor Redaksi
-          </h4>
-          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.65; margin:0;">
-            <strong style="color:var(--text-primary);">QueryIndo Office</strong><br/>
-            Jl. S. Parman No 07 Cintamulya<br/>
-            Candipuro, Lampung Selatan<br/>
-            Lampung, Indonesia
-          </p>
-        </div>
-        <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-          <h4 style="font-size:0.9rem; font-weight:800; color:var(--text-primary); margin-bottom:1rem; text-transform:uppercase; font-family:var(--font-mono); letter-spacing:0.05em; display:flex; align-items:center; gap:0.4rem;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Layanan Komunikasi
-          </h4>
-          <div style="display:flex; flex-direction:column; gap:0.65rem; font-size:0.88rem; color:var(--text-secondary);">
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Kontak / WhatsApp</strong><br/><span style="color:var(--text-primary);">+62895323861966</span></div>
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Email Resmi</strong><br/><span style="color:var(--text-primary);">redaksi@queryindo.com</span></div>
-            <div><strong style="color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; font-family:var(--font-mono);">Jam Operasional</strong><br/><span style="color:var(--text-primary);">Senin – Jumat, 08.00 – 17.00 WIB</span></div>
+          <div class="inst-column-block">
+            <h4>Misi</h4>
+            <ul class="inst-numbered-list">
+              <li>
+                <span class="inst-list-num">1.</span>
+                <span>Menghasilkan karya jurnalistik teknologi yang akurat, berimbang, dan melalui proses verifikasi yang ketat.</span>
+              </li>
+              <li>
+                <span class="inst-list-num">2.</span>
+                <span>Mendorong peningkatan literasi digital dan keamanan siber masyarakat melalui artikel ulasan, analisis data, dan liputan investigatif.</span>
+              </li>
+              <li>
+                <span class="inst-list-num">3.</span>
+                <span>Menjaga independensi ruang redaksi dari segala bentuk intervensi politik maupun tekanan komersial.</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <!-- Email Korespondensi -->
-      ${sectionTitle('Email Korespondensi')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Redaksi & Korespondensi Utama', 'redaksi@queryindo.com', 'var(--accent-cyan)')}
-      </div>
-
-      <!-- Formulir Kontak -->
-      ${sectionTitle('Kirim Pesan Resmi')}
-      <form id="institutional-contact-form" style="display:flex; flex-direction:column; gap:1rem; max-width:600px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-          <div>
-            <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.35rem; font-family:var(--font-mono);">Nama Lengkap</label>
-            <input type="text" required style="width:100%; padding:0.75rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.88rem; outline:none; box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.35rem; font-family:var(--font-mono);">Email</label>
-            <input type="email" required style="width:100%; padding:0.75rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.88rem; outline:none; box-sizing:border-box;" />
-          </div>
+      <!-- Standar Independensi & Etika -->
+      <div class="inst-editorial-prose">
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Independensi &amp; Etika Redaksi</h3>
         </div>
-        <div>
-          <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.35rem; font-family:var(--font-mono);">Kategori Subjek</label>
-          <select style="width:100%; padding:0.75rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.88rem; outline:none; box-sizing:border-box;">
-            <option>Pertanyaan Umum</option>
-            <option>Hak Jawab / Klarifikasi Berita</option>
-            <option>Kerjasama Iklan & Sponsorship</option>
-            <option>Laporan Kesalahan Teknis</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.35rem; font-family:var(--font-mono);">Pesan Anda</label>
-          <textarea rows="5" required style="width:100%; padding:0.75rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.88rem; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
-        </div>
-        <button type="submit" style="align-self:flex-start; padding:0.75rem 2rem; background:var(--gradient-brand); border:none; border-radius:var(--radius-md); color:#000; font-weight:800; font-size:0.85rem; cursor:pointer; transition:transform 0.2s, opacity 0.2s;" onmouseenter="this.style.transform='translateY(-1px)'" onmouseleave="this.style.transform=''">Kirim Pesan →</button>
-      </form>
-    </section>
-  `;
-}
-
-
-function renderKodeEtik(): string {
-  const articles = [
-    { title: 'Independensi', body: 'Wartawan Indonesia bersikap independen, menghasilkan berita akurat, berimbang, dan tidak beritikad buruk. Redaksi QUERYINDO memastikan jurnalis tidak menerima suap atau tekanan dalam produksi berita.' },
-    { title: 'Metode Profesional', body: 'Wartawan Indonesia menempuh cara profesional dalam melaksanakan tugas jurnalistik. QUERYINDO menerapkan SOP liputan digital yang meliputi verifikasi dokumen elektronik dan pengecekan metadata.' },
-    { title: 'Uji Informasi', body: 'Wartawan Indonesia selalu menguji informasi, memberitakan secara berimbang, tidak mencampurkan fakta dan opini yang menghakimi, serta menerapkan asas praduga tak bersalah. Berita dipublikasikan wajib diverifikasi minimal tiga sumber.' },
-    { title: 'Larangan Berita Bohong', body: 'Wartawan Indonesia tidak membuat berita bohong, fitnah, sadis, dan cabul. Redaksi menerapkan sistem pemeriksaan berlapis sebelum artikel dipublikasikan.' },
-    { title: 'Perlindungan Identitas', body: 'Wartawan Indonesia tidak menyebutkan identitas korban kejahatan susila dan anak pelaku kejahatan. Prinsip perlindungan identitas diterapkan ketat.' },
-    { title: 'Hak Jawab & Koreksi', body: 'QUERYINDO menyediakan mekanisme Hak Jawab dan Koreksi digital yang dapat diakses narasumber melalui surel resmi redaksi@queryindo.com.' },
-    { title: 'Perlindungan Sumber', body: 'Wartawan Indonesia memiliki Hak Tolak untuk melindungi narasumber rahasia yang tidak bersedia diketahui identitasnya demi alasan keamanan.' },
-    { title: 'Embargo & Ralat Berita', body: 'Wartawan Indonesia menghormati embargo informasi dan segera mengoreksi berita yang keliru dengan pencantuman stempel waktu revisi yang transparan.' },
-    { title: 'Larangan Plagiarisme', body: 'Orisinalitas konten dijaga ketat. Setiap pengutipan karya pihak lain wajib mencantumkan atribusi dan tautan balik secara eksplisit.' },
-    { title: 'Transparansi Konten AI', body: 'Konten yang diproduksi dengan bantuan kecerdasan buatan wajib dilabeli secara eksplisit (seperti ringkasan berita AI atau gambar ilustrasi berlabel watermark AI).' },
-    { title: 'Pertanggungjawaban', body: 'QUERYINDO memiliki Dewan Etik Internal yang berwenang menangani pengaduan publik dan memastikan kepatuhan terhadap kode etik jurnalistik.' },
-  ];
-
-  const accentColors = ['var(--accent-cyan)', 'var(--accent-violet)', 'var(--accent-emerald)'];
-
-  return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
-        <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Seluruh jurnalis dan editor QUERYINDO wajib mematuhi <strong style="color:var(--text-primary);">Kode Etik Jurnalistik Dewan Pers Republik Indonesia</strong> (Peraturan Dewan Pers No. 6/Peraturan-DP/V/2008) serta UU Pers No. 40 Tahun 1999.
+        <p>
+          Ruang redaksi QUERYINDO memegang teguh batas tegas antara fungsi editorial dan kegiatan bisnis. Wartawan kami dilarang menerima imbalan, hadiah, atau fasilitas dalam bentuk apapun yang dapat memengaruhi objektivitas pemberitaan.
+        </p>
+        <p>
+          Konten advertorial, kerja sama sponsor, atau materi promosi komersial dipisahkan secara tegas dan diberi penanda tertulis yang jelas demi transparansi kepada pembaca.
         </p>
       </div>
-
-      ${sectionTitle('11 Pasal Kode Etik & Standar Editorial')}
-      <div style="display:flex; flex-direction:column; gap:0.85rem;">
-        ${articles.map((a, i) => ethicsArticle(i + 1, a.title, a.body, accentColors[i % 3])).join('')}
-      </div>
-
-      ${sectionTitle('Prosedur Pengaduan Ombudsman')}
-      <div style="background:var(--bg-tertiary); padding:1.5rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0 0 0.75rem 0;">Laporan pelanggaran etik atau permohonan Hak Jawab disampaikan melalui:</p>
-        <ul style="padding-left:1.15rem; display:flex; flex-direction:column; gap:0.4rem; margin:0; font-family:var(--font-mono);">
-          <li>Email: redaksi@queryindo.com</li>
-          <li>WhatsApp Pengaduan: +62895323861966</li>
-        </ul>
-      </div>
-    </section>
+    </div>
   `;
 }
 
+// ──────────────────────────────────────────────
+// Page 2: Susunan Redaksi (Boks Redaksi Masthead)
+// ──────────────────────────────────────────────
 
 function renderRedaksi(): string {
   const allAuthors = AuthorService.getAuthors();
-  
-  // Group authors by division
+
   const divisionsMap: Record<string, typeof allAuthors> = {};
-  
-  // Initialize standard divisions in desired display order
   EDITORIAL_DIVISIONS.forEach(div => {
     divisionsMap[div] = [];
   });
@@ -295,148 +247,511 @@ function renderRedaksi(): string {
     divisionsMap[div].push(author);
   });
 
-  // Sort each group by order
   Object.keys(divisionsMap).forEach(key => {
     divisionsMap[key].sort((a, b) => (a.order || 99) - (b.order || 99));
   });
 
-  // Render HTML for each division that has members
   const divisionSections = Object.entries(divisionsMap)
     .filter(([_, authors]) => authors.length > 0)
     .map(([divName, authors]) => `
-      ${sectionTitle(divName)}
-      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
-        ${authors.map(a => staffCard(a.role, a.name, a.bio || 'Jurnalis redaksi teknologi QUERYINDO.', a.avatar, a.email)).join('')}
+      <div class="inst-masthead-group">
+        <h4 class="inst-masthead-group-title">${divName}</h4>
+        <div class="inst-masthead-grid">
+          ${authors.map(a => {
+            const avatarUrl = a.avatar ? ImageUtils.normalizeImageUrl(a.avatar) : '';
+            const fallbackAvatar = ImageUtils.getInitialsAvatar(a.name);
+            const avatarHtml = avatarUrl
+              ? `<img src="${avatarUrl}" alt="${a.name}" class="inst-masthead-avatar" onerror="this.onerror=null;this.src='${fallbackAvatar}';" />`
+              : `<div class="inst-masthead-avatar-fallback">${a.name.charAt(0)}</div>`;
+
+            return `
+              <div class="inst-masthead-person">
+                ${avatarHtml}
+                <div class="inst-masthead-info">
+                  <span class="inst-masthead-role">${a.role}</span>
+                  <div class="inst-masthead-name">${a.name}</div>
+                  ${a.bio ? `<p class="inst-masthead-bio">${a.bio}</p>` : ''}
+                  ${a.email ? `
+                    <a href="mailto:${a.email}" class="inst-masthead-email" title="Surel resmi">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      <span>${a.email}</span>
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `).join('');
 
   return `
-    <section style="display:flex; flex-direction:column; gap:1.75rem;">
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-        <div>
-          <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0 0 0.35rem 0;">
-            Susunan redaksi QUERYINDO disusun berdasarkan <strong style="color:var(--text-primary);">UU Pers No. 40 Tahun 1999</strong> dan Standar Perusahaan Pers Dewan Pers Republik Indonesia.
-          </p>
-          <span style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono);">
-            Terintegrasi Realtime dengan Sistem Editorial CMS • Total Personel: ${allAuthors.length}
-          </span>
+    <div class="inst-content-body">
+      <!-- Masthead Mandate Notice -->
+      <div class="inst-masthead-notice">
+        Berdasarkan amanat <strong>Pasal 12 Undang-Undang Republik Indonesia Nomor 40 Tahun 1999 tentang Pers</strong>, Perusahaan Pers wajib mengumumkan nama, alamat, dan penanggung jawab secara terbuka melalui media yang bersangkutan. Susunan di bawah ini adalah dewan penanggung jawab dan tim pelaksana redaksi QUERYINDO.
+      </div>
+
+      <!-- Masthead Grouped Sections -->
+      <div>
+        ${divisionSections}
+      </div>
+
+      <!-- Legal Protection Note -->
+      <div class="inst-editorial-prose">
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Perlindungan Profesi Wartawan</h3>
+        </div>
+        <p>
+          Dalam menjalankan tugas jurnalistik, wartawan QUERYINDO memperoleh perlindungan hukum berdasarkan Pasal 8 Undang-Undang Pers. Wartawan kami dibekali Surat Tugas dan Kartu Pers resmi yang mencantumkan nama, nomor kontak redaksi, dan masa berlaku.
+        </p>
+        <p style="font-size:0.88rem; color:var(--text-muted);">
+          Narasumber berhak menolak wawancara dan meminta klarifikasi ke redaksi melalui surel <code>redaksi@queryindo.com</code> apabila pewarta yang bersangkutan tidak dapat menunjukkan identitas resmi.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Page 3: Kode Etik Jurnalistik (11 Pasal Resmi Dewan Pers)
+// ──────────────────────────────────────────────
+
+function renderKodeEtik(): string {
+  const articles = [
+    {
+      num: 1,
+      title: 'Independen, Akurat, dan Berimbang',
+      body: 'Wartawan Indonesia bersikap independen, menghasilkan berita yang akurat, berimbang, dan tidak beritikad buruk.'
+    },
+    {
+      num: 2,
+      title: 'Cara-cara yang Profesional',
+      body: 'Wartawan Indonesia menempuh cara-cara yang profesional dalam melaksanakan tugas jurnalistik.'
+    },
+    {
+      num: 3,
+      title: 'Uji Informasi dan Praduga Tak Bersalah',
+      body: 'Wartawan Indonesia selalu menguji informasi, memberitakan secara berimbang, tidak mencampurkan fakta dan opini yang menghakimi, serta menerapkan asas praduga tak bersalah.'
+    },
+    {
+      num: 4,
+      title: 'Larangan Berita Bohong dan Fitnah',
+      body: 'Wartawan Indonesia tidak membuat berita bohong, fitnah, sadis, dan cabul.'
+    },
+    {
+      num: 5,
+      title: 'Perlindungan Identitas Korban dan Anak',
+      body: 'Wartawan Indonesia tidak menyebutkan dan menyiarkan identitas korban kejahatan susila dan tidak menyebutkan identitas anak yang menjadi pelaku kejahatan.'
+    },
+    {
+      num: 6,
+      title: 'Larangan Menyalahgunakan Profesi dan Menyuap',
+      body: 'Wartawan Indonesia tidak menyalahgunakan profesi dan tidak menerima suap.'
+    },
+    {
+      num: 7,
+      title: 'Hak Tolak, Embargo, dan Informasi Rahasia',
+      body: 'Wartawan Indonesia memiliki hak tolak untuk melindungi narasumber yang tidak bersedia diketahui identitas maupun keberadaannya, menghargai ketentuan embargo, informasi latar belakang, dan "off the record" sesuai dengan kesepakatan.'
+    },
+    {
+      num: 8,
+      title: 'Bebas Prasangka dan Diskriminasi',
+      body: 'Wartawan Indonesia tidak menulis atau menyiarkan berita berdasarkan prasangka atau diskriminasi terhadap seseorang atas dasar perbedaan suku, ras, warna kulit, agama, jenis kelamin, dan bahasa serta tidak merendahkan martabat orang lemah, miskin, difabel, atau cacat jasmani/mental.'
+    },
+    {
+      num: 9,
+      title: 'Penghormatan atas Kehidupan Pribadi',
+      body: 'Wartawan Indonesia menghormati hak narasumber tentang kehidupan pribadinya, kecuali untuk kepentingan publik.'
+    },
+    {
+      num: 10,
+      title: 'Kewajiban Ralat dan Permintaan Maaf',
+      body: 'Wartawan Indonesia segera mencabut, meralat, dan memperbaiki berita yang keliru dan tidak akurat disertai dengan permintaan maaf kepada pembaca, pendengar, dan atau pemirsa.'
+    },
+    {
+      num: 11,
+      title: 'Pelayanan Hak Jawab dan Hak Koreksi',
+      body: 'Wartawan Indonesia melayani hak jawab dan hak koreksi secara proporsional.'
+    }
+  ];
+
+  return `
+    <div class="inst-content-body">
+      <!-- Preamble Dewan Pers -->
+      <div class="inst-preamble-text">
+        <strong>Pembukaan Kode Etik Jurnalistik:</strong><br/>
+        Kemerdekaan pers adalah salah satu wujud kedaulatan rakyat yang berasaskan prinsip-prinsip demokrasi, keadilan, dan supremasi hukum. Dalam mewujudkan kemerdekaan pers itu, wartawan Indonesia juga menyadari adanya kepentingan bangsa, tanggung jawab sosial, keberagaman masyarakat, dan norma-norma agama. Dalam melaksanakan fungsi, hak, kewajiban dan peranannya, pers menghormati hak asasi setiap orang, karena itu pers dituntut profesional dan terbuka untuk dikontrol oleh masyarakat.
+      </div>
+
+      <!-- 11 Articles List (Classic Editorial Presentation) -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">11 Pasal Kode Etik Jurnalistik</h3>
+          <p class="inst-sec-subtitle">Ditetapkan oleh Dewan Pers melalui Surat Keputusan Dewan Pers Nomor 03/SK-DP/III/2006 di Jakarta.</p>
+        </div>
+        <div class="inst-articles-list">
+          ${articles.map(art => `
+            <div class="inst-article-row">
+              <div class="inst-article-meta">
+                <span class="inst-article-num">Pasal ${art.num}</span>
+                <h4 class="inst-article-title">${art.title}</h4>
+              </div>
+              <p class="inst-article-text">${art.body}</p>
+            </div>
+          `).join('')}
         </div>
       </div>
 
-      ${divisionSections}
-    </section>
-  `;
-}
-
-
-function renderPedomanMediaSiber(): string {
-  const babs = [
-    { title: 'Ruang Lingkup', content: 'Pedoman ini mencakup seluruh kegiatan pemberitaan digital QUERYINDO yang didistribusikan melalui situs web, aplikasi mobile, dan media sosial.' },
-    { title: 'Verifikasi & Keberimbangan Berita', content: 'Setiap berita wajib melalui uji informasi dan verifikasi berimbang. Berita mendesak (breaking news) dapat ditayangkan segera dengan kewajiban ralat/pembaruan berkala.' },
-    { title: 'Isi Buatan Pengguna (UGC)', content: 'QUERYINDO mengelola komentar pembaca dengan filter AI otomatis dan fitur pelaporan pengguna untuk menolak ujaran kebencian atau disinformasi.' },
-    { title: 'Ralat, Koreksi, & Hak Jawab', content: 'Setiap kesalahan data diperbaiki segera dengan pencantuman ralat transparan pada artikel tanpa mengubah URL asal.' },
-    { title: 'Pencabutan Berita', content: 'Pencabutan berita hanya dilakukan atas putusan pengadilan yang berkekuatan hukum tetap atau rekomendasi resmi Dewan Pers.' },
-    { title: 'Iklan & Konten Bersponsor', content: 'Setiap artikel advertorial atau berbayar wajib diberi tanda/badge SPONSORED secara jelas dan tegas.' },
-    { title: 'Hak Cipta & Pengutipan', content: 'Pengutipan artikel QUERYINDO diperbolehkan maksimal 30% isi dengan kewajiban menyertakan tautan balik (backlink) aktif ke sumber.' },
-    { title: 'Sengketa Pemberitaan', content: 'Sengketa pemberitaan diselesaikan terlebih dahulu melalui mekanisme Hak Jawab atau mediasi di Dewan Pers sesuai UU Pers.' },
-    { title: 'Perlindungan Data Pribadi', content: 'QUERYINDO tunduk pada UU PDP No. 27 Tahun 2022. Pengumpulan data pengguna dibatasi sesuai kebutuhan operasional platform.' },
-  ];
-
-  const accentColors = ['var(--accent-cyan)', 'var(--accent-violet)', 'var(--accent-emerald)'];
-
-  return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
-        <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Pedoman ini berpedoman pada <strong style="color:var(--text-primary);">Pedoman Pemberitaan Media Siber Dewan Pers</strong> (3 Februari 2012) untuk menjamin jurnalisme digital yang sehat.
+      <!-- Penilaian & Pengaduan Pelanggaran -->
+      <div class="inst-editorial-prose">
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Mekanisme Pengaduan &amp; Dewan Pers</h3>
+        </div>
+        <p>
+          Penilaian akhir atas dugaan pelanggaran kode etik jurnalistik dilakukan oleh <strong>Dewan Pers Republik Indonesia</strong>. Pihak yang merasa dirugikan oleh pemberitaan QUERYINDO dapat menyampaikan pengaduan langsung kepada redaksi kami atau mengadukannya kepada Dewan Pers sesuai mekanisme yang berlaku.
+        </p>
+        <p style="font-size:0.9rem;">
+          Pengaduan ke redaksi dapat dikirimkan melalui surel resmi: <code>redaksi@queryindo.com</code> dengan subjek: <strong>[PENGADUAN ETIKA]</strong>.
         </p>
       </div>
-
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        ${babs.map((bab, i) => `
-          <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); border-left:3px solid ${accentColors[i % 3]};">
-            <h4 style="font-size:0.95rem; font-weight:800; color:var(--text-primary); margin:0 0 0.5rem 0; display:flex; align-items:center; gap:0.5rem;">
-              <span style="background:${accentColors[i % 3]}; color:#000; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; flex-shrink:0;">${i + 1}</span>
-              ${bab.title}
-            </h4>
-            <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6; margin:0;">${bab.content}</p>
-          </div>
-        `).join('')}
-      </div>
-    </section>
+    </div>
   `;
 }
 
+// ──────────────────────────────────────────────
+// Page 4: Pedoman Media Siber (Pedoman Dewan Pers 2012)
+// ──────────────────────────────────────────────
 
-function renderDisclaimer(): string {
+function renderPedomanMediaSiber(): string {
+  const clauses = [
+    {
+      title: '1. Ruang Lingkup',
+      body: 'Media Siber adalah segala bentuk media yang menggunakan wahana internet dan melaksanakan kegiatan jurnalistik, serta memenuhi persyaratan Undang-Undang Pokok Pers dan Standar Perusahaan Pers yang ditetapkan Dewan Pers. Pedoman ini berlaku untuk seluruh produk berita dan konten yang diterbitkan oleh QUERYINDO.'
+    },
+    {
+      title: '2. Verifikasi dan Keberimbangan Berita',
+      body: 'Pada prinsipnya setiap berita harus melalui verifikasi. Berita yang dapat merugikan pihak lain memerlukan verifikasi pada berita yang sama untuk memenuhi prinsip akurasi dan keberimbangan. Dalam situasi berita mendesak (breaking news) yang belum dapat dikonfirmasi seketika, redaksi wajib mencantumkan keterangan bahwa konfirmasi masih terus diupayakan dan memperbarui artikel secara berkala.'
+    },
+    {
+      title: '3. Isi Buatan Pengguna (User Generated Content)',
+      body: 'QUERYINDO mewajibkan pengguna untuk melakukan pendaftaran dan menyetujui syarat layanan sebelum memuat komentar atau opini. Redaksi berhak menyunting atau menghapus isi buatan pengguna yang memuat unsur fitnah, kebencian SARA, hasutan kekerasan, pornografi, dan materi yang melanggar hukum.'
+    },
+    {
+      title: '4. Ralat, Koreksi, dan Hak Jawab',
+      body: 'Ralat, koreksi, dan hak jawab mengacu pada Undang-Undang Pers, Kode Etik Jurnalistik, dan Pedoman ini. Ralat atau koreksi ditautkan pada berita yang diralat dengan menyebutkan waktu pembaruan serta bagian yang diperbaiki secara transparan.'
+    },
+    {
+      title: '5. Pencabutan Berita',
+      body: 'Berita yang sudah dipublikasikan tidak dapat dicabut karena alasan penyensoran dari pihak luar redaksi, kecuali terkait masalah SARA, kesusilaan, masa depan anak korban kejahatan, putusan pengadilan yang berkekuatan hukum tetap, atau atas rekomendasi khusus Dewan Pers. Pencabutan berita wajib disertai alasan dan diumumkan kepada publik.'
+    },
+    {
+      title: '6. Iklan dan Konten Komersial',
+      body: 'QUERYINDO membedakan secara tegas antara produk berita jurnalistik dan konten iklan. Setiap artikel advertorial, materi bersponsor, atau kemitraan komersial wajib mencantumkan keterangan "Iklan", "Advertorial", atau "Sponsored" secara jelas.'
+    },
+    {
+      title: '7. Hak Cipta dan Pengutipan',
+      body: 'QUERYINDO menghormati hak cipta pihak lain sebagaimana diatur dalam peraturan perundang-undangan. Pengutipan berita QUERYINDO oleh pihak lain wajib menyebutkan sumber dan menyertakan tautan balik (link) aktif ke artikel asli.'
+    },
+    {
+      title: '8. Sengketa Pemberitaan',
+      body: 'Pelaksanaan Pedoman Pemberitaan Media Siber ini diawasi oleh Dewan Pers. Sengketa mengenai pelaksanaan pedoman ini diselesaikan melalui mediasi di Dewan Pers.'
+    }
+  ];
+
   return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-
-      ${sectionTitle('Batasan Tanggung Jawab')}
-      <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:0.85rem;">
-        <p>Seluruh informasi di portal QUERYINDO (<code style="color:var(--accent-cyan);">queryindo.com</code>) disediakan <strong style="color:var(--text-primary);">as-is</strong> untuk tujuan informasi umum. QUERYINDO berupaya menjaga keakuratan informasi namun tidak bertanggung jawab atas keputusan independen yang diambil pembaca berdasarkan konten situs ini.</p>
-        <p>Informasi harga saham, data teknis gadget, atau ulasan produk bersifat informatif dan bukan merupakan nasihat finansial atau investasi resmi.</p>
+    <div class="inst-content-body">
+      <!-- Preamble Pedoman Siber -->
+      <div class="inst-preamble-text">
+        Kemerdekaan berpendapat, kemerdekaan berekspresi, dan kemerdekaan pers adalah hak asasi manusia yang dilindungi Pancasila, Undang-Undang Dasar 1945, dan Deklarasi Universal Hak Asasi Manusia PBB. Untuk mendorong perkembangan media siber yang profesional, Dewan Pers bersama organisasi pers menyusun <strong>Pedoman Pemberitaan Media Siber</strong> di Jakarta pada 3 Februari 2012.
       </div>
 
-      ${sectionTitle('Hak Kekayaan Intelektual')}
-      <div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0 0 0.5rem 0;">Seluruh materi merek, desain logo, dan artikel terlindungi oleh <strong style="color:var(--text-primary);">UU Hak Cipta No. 28 Tahun 2014</strong> dan Hak Merek PT Query Media Nusantara.</p>
+      <!-- Clauses List -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Ketentuan Pedoman Pemberitaan Media Siber</h3>
+        </div>
+        <div>
+          ${clauses.map(clause => `
+            <div class="inst-siber-section">
+              <h4 class="inst-siber-title">${clause.title}</h4>
+              <p class="inst-siber-body">${clause.body}</p>
+            </div>
+          `).join('')}
+        </div>
       </div>
-
-      ${sectionTitle('Privasi Data (UU PDP)')}
-      <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">
-        <p style="margin:0;">Pemrosesan data pribadi mematuhi <strong style="color:var(--text-primary);">UU No. 27 Tahun 2022 tentang PDP</strong>. Pengguna dapat mengajukan permohonan pembaruan atau penghapusan data melalui surel redaksi@queryindo.com.</p>
-      </div>
-    </section>
+    </div>
   `;
 }
 
+// ──────────────────────────────────────────────
+// Page 5: Info Iklan & Kemitraan (Professional Media Kit)
+// ──────────────────────────────────────────────
 
 function renderInfoIklan(): string {
   return `
-    <section style="display:flex; flex-direction:column; gap:2rem;">
-
-      <div style="background:var(--bg-tertiary); padding:1.75rem; border-radius:var(--radius-lg); border:1px solid var(--border-color);">
-        <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin:0;">
-          Jangkau <strong style="color:var(--text-primary);">audiens teknologi premium Indonesia</strong> melalui berbagai format iklan dan kemitraan native QUERYINDO.
+    <div class="inst-content-body">
+      <!-- Editorial Intro -->
+      <div class="inst-editorial-prose">
+        <p>
+          QUERYINDO menyediakan ruang periklanan dan kemitraan strategis bagi instansi, perusahaan teknologi, dan penyedia solusi digital yang ingin menjangkau pembaca terdidik di Indonesia. Pembaca kami terdiri dari praktisi teknologi informasi, pendiri startup, pengembang perangkat lunak, peneliti kecerdasan buatan, investor, serta pembuat kebijakan publik.
         </p>
       </div>
 
-      <!-- Statistik Audiens -->
-      ${sectionTitle('Demografi & Jangkauan')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1rem;">
-        ${infoCard('Monthly Unique Visitors', '2.8 Juta+')}
-        ${infoCard('Monthly Pageviews', '12.5 Juta+', 'var(--accent-violet)')}
-        ${infoCard('Newsletter Subscribers', '185.000+', 'var(--accent-emerald)')}
-        ${infoCard('Rata-Rata Durasi Sesi', '4m 32s')}
+      <!-- Ringkasan Jangkauan Media -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Profil &amp; Jangkauan Media</h3>
+          <p class="inst-sec-subtitle">Gambaran audiens dan distribusi konten platform QUERYINDO.</p>
+        </div>
+        <div class="inst-ad-metrics">
+          <div class="inst-ad-metric-item">
+            <span class="inst-ad-metric-value">2.8 Juta+</span>
+            <span class="inst-ad-metric-label">Pengunjung Unik Bulanan</span>
+          </div>
+          <div class="inst-ad-metric-item">
+            <span class="inst-ad-metric-value">12.5 Juta+</span>
+            <span class="inst-ad-metric-label">Tayangan Halaman (Pageviews)</span>
+          </div>
+          <div class="inst-ad-metric-item">
+            <span class="inst-ad-metric-value">185.000+</span>
+            <span class="inst-ad-metric-label">Pelanggan Buletin Surel</span>
+          </div>
+          <div class="inst-ad-metric-item">
+            <span class="inst-ad-metric-value">84%</span>
+            <span class="inst-ad-metric-label">Audiens Sektor Teknologi &amp; Bisnis</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Paket Iklan -->
-      ${sectionTitle('Pilihan Paket Iklan')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem;">
-        ${[
-          { name: 'Display Banner', price: 'Mulai Rp 15 Juta / bulan', items: ['Leaderboard 728×90', 'Medium Rectangle 300×250', 'Billboard 970×250'] },
-          { name: 'Native Advertorial', price: 'Mulai Rp 25 Juta / artikel', items: ['Artikel ditulis tim editorial', 'Distribusi newsletter & sosmed', 'Badge SPONSORED transparan'] },
-          { name: 'Sponsored Content Series', price: 'Mulai Rp 85 Juta / 4 artikel', items: ['Seri konten mendalam 4 artikel', 'Dedicated brand landing page', 'Analytics performa lengkap'] },
-        ].map((pkg, i) => {
-          const accent = ['var(--accent-cyan)', 'var(--accent-violet)', 'var(--accent-emerald)'][i];
-          return `<div style="background:var(--bg-tertiary); padding:1.35rem; border-radius:var(--radius-md); border:1px solid var(--border-color); border-top:3px solid ${accent};">
-            <h4 style="font-size:0.95rem; font-weight:800; color:var(--text-primary); margin:0 0 0.35rem 0;">${pkg.name}</h4>
-            <span style="font-size:0.8rem; font-weight:700; color:${accent}; font-family:var(--font-mono); display:block; margin-bottom:0.85rem;">${pkg.price}</span>
-            <ul style="font-size:0.82rem; color:var(--text-secondary); line-height:1.6; padding-left:1.1rem; margin:0;">
-              ${pkg.items.map(it => `<li>${it}</li>`).join('')}
+      <!-- Format Iklan Standar IAB -->
+      <div>
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Pilihan Format Periklanan</h3>
+        </div>
+        <div class="inst-ad-formats-grid">
+          <div class="inst-ad-format-card">
+            <h4>Display Banner</h4>
+            <p class="inst-ad-format-desc">
+              Penempatan spanduk digital di posisi strategis beranda dan artikel berita dengan rasio impresi terukur.
+            </p>
+            <ul class="inst-ad-spec-list">
+              <li>• Top Leaderboard: 728 × 90 px</li>
+              <li>• Medium Rectangle: 300 × 250 px</li>
+              <li>• Billboard Panorama: 970 × 250 px</li>
+              <li>• Format file: JPG, PNG, GIF, HTML5</li>
             </ul>
-          </div>`;
-        }).join('')}
+          </div>
+
+          <div class="inst-ad-format-card">
+            <h4>Native Advertorial</h4>
+            <p class="inst-ad-format-desc">
+              Artikel informatif yang mengulas studi kasus, inovasi produk, atau rilis korporat dengan sudut pandang jurnalisme teknologi.
+            </p>
+            <ul class="inst-ad-spec-list">
+              <li>• Penulisan berstandar jurnalistik</li>
+              <li>• Pelabelan transparan (Sponsored/Advertorial)</li>
+              <li>• Distribusi di kanal berita dan arsip permanen</li>
+              <li>• Penyebaran melalui buletin surel redaksi</li>
+            </ul>
+          </div>
+
+          <div class="inst-ad-format-card">
+            <h4>Kemitraan Acara &amp; Liputan Khusus</h4>
+            <p class="inst-ad-format-desc">
+              Kolaborasi liputan mendalam untuk konferensi teknologi, peluncuran produk industri, dan laporan riset sektoral.
+            </p>
+            <ul class="inst-ad-spec-list">
+              <li>• Media Partner resmi kegiatan teknologi</li>
+              <li>• Seri artikel ulasan mendalam</li>
+              <li>• Wawancara eksekutif dan pembuat kebijakan</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      <!-- Kontak -->
-      ${sectionTitle('Kontak Tim Iklan')}
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
-        ${infoCard('Email Iklan & Kemitraan', 'redaksi@queryindo.com')}
-        ${infoCard('WhatsApp Komersial', '+62895323861966', 'var(--accent-cyan)')}
+      <!-- Ketentuan Iklan & Kontak Bisnis -->
+      <div class="inst-editorial-prose">
+        <div class="inst-sec-heading">
+          <h3 class="inst-sec-title">Kebijakan Pemasangan Iklan</h3>
+        </div>
+        <p>
+          Redaksi QUERYINDO berhak menolak materi iklan yang menyesatkan publik, memuat unsur perjudian, pornografi, investasi bodong tanpa izin OJK/Bappebti, atau bertentangan dengan hukum yang berlaku di Republik Indonesia. Pemasangan iklan tidak memengaruhi independensi peliputan dan penilaian editorial kami.
+        </p>
+        <p>
+          Untuk mendapatkan <strong>Media Kit lengkap, Rate Card, dan proposal kerja sama</strong>, silakan menghubungi divisi periklanan kami:
+        </p>
+        <ul style="list-style:none; padding:0; margin:1rem 0; font-size:0.92rem; line-height:1.8;">
+          <li>Surel Bisnis: <a href="mailto:redaksi@queryindo.com" style="color:var(--text-primary); font-weight:700;">redaksi@queryindo.com</a></li>
+          <li>WhatsApp Komersial: <a href="https://wa.me/62895323861966" target="_blank" style="color:var(--text-primary); font-weight:700;">+62 895-3238-61966</a></li>
+          <li>Jam Layanan: Senin – Jumat, 09.00 – 17.00 WIB</li>
+        </ul>
       </div>
-    </section>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Page 6: Hubungi Kami & Kantor Redaksi
+// ──────────────────────────────────────────────
+
+function renderHubungiKami(): string {
+  return `
+    <div class="inst-content-body">
+      <div class="inst-contact-layout">
+        <!-- Kolom Kiri: Alamat & Kontak Resmi -->
+        <div>
+          <div class="inst-sec-heading" style="margin-top:0;">
+            <h3 class="inst-sec-title">Kantor &amp; Alamat Korespondensi</h3>
+          </div>
+
+          <div class="inst-contact-channel-block">
+            <h4>Kantor Redaksi</h4>
+            <p>
+              <strong>QUERYINDO Office</strong><br/>
+              Jl. S. Parman No. 07, Cintamulya<br/>
+              Kec. Candipuro, Kab. Lampung Selatan<br/>
+              Lampung, Indonesia 35356
+            </p>
+          </div>
+
+          <div class="inst-contact-channel-block">
+            <h4>Badan Hukum Penyelenggara</h4>
+            <p>
+              PT Query Media Nusantara<br/>
+              SK Kemenkumham: AHU-0091240.AH.01.01.TAHUN 2025
+            </p>
+          </div>
+
+          <div class="inst-contact-channel-block">
+            <h4>Surat Elektronik (Email)</h4>
+            <p>
+              Redaksi: <a href="mailto:redaksi@queryindo.com">redaksi@queryindo.com</a><br/>
+              Hak Jawab / Koreksi: <a href="mailto:redaksi@queryindo.com">redaksi@queryindo.com</a>
+            </p>
+          </div>
+
+          <div class="inst-contact-channel-block">
+            <h4>Telepon &amp; WhatsApp Resmi</h4>
+            <p>
+              <a href="https://wa.me/62895323861966" target="_blank">+62 895-3238-61966</a>
+            </p>
+          </div>
+
+          <div class="inst-contact-channel-block">
+            <h4>Waktu Operasional Redaksi</h4>
+            <p style="font-size:0.9rem; color:var(--text-secondary);">
+              Senin – Jumat: 08.00 – 17.00 WIB<br/>
+              Sabtu – Minggu: Piket Meja Berita Daring
+            </p>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan: Formulir Pesan Resmi -->
+        <div>
+          <div class="inst-sec-heading" style="margin-top:0;">
+            <h3 class="inst-sec-title">Formulir Pesan Redaksi</h3>
+            <p class="inst-sec-subtitle">Sampaikan pertanyaan, permohonan klarifikasi, atau masukan kepada tim redaksi kami.</p>
+          </div>
+
+          <form id="inst-contact-form">
+            <div class="inst-form-row">
+              <div class="inst-form-group">
+                <label for="cf-name">Nama Lengkap *</label>
+                <input type="text" id="cf-name" class="inst-form-input" required />
+              </div>
+              <div class="inst-form-group">
+                <label for="cf-email">Alamat Email *</label>
+                <input type="email" id="cf-email" class="inst-form-input" required />
+              </div>
+            </div>
+
+            <div class="inst-form-row">
+              <div class="inst-form-group">
+                <label for="cf-institution">Instansi / Organisasi</label>
+                <input type="text" id="cf-institution" class="inst-form-input" />
+              </div>
+              <div class="inst-form-group">
+                <label for="cf-category">Kategori Pesan *</label>
+                <select id="cf-category" class="inst-form-select" required>
+                  <option value="umum">Pertanyaan Umum</option>
+                  <option value="hak-jawab">Permohonan Hak Jawab / Koreksi Berita</option>
+                  <option value="iklan">Kerja Sama Periklanan &amp; Media Kit</option>
+                  <option value="tips-liputan">Informasi Liputan &amp; Riset</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="inst-form-group">
+              <label for="cf-subject">Subjek Surat *</label>
+              <input type="text" id="cf-subject" class="inst-form-input" required />
+            </div>
+
+            <div class="inst-form-group">
+              <label for="cf-message">Isi Pesan *</label>
+              <textarea id="cf-message" rows="5" class="inst-form-textarea" required placeholder="Tuliskan pokok informasi atau tautan artikel terkait jika mengajukan koreksi/hak jawab..."></textarea>
+            </div>
+
+            <button type="submit" class="inst-form-btn-submit">
+              Kirim Pesan
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Page 7: Disclaimer (Penafian Legal)
+// ──────────────────────────────────────────────
+
+function renderDisclaimer(): string {
+  return `
+    <div class="inst-content-body">
+      <div class="inst-editorial-prose">
+        <p>
+          Seluruh isi dan materi yang disajikan di situs <strong>QUERYINDO</strong> (<code>queryindo.com</code>) dimaksudkan untuk tujuan pemberian informasi umum dan edukasi publik di bidang teknologi dan sains. Dengan mengakses portal ini, Anda menyatakan setuju terhadap ketentuan-ketentuan berikut:
+        </p>
+      </div>
+
+      <div>
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">1. Batasan Tanggung Jawab Informasi</h4>
+          <p class="inst-legal-clause-text">
+            QUERYINDO berupaya sebaik mungkin memastikan setiap data, fakta, dan ulasan yang diterbitkan akurat pada saat penulisan. Namun demikian, kami tidak memberikan jaminan mutlak atas kelengkapan dan kesesuaian informasi untuk keperluan bisnis atau keputusan investasi spesifik. Redaksi tidak bertanggung jawab atas kerugian langsung maupun tidak langsung yang timbul akibat penggunaan informasi dari situs ini.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">2. Bukan Nasihat Keuangan atau Investasi</h4>
+          <p class="inst-legal-clause-text">
+            Artikel yang membahas valuasi startup, putaran pendanaan, aset kripto, kecerdasan buatan, maupun analisis pasar modal disajikan semata-mata sebagai produk jurnalistik informasi industri. Konten tersebut bukan merupakan nasihat keuangan, anjuran investasi, atau rekomendasi perdagangan aset resmi. Pembaca disarankan berkonsultasi dengan penasihat keuangan berlisensi sebelum mengambil keputusan finansial.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">3. Hak Cipta &amp; Pengutipan (UU No. 28 Tahun 2014)</h4>
+          <p class="inst-legal-clause-text">
+            Seluruh artikel berita, laporan investigasi, foto jurnalistik, ilustrasi visual, dan tata letak grafis di situs ini dilindungi oleh Undang-Undang Republik Indonesia Nomor 28 Tahun 2014 tentang Hak Cipta. Dilarang menyalin, menyebarluaskan, atau mempublikasikan ulang materi QUERYINDO secara komersial tanpa izin tertulis dari penerbit. Pengutipan wajar diperbolehkan dengan kewajiban mencantumkan kredit dan tautan balik (hyperlink) aktif ke sumber aslinya.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">4. Perlindungan Data Pribadi (UU No. 27 Tahun 2022)</h4>
+          <p class="inst-legal-clause-text">
+            QUERYINDO menghormati hak privasi setiap pembaca dan berkomitmen mematuhi Undang-Undang Perlindungan Data Pribadi (UU PDP). Data yang dikirimkan melalui pendaftaran buletin surel atau formulir kontak hanya digunakan untuk keperluan komunikasi resmi redaksi dan tidak akan dibagikan kepada pihak ketiga tanpa persetujuan pemilik data.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">5. Transparansi Penggunaan Perangkat Komputasi</h4>
+          <p class="inst-legal-clause-text">
+            Redaksi QUERYINDO memegang kendali manusia (*human oversight*) penuh atas setiap produk berita yang dipublikasikan. Apabila terdapat alat bantu komputasi atau kecerdasan buatan yang digunakan untuk analisis data mentah atau visualisasi pendukung, redaksi akan menyatakannya secara transparan demi akuntabilitas kepada pembaca.
+          </p>
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -445,15 +760,24 @@ function renderInfoIklan(): string {
 // ──────────────────────────────────────────────
 
 export class InstitutionalPages {
-
   public static getPageTitle(pageId: InstitutionalPageId, lang: 'id' | 'en'): string {
-    return PAGE_TITLES[pageId]?.[lang] ?? pageId;
+    return PAGE_METADATA[pageId]?.title[lang] ?? pageId;
+  }
+
+  public static getPageLead(pageId: InstitutionalPageId, lang: 'id' | 'en'): string {
+    return PAGE_METADATA[pageId]?.lead[lang] ?? '';
+  }
+
+  public static getPageKicker(pageId: InstitutionalPageId, lang: 'id' | 'en'): string {
+    return PAGE_METADATA[pageId]?.kicker[lang] ?? 'Informasi Perusahaan';
   }
 
   public static renderPage(pageId: InstitutionalPageId, lang: 'id' | 'en'): string {
     const title = this.getPageTitle(pageId, lang);
+    const lead = this.getPageLead(pageId, lang);
+    const kicker = this.getPageKicker(pageId, lang);
     const homeLabel = lang === 'en' ? 'Home' : 'Beranda';
-    const backLabel = lang === 'en' ? '← Back to Home' : '← Kembali ke Beranda';
+    const backLabel = lang === 'en' ? 'Back to Home' : 'Kembali ke Beranda';
 
     let contentHTML = '';
     switch (pageId) {
@@ -466,38 +790,64 @@ export class InstitutionalPages {
       case 'info-iklan': contentHTML = renderInfoIklan(); break;
     }
 
+    // Authentic Editorial Tab Navigation
+    const tabsHTML = `
+      <div class="inst-nav-tabs-wrapper">
+        <nav class="inst-nav-tabs" aria-label="Navigasi Informasi Perusahaan">
+          ${NAVIGATION_TABS.map(tab => {
+            const isActive = tab.id === pageId;
+            return `
+              <a href="/page/${tab.id}" class="inst-nav-tab ${isActive ? 'active' : ''}" data-page="${tab.id}">
+                ${tab.iconSvg}
+                <span>${tab.label[lang]}</span>
+              </a>
+            `;
+          }).join('')}
+        </nav>
+      </div>
+    `;
+
     return `
-      <div style="max-width:880px; margin:0 auto; padding:2rem 1rem 4rem 1rem;">
-        <!-- Breadcrumb & Back Button -->
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.75rem; flex-wrap:wrap; gap:0.75rem;">
-          <nav style="font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; font-family:var(--font-mono);">
-            <a href="#" style="color:var(--accent-cyan); text-decoration:none; font-weight:600;">${homeLabel}</a>
-            <span>/</span>
-            <span style="color:var(--text-primary); font-weight:600;">${title}</span>
+      <div class="inst-wrapper">
+        <!-- Top Editorial Navigation Bar -->
+        <div class="inst-topbar">
+          <nav class="inst-breadcrumb" aria-label="Breadcrumb">
+            <a href="/" class="inst-home-link">${homeLabel}</a>
+            <span class="inst-breadcrumb-separator">/</span>
+            <span>Informasi Perusahaan</span>
+            <span class="inst-breadcrumb-separator">/</span>
+            <span class="inst-breadcrumb-current">${title}</span>
           </nav>
-          <a href="#" class="inst-back-btn" style="font-size:0.8rem; font-weight:700; color:var(--text-primary); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-full); transition:all 0.2s;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            ${backLabel}
-          </a>
-        </div>
 
-        <!-- Page Hero Header -->
-        <div style="background:var(--bg-secondary); padding:2.25rem 2rem; border-radius:var(--radius-lg); border:1px solid var(--border-color); margin-bottom:2.25rem; position:relative; overflow:hidden;">
-          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
-            <span style="width:8px; height:8px; border-radius:50%; background:var(--accent-cyan);"></span>
-            <span style="font-size:0.68rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.12em; font-family:var(--font-mono);">QUERYINDO INSTITUTIONAL</span>
+          <div style="display:flex; align-items:center; gap:1.25rem;">
+            <span class="inst-accreditation-note">Standar Perusahaan Pers Dewan Pers RI</span>
+            <a href="/" class="inst-back-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>${backLabel}</span>
+            </a>
           </div>
-          <h1 style="font-size:1.75rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1.3; letter-spacing:-0.02em;">${title}</h1>
         </div>
 
-        <!-- Page Content -->
-        ${contentHTML}
+        <!-- Editorial Page Header -->
+        <header class="inst-header">
+          <span class="inst-header-kicker">${kicker}</span>
+          <h1 class="inst-header-title">${title}</h1>
+          <p class="inst-header-lead">${lead}</p>
+        </header>
+
+        <!-- Hub Tabs Navigation -->
+        ${tabsHTML}
+
+        <!-- Active Page Content -->
+        <main id="inst-active-page-content">
+          ${contentHTML}
+        </main>
       </div>
     `;
   }
 
   public static isValidPageId(id: string): id is InstitutionalPageId {
-    return id in PAGE_TITLES;
+    return id in PAGE_METADATA;
   }
 
   public static open(pageId: InstitutionalPageId, lang: 'id' | 'en'): void {
@@ -510,20 +860,46 @@ export class InstitutionalPages {
     container.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    container.querySelectorAll('.inst-back-btn, nav a[href="/"], nav a[href="#"]').forEach(btn => {
+    this.bindEvents(container, pageId, lang);
+  }
+
+  private static bindEvents(container: HTMLElement, pageId: InstitutionalPageId, lang: 'id' | 'en'): void {
+    // 1. Back & Home navigation
+    container.querySelectorAll('.inst-back-btn, .inst-home-link').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.history.pushState(null, '', '/');
-        window.dispatchEvent(new PopStateEvent('popstate'));
+        Router.navigateTo('/');
       });
     });
 
-    const contactForm = container.querySelector('#institutional-contact-form');
-    if (contactForm) {
-      contactForm.addEventListener('submit', (e) => {
+    // 2. Hub Navigation Tabs (Client-side routing)
+    container.querySelectorAll('.inst-nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
         e.preventDefault();
-        Toast.show(lang === 'en' ? 'Your message has been sent! Our team will respond within 2 business days.' : 'Pesan Anda telah terkirim! Tim kami akan merespons dalam 2 hari kerja.');
+        const targetPage = (tab as HTMLElement).getAttribute('data-page') as InstitutionalPageId;
+        if (targetPage && targetPage !== pageId) {
+          Router.navigateTo(`/page/${targetPage}`);
+        }
       });
+    });
+
+    // 3. Contact Form Submission
+    if (pageId === 'hubungi-kami') {
+      const contactForm = container.querySelector('#inst-contact-form') as HTMLFormElement | null;
+      if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nameInput = container.querySelector('#cf-name') as HTMLInputElement | null;
+          const name = nameInput?.value.trim() || 'Pembaca';
+
+          contactForm.reset();
+          Toast.show(
+            lang === 'en'
+              ? `Thank you, ${name}. Your message has been received by QUERYINDO newsroom.`
+              : `Terima kasih, ${name}. Pesan Anda telah diterima oleh Meja Redaksi QUERYINDO.`
+          );
+        });
+      }
     }
   }
 

@@ -6,6 +6,7 @@ import (
 
 	"byteindonesia/backend/database"
 	"byteindonesia/backend/models"
+	"byteindonesia/backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -108,6 +109,11 @@ func CreateArticle(c *fiber.Ctx) error {
 		}
 	}
 
+	// Trigger automated instant indexing ping (IndexNow & PubSubHubbub)
+	if article.Status == "published" {
+		utils.PingSearchEngines(article.Slug)
+	}
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Artikel berhasil diterbitkan",
@@ -143,6 +149,11 @@ func UpdateArticle(c *fiber.Ctx) error {
 	}
 
 	database.DB.Save(&article)
+
+	// Trigger automated instant indexing ping on update if published
+	if article.Status == "published" {
+		utils.PingSearchEngines(article.Slug)
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,

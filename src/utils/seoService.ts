@@ -105,7 +105,8 @@ export class SeoService {
   public static setArticleSEO(article: Article) {
     const title = `${article.title} — ${this.SITE_NAME}`;
     const description = article.subtitle || article.title;
-    const articleUrl = `${this.BASE_URL}/#article/${article.slug || article.id}`;
+    const cleanSlug = article.slug || article.id;
+    const articleUrl = `${this.BASE_URL}/berita/${cleanSlug}`;
     const imageUrl = article.imageUrl || this.DEFAULT_IMAGE;
 
     document.title = title;
@@ -120,7 +121,8 @@ export class SeoService {
     this.setMetaTag('property', 'og:image', imageUrl);
     this.setMetaTag('property', 'og:url', articleUrl);
     this.setMetaTag('property', 'article:published_time', article.publishedAt);
-    this.setMetaTag('property', 'article:section', article.category);
+    this.setMetaTag('property', 'article:modified_time', article.publishedAt);
+    this.setMetaTag('property', 'article:section', article.category.toUpperCase());
     this.setMetaTag('property', 'article:author', article.author.name);
 
     // Twitter Card
@@ -144,19 +146,63 @@ export class SeoService {
       'datePublished': article.publishedAt,
       'dateModified': article.publishedAt,
       'articleSection': article.category.toUpperCase(),
+      'inLanguage': 'id-ID',
+      'isAccessibleForFree': 'True',
       'author': {
         '@type': 'Person',
         'name': article.author.name,
-        'jobTitle': article.author.role
+        'jobTitle': article.author.role || 'Jurnalis Teknologi Terverifikasi'
       },
       'publisher': {
         '@type': 'NewsMediaOrganization',
         'name': 'QUERYINDO',
+        'url': this.BASE_URL,
         'logo': {
           '@type': 'ImageObject',
-          'url': this.DEFAULT_IMAGE
+          'url': `${this.BASE_URL}/logo.png`,
+          'width': 512,
+          'height': 512
         }
       }
     });
+  }
+
+  // Set SEO for Institutional & Corporate Pages
+  public static setPageSEO(pageId: string, pageTitle: string, description?: string) {
+    const title = `${pageTitle} — ${this.SITE_NAME}`;
+    const pageUrl = `${this.BASE_URL}/page/${pageId}`;
+    const pageDesc = description || `Informasi resmi ${pageTitle} portal jurnalisme teknologi independen QUERYINDO.`;
+
+    document.title = title;
+    this.setMetaTag('name', 'description', pageDesc);
+    this.setCanonical(pageUrl);
+
+    this.setMetaTag('property', 'og:site_name', this.SITE_NAME);
+    this.setMetaTag('property', 'og:type', 'website');
+    this.setMetaTag('property', 'og:title', title);
+    this.setMetaTag('property', 'og:description', pageDesc);
+    this.setMetaTag('property', 'og:image', `${this.BASE_URL}/og-image.png`);
+    this.setMetaTag('property', 'og:url', pageUrl);
+
+    this.setMetaTag('name', 'twitter:card', 'summary');
+    this.setMetaTag('name', 'twitter:title', title);
+    this.setMetaTag('name', 'twitter:description', pageDesc);
+  }
+
+  // Set SEO for Category Feed Pages
+  public static setCategorySEO(categoryName: string, categoryId: string) {
+    const title = `Berita ${categoryName} Terkini & Analisis Mendalam — ${this.SITE_NAME}`;
+    const catUrl = `${this.BASE_URL}/kategori/${categoryId}`;
+    const catDesc = `Kumpulan berita, analisis mendalam, dan laporan investigasi seputar ${categoryName} di Indonesia dan global oleh redaksi QUERYINDO.`;
+
+    document.title = title;
+    this.setMetaTag('name', 'description', catDesc);
+    this.setCanonical(catUrl);
+
+    this.setMetaTag('property', 'og:site_name', this.SITE_NAME);
+    this.setMetaTag('property', 'og:type', 'website');
+    this.setMetaTag('property', 'og:title', title);
+    this.setMetaTag('property', 'og:description', catDesc);
+    this.setMetaTag('property', 'og:url', catUrl);
   }
 }

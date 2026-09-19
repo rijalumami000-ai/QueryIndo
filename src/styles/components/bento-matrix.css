@@ -58,8 +58,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, rgba(9, 11, 16, 0.15) 0%, rgba(9, 11, 16, 0.6) 40%, rgba(9, 11, 16, 0.98) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(9, 11, 16, 0.05) 0%,
+    rgba(9, 11, 16, 0.3) 35%,
+    rgba(9, 11, 16, 0.75) 70%,
+    rgba(9, 11, 16, 0.98) 100%
+  );
   z-index: 2;
+  pointer-events: none;
 }
 
 .bento-featured-body {
@@ -449,12 +456,11 @@
 }
 
 .wire-live-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent-emerald);
-  box-shadow: 0 0 8px var(--accent-emerald);
-  animation: pulse-glow 2s infinite;
+  flex-shrink: 0;
 }
 
 .wire-main-title {
@@ -469,6 +475,10 @@
   font-size: 0.68rem;
   font-weight: 800;
   color: var(--accent-emerald);
+}
+
+.wire-badge-freq.wire-badge-cyan {
+  color: var(--accent-cyan);
 }
 
 .wire-feed-list {

@@ -213,86 +213,31 @@ export class ShoppingCarousel {
   }
 
   /**
-   * Original High-Tech Artwork: Holographic Quantum Tech Core & Circuitry Seal.
-   * Completely unique and bespoke for QUERYINDO, eliminating any cartoon resemblance.
+   * Editorial Guarantee & Trust Box for Shopping Recommendations.
+   * Promotes credibility and elevates conversion (ala Wirecutter / The Verge Deals).
    */
-  private static getTechCoreSVG(): string {
+  private static getEditorialTrustCard(): string {
     return `
-      <svg class="shopping-tech-core-svg" viewBox="0 0 200 180" width="165" height="150" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- Core Radial Glow -->
-          <radialGradient id="qCoreGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.4" />
-            <stop offset="60%" stop-color="#3b82f6" stop-opacity="0.15" />
-            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
-          </radialGradient>
-
-          <!-- Hologram Hex Core Gradient -->
-          <linearGradient id="qHexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00f2fe" />
-            <stop offset="50%" stop-color="#3b82f6" />
-            <stop offset="100%" stop-color="#8b5cf6" />
-          </linearGradient>
-
-          <!-- Plate Gradient -->
-          <linearGradient id="qPlateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1e293b" />
-            <stop offset="100%" stop-color="#0f172a" />
-          </linearGradient>
-        </defs>
-
-        <!-- Ambient Glow -->
-        <circle cx="100" cy="90" r="75" fill="url(#qCoreGlow)" />
-
-        <!-- Circuit Trace Lines -->
-        <g stroke="rgba(0, 242, 254, 0.4)" stroke-width="1.5" stroke-linecap="round">
-          <!-- Left circuits -->
-          <path d="M20 90 L60 90 L75 75" />
-          <circle cx="20" cy="90" r="3" fill="#00f2fe" />
-          <path d="M35 120 L65 120 L80 105" />
-          <circle cx="35" cy="120" r="2.5" fill="#38bdf8" />
-          <path d="M30 60 L60 60 L75 75" />
-          <circle cx="30" cy="60" r="2.5" fill="#38bdf8" />
-
-          <!-- Right circuits -->
-          <path d="M180 90 L140 90 L125 105" />
-          <circle cx="180" cy="90" r="3" fill="#00f2fe" />
-          <path d="M165 60 L135 60 L120 75" />
-          <circle cx="165" cy="60" r="2.5" fill="#38bdf8" />
-          <path d="M170 120 L140 120 L125 105" />
-          <circle cx="170" cy="120" r="2.5" fill="#38bdf8" />
-        </g>
-
-        <!-- Outer Tech Ring -->
-        <circle cx="100" cy="90" r="54" stroke="rgba(0, 242, 254, 0.3)" stroke-width="1.5" stroke-dasharray="4 6" />
-        <circle cx="100" cy="90" r="46" stroke="rgba(59, 130, 246, 0.5)" stroke-width="2" />
-
-        <!-- Isometric Quantum Tech Hexagon Platform -->
-        <polygon points="100,50 135,70 135,110 100,130 65,110 65,70" fill="url(#qPlateGrad)" stroke="url(#qHexGrad)" stroke-width="2.5" />
-
-        <!-- Inner Chip Die Core -->
-        <rect x="84" y="74" width="32" height="32" rx="6" fill="#090d16" stroke="#00f2fe" stroke-width="2" />
-        
-        <!-- QueryIndo Tech "Q" Hologram Emblem -->
-        <path d="M100 81 C94.5 81 90 85.5 90 91 C90 96.5 94.5 101 100 101 C102.2 101 104.2 100.2 105.8 99 L109 103 L111 101 L108 97 C109.2 95.3 110 93.2 110 91 C110 85.5 105.5 81 100 81 Z M100 85 C103.3 85 106 87.7 106 91 C106 94.3 103.3 97 100 97 C96.7 97 94 94.3 94 91 C94 87.7 96.7 85 100 85 Z" fill="#00f2fe" />
-
-        <!-- Floating Pulse Nodes -->
-        <circle cx="100" cy="42" r="3.5" fill="#00f2fe">
-          <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="145" cy="90" r="3.5" fill="#3b82f6">
-          <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="55" cy="90" r="3.5" fill="#3b82f6">
-          <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
-        </circle>
-
-        <!-- Laser Scan Line -->
-        <line x1="72" y1="90" x2="128" y2="90" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" opacity="0.8">
-          <animate attributeName="y1" values="65;115;65" dur="3s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="65;115;65" dur="3s" repeatCount="indefinite" />
-        </line>
-      </svg>
+      <div class="shopping-trust-card">
+        <div class="trust-card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>STANDAR KURASI QUERYINDO</span>
+        </div>
+        <ul class="trust-card-list">
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Unit orisinal garansi resmi distributor</span>
+          </li>
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Penurunan harga riil terverifikasi</span>
+          </li>
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Bebas intervensi komersial pabrikan</span>
+          </li>
+        </ul>
+      </div>
     `;
   }
 
@@ -309,29 +254,23 @@ export class ShoppingCarousel {
     return `
       <section class="shopping-recommendation-section" id="shopping-recommendation-block">
         <div class="shopping-banner-wrapper">
-          <!-- Ambient Background Effects -->
-          <div class="shopping-bg-glow"></div>
-          <div class="shopping-bg-grid"></div>
-
-          <!-- Left Column: Tech Branding, Title & Holographic Core -->
+          <!-- Left Column: Tech Branding, Title & Editorial Trust -->
           <div class="shopping-brand-col">
             <div class="shopping-tag-badge">
               <span class="shopping-tag-icon">⚡</span>
-              <span class="shopping-tag-label">${config.badgeText || 'QUERY PICKS'}</span>
-              <span class="shopping-powered-by">${config.partnerText || 'Kurasi Lab Redaksi'}</span>
+              <span class="shopping-tag-label">${config.badgeText || 'PILIHAN LAB REDAKSI'}</span>
+              <span class="shopping-powered-by">${config.partnerText || 'Diskon Terverifikasi'}</span>
             </div>
 
             <h3 class="shopping-main-title">
-              ${config.mainTitle || 'RADAR GADGET & HARDWARE PILIHAN'}
+              ${config.mainTitle || 'RADAR GADGET & PROMO TERBAIK'}
             </h3>
 
             <p class="shopping-main-desc">
-              Kurasi perangkat cerdas, aksesoris produktivitas, dan penawaran terverifikasi oleh lab QueryIndo.
+              Kurasi perangkat cerdas, aksesoris produktivitas, dan penawaran harga terbaik yang terverifikasi redaksi QueryIndo.
             </p>
 
-            <div class="shopping-tech-core-container">
-              ${this.getTechCoreSVG()}
-            </div>
+            ${this.getEditorialTrustCard()}
           </div>
 
           <!-- Right Column: Horizontal Product Slider -->
@@ -356,25 +295,42 @@ export class ShoppingCarousel {
             </button>
           </div>
         </div>
+
+        <!-- Affiliate Trust Disclosure (Wirecutter/Verge Standard) -->
+        <div class="shopping-affiliate-disclaimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span><strong>Transparansi Afiliasi:</strong> Redaksi QUERYINDO mengkurasi promo gadget terverifikasi secara independen. Kami dapat memperoleh komisi atas pembelian melalui tautan resmi ini tanpa biaya tambahan bagi Anda.</span>
+        </div>
       </section>
     `;
   }
 
   /**
-   * Renders an individual product card in the slider.
+   * Renders an individual product card in the slider with high conversion cues.
    */
   private static renderProductCardHTML(product: ShoppingProduct): string {
     const directUrl = ImageUtils.normalizeImageUrl(product.imageUrl);
     const fallbackSvg = ImageUtils.getInitialsAvatar(product.title, '#00f2fe');
 
+    // Detect merchant from target URL
+    const urlLower = (product.targetUrl || '').toLowerCase();
+    let merchantName = 'Mitra Resmi';
+    if (urlLower.includes('shopee')) merchantName = 'Shopee';
+    else if (urlLower.includes('tokopedia')) merchantName = 'Tokopedia';
+    else if (urlLower.includes('blibli')) merchantName = 'Blibli';
+    else if (urlLower.includes('lazada')) merchantName = 'Lazada';
+
+    const discountClean = product.discountPercent ? product.discountPercent.replace(/[^0-9%]/g, '') : '';
+    const discountLabel = discountClean ? (discountClean.includes('%') ? `HEMAT ${discountClean}` : `HEMAT ${discountClean}%`) : '';
+
     return `
       <div class="shopping-product-card" data-product-id="${product.id}">
-        <!-- Category Pill & Discount Tag -->
+        <!-- Top Row: Category & Savings Tag -->
         <div class="shop-card-top-row">
-          <span class="shop-card-category-tag">${product.category || 'GEAR'}</span>
-          ${product.discountPercent ? `
+          <span class="shop-card-category-tag">${product.category || 'GADGET'}</span>
+          ${discountLabel ? `
             <span class="shop-badge-discount">
-              ${product.discountPercent.includes('%') ? product.discountPercent : `${product.discountPercent}%`}
+              ${discountLabel}
             </span>
           ` : ''}
         </div>
@@ -393,6 +349,11 @@ export class ShoppingCarousel {
 
         <!-- Product Meta & Title -->
         <div class="shop-card-content">
+          <div class="shop-card-merchant-pill">
+            <span class="merchant-dot"></span>
+            <span>${merchantName}</span>
+          </div>
+
           <h4 class="shop-card-title" title="${product.title}">
             ${product.title}
           </h4>
@@ -404,16 +365,17 @@ export class ShoppingCarousel {
             <div class="shop-price-discount">${product.discountPrice}</div>
           </div>
 
-          <!-- CTA Buy Button -->
+          <!-- High-Converting CTA Buy Button -->
           <a 
             href="${product.targetUrl}" 
             target="_blank" 
             rel="noopener sponsored" 
             class="btn-shop-buy"
             data-product-id="${product.id}"
+            title="Beli produk ini di ${merchantName}"
           >
-            <span>Cek Promo</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            <span>Cek Promo ${merchantName}</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
           </a>
         </div>
       </div>

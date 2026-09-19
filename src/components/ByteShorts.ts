@@ -67,35 +67,37 @@ export class ByteShorts {
       return '';
     }
 
-    const sectionTitleText = lang === 'en' ? 'FLASH STORIES • VISUAL DIGEST' : 'BERITA KILAT • KILAS TERKINI';
-    const clickHintText = lang === 'en' ? 'Click story to preview →' : 'Klik cerita untuk pratinjau →';
+    const sectionTitleText = lang === 'en' ? 'VISUAL QUICKTAKES • EDITORIAL DIGEST' : 'KILAS VISUAL • LIPUTAN RINGKAS';
+    const clickHintText = lang === 'en' ? 'Click card to view story →' : 'Ketuk untuk putar cerita →';
 
     return `
-      <div style="margin: 1.25rem 0 0.5rem 0; padding: 0.85rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
-        <div style="font-size: 0.72rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-mono); letter-spacing: 0.06em; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
-          <span style="display:inline-flex; align-items:center; gap:0.4rem;">
+      <section class="byteshorts-wrapper" aria-label="Visual Stories">
+        <div class="byteshorts-header">
+          <span class="byteshorts-kicker">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             ${sectionTitleText}
           </span>
-          <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">${clickHintText}</span>
+          <span class="byteshorts-hint">${clickHintText}</span>
         </div>
 
-        <div style="display: flex; gap: 1.25rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none;">
+        <div class="byteshorts-track">
           ${stories.map((story, idx) => `
-            <div class="byte-story-item" data-story-index="${idx}" style="display: flex; flex-direction: column; align-items: center; gap: 0.45rem; cursor: pointer; flex-shrink: 0; transition: transform 0.2s ease;">
-              <div style="position: relative; width: 72px; height: 72px; border-radius: 50%; padding: 2.5px; background: ${story.isUnread ? 'linear-gradient(135deg, var(--accent-cyan), #3b82f6, #ec4899)' : 'var(--border-color)'};">
-                <img src="${story.articleImage}" alt="${story.articleTitle}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--bg-primary);" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80'" />
-                <span style="position: absolute; bottom: -2px; right: -2px; background: var(--accent-cyan); color: #000; font-size: 0.55rem; font-weight: 800; padding: 0.1rem 0.35rem; border-radius: 100px; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-                  ${story.badge}
-                </span>
+            <div class="byte-story-item byteshorts-card" data-story-index="${idx}" title="${story.articleTitle}">
+              <img 
+                src="${story.articleImage}" 
+                alt="${story.articleTitle}" 
+                class="byteshorts-card-img" 
+                loading="lazy"
+                onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80'" 
+              />
+              <div class="byteshorts-card-overlay">
+                <span class="byteshorts-cat-pill">${story.badge}</span>
+                <span class="byteshorts-card-title">${story.articleTitle}</span>
               </div>
-              <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-primary); max-width: 80px; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25;" title="${story.articleTitle}">
-                ${story.articleTitle}
-              </span>
             </div>
           `).join('')}
         </div>
-      </div>
+      </section>
     `;
   }
 

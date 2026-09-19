@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" 
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>QUERYINDO — Portal Berita Teknologi Terdepan</title>
+    <link>https://queryindo.com</link>
+    <description>Jurnalisme teknologi independen, kritis, dan berintegritas. Membahas kecerdasan buatan, arsitektur komputasi, keamanan siber, dan transformasi digital nasional.</description>
+    <language>id-ID</language>
+    <lastBuildDate>Sat, 19 Sep 2026 01:00:00 +0000</lastBuildDate>
+    <atom:link href="https://queryindo.com/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub" />
+    <image>
+      <url>https://queryindo.com/logo.png</url>
+      <title>QUERYINDO</title>
+      <link>https://queryindo.com</link>
+      <width>144</width>
+      <height>144</height>
+    </image>
+
+    <item>
+      <title>Indonesia Tak Mau Cuma Jadi Pengguna AI, Pemerintah Bidik Posisi Strategis</title>
+      <link>https://queryindo.com/berita/indonesia-tak-mau-cuma-jadi-pengguna-ai-pemerintah-bidik-posisi-strategis</link>
+      <guid isPermaLink="true">https://queryindo.com/berita/indonesia-tak-mau-cuma-jadi-pengguna-ai-pemerintah-bidik-posisi-strategis</guid>
+      <pubDate>Wed, 16 Sep 2026 07:12:45 +0000</pubDate>
+      <dc:creator>Redaksi QUERYINDO</dc:creator>
+      <category>Kecerdasan Buatan</category>
+      <description><![CDATA[Wamenkomdigi Nezar Patria menilai Indonesia perlu mengambil posisi dalam rantai industri AI global, mulai dari infrastruktur hingga semikonduktor, agar tidak berhenti sebagai pasar teknologi.]]></description>
+      <media:content url="https://images.pexels.com/photos/33399660/pexels-photo-33399660.jpeg" medium="image" width="1200" height="800" />
+    </item>
+
+    <item>
+      <title>Belanja AI Tembus US$795 Miliar, Investor Mulai Pertanyakan Keberlanjutannya</title>
+      <link>https://queryindo.com/berita/belanja-ai-tembus-us-795-miliar-investor-mulai-pertanyakan-keberlanjutannya</link>
+      <guid isPermaLink="true">https://queryindo.com/berita/belanja-ai-tembus-us-795-miliar-investor-mulai-pertanyakan-keberlanjutannya</guid>
+      <pubDate>Tue, 15 Sep 2026 18:11:29 +0000</pubDate>
+      <dc:creator>Redaksi QUERYINDO</dc:creator>
+      <category>Kecerdasan Buatan</category>
+      <description><![CDATA[Microsoft, Alphabet, Amazon, Meta, dan Oracle diperkirakan menggelontorkan sekitar US$795 miliar untuk belanja modal pada 2026. Di tengah investasi raksasa tersebut, investor mulai mempertanyakan apakah permintaan AI mampu menjaga laju pertumbuhan industri.]]></description>
+      <media:content url="https://images.unsplash.com/photo-1689330305908-aa231c1dd595?q=80&amp;w=1171&amp;auto=format&amp;fit=crop" medium="image" width="1200" height="800" />
+    </item>
+
+    <item>
+      <title>CEO Anthropic Minta Pengembangan AI Diperlambat, Ini Alasannya</title>
+      <link>https://queryindo.com/berita/ceo-anthropic-minta-pengembangan-ai-diperlambat-ini-alasannya</link>
+      <guid isPermaLink="true">https://queryindo.com/berita/ceo-anthropic-minta-pengembangan-ai-diperlambat-ini-alasannya</guid>
+      <pubDate>Tue, 15 Sep 2026 11:33:13 +0000</pubDate>
+      <dc:creator>Redaksi QUERYINDO</dc:creator>
+      <category>Kecerdasan Buatan</category>
+      <description><![CDATA[Dario Amodei menilai perkembangan kemampuan AI bergerak terlalu cepat dibanding kesiapan sistem keselamatan. Ia menyerukan pengawasan independen dan koordinasi global agar kemajuan AI tidak memicu risiko eksistensial.]]></description>
+    </item>
+  </channel>
+</rss>

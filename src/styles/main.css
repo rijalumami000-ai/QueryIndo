@@ -22,6 +22,7 @@
 @import './components/shopping-radar.css';
 @import './components/drawers-modals.css';
 @import './components/admin-cms.css';
+@import './components/institutional.css';
 
 /* 4. Global Responsive Overrides */
 @import './responsive/responsive.css';

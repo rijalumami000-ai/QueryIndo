@@ -6,33 +6,86 @@
   <title>QUERYINDO — Portal Berita Teknologi Terdepan & Terupdate</title>
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Portal berita skala nasional khusus menyajikan informasi terkini tentang Artificial Intelligence, Gadget, Keamanan Siber, Kebijakan Digital RI, dan Tren Startup." />
-  <meta name="keywords" content="Berita Teknologi, AI Indonesia, Review HP, Keamanan Siber, IKN Tech, Startup Indonesia, QUERYINDO" />
+  <meta name="description" content="Portal jurnalisme teknologi independen nasional. Menyajikan berita investigasi kecerdasan buatan (AI), gadget, semikonduktor, keamanan siber, dan kedaulatan digital Indonesia." />
+  <meta name="keywords" content="Berita Teknologi, AI Indonesia, Semikonduktor, Review Gadget, Keamanan Siber, Kedaulatan Digital, Startup RI, QUERYINDO" />
   <meta name="author" content="Redaksi QUERYINDO" />
+  <link rel="canonical" href="https://queryindo.com/" />
+
+  <!-- Googlebot & Google News Crawl Directives -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot-news" content="index, follow" />
   
   <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="QUERYINDO" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://queryindo.com/" />
   <meta property="og:title" content="QUERYINDO — Portal Berita Teknologi Terdepan & Terupdate" />
-  <meta property="og:description" content="Informasi terupdate dan penting soal teknologi, perkembangan digital, AI, dan inovasi nasional." />
+  <meta property="og:description" content="Jurnalisme teknologi independen: kecerdasan buatan, gadget, infrastruktur komputasi awan, dan transformasi digital nusantara." />
   <meta property="og:image" content="https://queryindo.com/og-image.png" />
+  <meta property="og:locale" content="id_ID" />
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@queryindo" />
   <meta name="twitter:title" content="QUERYINDO — News Tech Portal" />
   <meta name="twitter:description" content="Informasi terupdate teknologi, AI, & transformasi digital Indonesia." />
+  <meta name="twitter:image" content="https://queryindo.com/og-image.png" />
   
-  <!-- Schema.org NewsArticle JSON-LD -->
+  <!-- Schema.org NewsMediaOrganization E-E-A-T JSON-LD -->
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "NewsMediaOrganization",
-      "name": "QUERYINDO",
-      "url": "https://queryindo.com/",
-      "logo": "https://queryindo.com/logo.png",
-      "sameAs": [
-        "https://twitter.com/queryindo",
-        "https://instagram.com/queryindo"
+      "@graph": [
+        {
+          "@type": "NewsMediaOrganization",
+          "@id": "https://queryindo.com/#organization",
+          "name": "QUERYINDO",
+          "url": "https://queryindo.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://queryindo.com/logo.png",
+            "width": 512,
+            "height": 512
+          },
+          "sameAs": [
+            "https://twitter.com/queryindo",
+            "https://instagram.com/queryindo",
+            "https://linkedin.com/company/queryindo"
+          ],
+          "publishingPrinciples": "https://queryindo.com/page/pedoman-media-siber",
+          "correctionsPolicy": "https://queryindo.com/page/kode-etik",
+          "ethicsPolicy": "https://queryindo.com/page/kode-etik",
+          "masthead": "https://queryindo.com/page/redaksi",
+          "diversityPolicy": "https://queryindo.com/page/tentang-kami",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Jl. S. Parman No 07 Cintamulya Candipuro",
+            "addressLocality": "Lampung Selatan",
+            "addressRegion": "Lampung",
+            "addressCountry": "ID"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+62-895-3238-61966",
+            "contactType": "editorial newsroom",
+            "email": "redaksi@queryindo.com",
+            "availableLanguage": ["id", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://queryindo.com/#website",
+          "url": "https://queryindo.com/",
+          "name": "QUERYINDO",
+          "publisher": { "@id": "https://queryindo.com/#organization" },
+          "inLanguage": "id-ID",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://queryindo.com/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
       ]
     }
   </script>
@@ -42,9 +95,8 @@
   <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
-  <meta property="og:image" content="https://queryindo.com/og-image.png" />
-  <meta name="twitter:image" content="https://queryindo.com/og-image.png" />
-  <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="http://localhost:8080/rss.xml" />
+  <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="/rss.xml" />
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
   <meta name="theme-color" content="#0d0e12" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <!-- Google Identity Services SDK -->
@@ -68,7 +120,7 @@
       <div class="container top-bar-content">
         <div class="tech-ticker-container">
           <div class="tech-ticker-label">
-            <span id="pulse-dot" style="display:inline-block; width:6px; height:6px; background:var(--accent-cyan); border-radius:50%;"></span>
+            <span id="pulse-dot" class="tech-ticker-dot"></span>
             Indeks Tekno:
           </div>
           <div class="tech-ticker-list" id="tech-ticker-list">
@@ -143,12 +195,12 @@
 
         <!-- Action Buttons -->
         <div class="nav-actions">
-          <button id="pwa-install-btn" class="btn-action nav-feature-btn" style="display:none; padding: 0.42rem 0.85rem; font-size: 0.78rem; background: rgba(37, 99, 235, 0.08); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); font-weight: 600;" title="Pasang Aplikasi QUERYINDO di Perangkat Anda">
+          <button id="pwa-install-btn" class="btn-action nav-feature-btn" title="Pasang Aplikasi QUERYINDO di Perangkat Anda">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Pasang App</span>
           </button>
           <!-- Reader Auth & User Profile Button -->
-          <button id="user-auth-btn" class="btn-action nav-auth-btn" style="padding: 0.42rem 0.85rem; font-size: 0.78rem; background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: var(--radius-md); font-weight: 700; color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 0.4rem;" title="Akun Pembaca QUERYINDO">
+          <button id="user-auth-btn" class="btn-action nav-auth-btn" title="Akun Pembaca QUERYINDO">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="user-auth-btn-text">Masuk</span>
           </button>
@@ -167,13 +219,13 @@
     </header>
 
     <!-- Advanced Filter Expandable Panel -->
-    <div id="advanced-filter-panel" style="display:none; background:var(--bg-secondary); border-bottom:1px solid var(--border-color); padding:1rem 0; box-shadow:var(--shadow-md); transition:all 0.3s ease;">
+    <div id="advanced-filter-panel" class="advanced-filter-panel" style="display:none;">
       <div class="container" style="display:flex; flex-direction:column; gap:0.75rem;">
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem;">
+        <div class="advanced-filter-grid">
           <!-- Sorting Options -->
           <div>
-            <label style="display:block; font-size:0.72rem; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.05em;" id="lbl-sort-by">Urutkan Berdasarkan</label>
-            <select id="filter-sort-by" style="width:100%; padding:0.5rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.825rem; font-weight:600; outline:none; cursor:pointer;">
+            <label class="filter-group-label" id="lbl-sort-by">Urutkan Berdasarkan</label>
+            <select id="filter-sort-by" class="filter-select">
               <option value="latest">Terbaru</option>
               <option value="views">Terpopuler (Dilihat)</option>
               <option value="likes">Paling Disukai</option>
@@ -182,8 +234,8 @@
 
           <!-- Date Options -->
           <div>
-            <label style="display:block; font-size:0.72rem; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.05em;" id="lbl-date-range">Rentang Waktu</label>
-            <select id="filter-date-range" style="width:100%; padding:0.5rem; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.825rem; font-weight:600; outline:none; cursor:pointer;">
+            <label class="filter-group-label" id="lbl-date-range">Rentang Waktu</label>
+            <select id="filter-date-range" class="filter-select">
               <option value="all">Semua Waktu</option>
               <option value="24h">24 Jam Terakhir</option>
               <option value="week">Minggu Ini</option>
@@ -193,8 +245,8 @@
 
           <!-- Filter tags -->
           <div>
-            <label style="display:block; font-size:0.72rem; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.05em;" id="lbl-popular-tags">Tag Populer</label>
-            <div id="filter-tag-chips" style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
+            <label class="filter-group-label" id="lbl-popular-tags">Tag Populer</label>
+            <div id="filter-tag-chips" class="filter-tag-chips-wrap">
               <!-- Javascript chips -->
             </div>
           </div>
@@ -211,10 +263,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Left and Right Skyscraper Advertising Gutters (Desktop >= 1440px) -->
-    <aside id="skyscraper-left-ad" class="skyscraper-rail left" aria-label="Iklan Sponsor Kiri"></aside>
-    <aside id="skyscraper-right-ad" class="skyscraper-rail right" aria-label="Iklan Sponsor Kanan"></aside>
 
     <!-- Main Content Layout -->
     <main class="container">
@@ -244,7 +292,7 @@
             <div class="sidebar-header">
               <h2 class="sidebar-title" id="trending-title-header">Populer Minggu Ini</h2>
             </div>
-            <div id="trending-articles-container" style="display:flex; flex-direction:column; gap:1rem;">
+            <div id="trending-articles-container" class="trending-articles-list">
               <!-- Rendered by JS -->
             </div>
 
@@ -309,7 +357,7 @@
           <div class="wire-radar-column">
             <div class="wire-header">
               <h3 class="wire-main-title">Radar Produk & Hardware</h3>
-              <span class="wire-badge-freq" style="color:var(--accent-cyan);">LAB QUERYINDO</span>
+              <span class="wire-badge-freq wire-badge-cyan">LAB QUERYINDO</span>
             </div>
             <div class="radar-card-wrap" id="radar-product-container">
               <!-- Rendered by JS -->
@@ -328,7 +376,7 @@
 
         <div class="section-header">
           <h2 class="section-title" id="feed-title">Semua Berita & Eksplorasi Arsip</h2>
-          <span id="results-count" style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">
+          <span id="results-count" class="feed-results-count">
             <!-- Rendered by JS -->
           </span>
         </div>
@@ -356,14 +404,10 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <!-- Abstract Mesh Gradient Background Layers -->
-      <div class="footer-mesh-bg">
-        <div class="footer-mesh-blob-3"></div>
-      </div>
       <div class="container" style="position: relative; z-index: 5;">
         <div class="footer-grid">
           <div class="footer-col-brand">
-            <a href="#" class="brand-logo footer-brand-logo" style="margin-bottom: 0.6rem;" aria-label="QueryIndo Home">
+            <a href="#" class="brand-logo footer-brand-logo" aria-label="QueryIndo Home">
               <div class="brand-emblem-wrap">
                 <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
                   <rect x="2" y="2" width="60" height="60" rx="16" fill="#0B1120" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.2"/>
@@ -381,30 +425,30 @@
                 </div>
               </div>
             </a>
-            <p class="footer-desc" style="line-height: 1.55; font-size: 0.85rem; max-width: 290px; color: var(--text-tertiary);">
+            <p class="footer-desc">
               Portal jurnalisme teknologi independen nasional. Mengulas kecerdasan buatan, infrastruktur komputasi awan, keamanan siber, dan kedaulatan digital nusantara.
             </p>
-            <ul class="footer-social-list" id="footer-social-list" style="display: flex; gap: 0.5rem; margin-top: 1rem; list-style: none; flex-wrap: wrap;">
+            <ul class="footer-social-list" id="footer-social-list">
               <!-- Dynamic Official Social Channels from SocialMediaService -->
             </ul>
           </div>
           
           <div>
-            <h4 class="footer-links-title" id="footer-company-title" style="color: #111; font-weight: 800; margin-bottom: 1.25rem;">Company</h4>
-            <ul class="footer-links-list" style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem;">
-              <li><a href="/page/tentang-kami" id="link-about" style="color: #555; text-decoration: none;">About Us</a></li>
-              <li><a href="/page/hubungi-kami" id="link-contact" style="color: #555; text-decoration: none;">Get in Touch</a></li>
-              <li><a href="/page/redaksi" id="link-redaksi" style="color: #555; text-decoration: none;">Susunan Redaksi</a></li>
-              <li><a href="/page/kode-etik" id="link-ethics" style="color: #555; text-decoration: none;">Redactional Ethics</a></li>
-              <li><a href="/page/pedoman-media-siber" id="link-cyber-guidelines" style="color: #555; text-decoration: none;">Cyber Media Guidelines</a></li>
-              <li><a href="/page/disclaimer" id="link-disclaimer" style="color: #555; text-decoration: none;">Disclaimer</a></li>
-              <li><a href="/page/info-iklan" id="link-ads" style="color: #555; text-decoration: none;">Advertising</a></li>
+            <h4 class="footer-links-title" id="footer-company-title">Company</h4>
+            <ul class="footer-links-list">
+              <li><a href="/page/tentang-kami" id="link-about">About Us</a></li>
+              <li><a href="/page/hubungi-kami" id="link-contact">Get in Touch</a></li>
+              <li><a href="/page/redaksi" id="link-redaksi">Susunan Redaksi</a></li>
+              <li><a href="/page/kode-etik" id="link-ethics">Redactional Ethics</a></li>
+              <li><a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Cyber Media Guidelines</a></li>
+              <li><a href="/page/disclaimer" id="link-disclaimer">Disclaimer</a></li>
+              <li><a href="/page/info-iklan" id="link-ads">Advertising</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 class="footer-links-title" style="color: #111; font-weight: 800; margin-bottom: 1.25rem;">Information</h4>
-            <div style="color: #555; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; line-height: 1.5;">
+            <h4 class="footer-links-title">Information</h4>
+            <div class="footer-contact-info-block">
               <p>QueryIndo Office. Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan Lampung</p>
               <p>+62895323861966</p>
               <p>redaksi@queryindo.com</p>
@@ -412,36 +456,56 @@
           </div>
 
           <div>
-            <!-- Subscription container -->
-            <div class="footer-sub-container" style="display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start;">
-              <h4 class="footer-links-title" style="color: var(--text-primary); font-weight: 800; margin-bottom: 0.5rem; font-size: 0.95rem;">Newsletter Redaksi</h4>
-              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; max-width: 260px; margin-bottom: 0.5rem;">
-                Dapatkan rangkuman berita eksekutif & wawasan AI harian langsung ke email Anda.
-              </p>
-              <!-- Subscription bar -->
-              <form class="footer-subscribe-bar" id="footer-newsletter-form" style="display: flex; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; width: 100%; max-width: 340px;">
-                <input type="email" class="footer-subscribe-input" placeholder="Alamat email Anda..." required style="flex: 1; min-width: 0; border: none; background: transparent; padding: 0 0.85rem; font-size: 0.825rem; outline: none; height: 2.6rem; color: var(--text-primary);" />
-                <button type="submit" class="footer-subscribe-btn" style="flex-shrink: 0; white-space: nowrap; padding: 0 1.15rem; height: 2.6rem; background: var(--gradient-brand); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #000; font-weight: 800; font-size: 0.8rem;">
-                  Langganan
-                </button>
-              </form>
+            <h4 class="footer-links-title">Layanan & Distribusi</h4>
+            <div class="footer-service-block">
+              <ul class="footer-service-list">
+                <li>
+                  <a href="/rss.xml" target="_blank" class="footer-service-link" id="link-rss-feed">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+                    <span>Sindikasi RSS Feed</span>
+                    <span class="footer-service-badge">XML</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://news.google.com" target="_blank" rel="noopener" class="footer-service-link" id="link-google-news">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>Google News Publisher</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/page/info-iklan" class="footer-service-link" id="link-mediakit-press">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    <span>Media Kit & Riset 2026</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/page/hubungi-kami" class="footer-service-link" id="link-hotline-redaksi">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <span>Kanal Whistleblower & Tip</span>
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <div class="footer-bottom" style="border-top: 1px solid rgba(0,0,0,0.06); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #777;">
-          <p>© 2026 QUERYINDO, All Rights Reserved. Design By QUERYINDO</p>
-          <div style="display:flex; gap:1.25rem;">
-            <a href="#" id="link-privacy" style="color: #666; text-decoration: none;">Privasi</a>
-            <a href="#" id="link-terms" style="color: #666; text-decoration: none;">Syarat & Ketentuan</a>
-            <a href="#" id="link-sitemap" style="color: #666; text-decoration: none;">Peta Situs</a>
-            <a href="/admin" id="link-admin-footer" style="color: #888; text-decoration: none;">Portal Redaksi</a>
+        <div class="footer-bottom">
+          <p>© 2026 QUERYINDO, All Rights Reserved. Portal Berita Teknologi Terdepan.</p>
+          <div class="footer-bottom-links">
+            <a href="#" id="link-privacy">Privasi</a>
+            <a href="#" id="link-terms">Syarat & Ketentuan</a>
+            <a href="#" id="link-sitemap">Peta Situs</a>
+            <a href="/admin" id="link-admin-footer">Portal Redaksi</a>
           </div>
         </div>
       </div>
 
       <!-- Back to Top Button -->
-      <button id="btn-back-to-top" class="btn-back-to-top" title="Kembali ke Atas" style="position: fixed; bottom: 2rem; right: 2rem; width: 2.6rem; height: 2.6rem; background: #42A5F5; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(66, 165, 245, 0.4); font-size: 1.1rem; font-weight: bold; transition: all 0.2s;">↑</button>
+      <button id="btn-back-to-top" class="btn-back-to-top" title="Kembali ke Atas" aria-label="Scroll to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
     </footer>
 
 

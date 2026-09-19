@@ -171,10 +171,15 @@ func main() {
 	api.Put("/social-links/:id", middleware.Protected(), handlers.UpdateSocialLink)
 	api.Delete("/social-links/:id", middleware.Protected(), handlers.DeleteSocialLink)
 
+	// SEO & Search Engine Indexing Endpoints
+	api.Post("/seo/ping", handlers.TriggerSEOPing)
+	app.Get("/queryindo7a9f8b1c2d3e4f5a6b7c8d9e0.txt", handlers.GetIndexNowKey)
+
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap
 	app.Get("/rss.xml", handlers.GetRSSFeed)
 	app.Get("/feed.json", handlers.GetJSONFeed)
 	app.Get("/sitemap.xml", handlers.GetSitemap)
+	app.Get("/sitemap-news.xml", handlers.GetNewsSitemap)
 	app.Get("/robots.txt", handlers.GetRobotsTxt)
 
 	port := os.Getenv("PORT")

@@ -1,0 +1,734 @@
+/* ==========================================================================
+   QUERYINDO - Institutional & Editorial Publication Pages
+   Authentic, Dignified Editorial Design for Newsroom & Corporate Governance
+   ========================================================================== */
+
+/* ── Container & Scaffold ── */
+.inst-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 6rem;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+
+/* ── Editorial Top Navigation / Breadcrumb ── */
+.inst-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.inst-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.inst-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.inst-breadcrumb a:hover {
+  color: var(--accent-cyan);
+}
+
+.inst-breadcrumb-separator {
+  color: var(--border-color);
+}
+
+.inst-breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.inst-accreditation-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.inst-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: color var(--transition-fast);
+}
+
+.inst-back-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ── Header Editorial ── */
+.inst-header {
+  margin-bottom: 2.5rem;
+}
+
+.inst-header-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.inst-header-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 0.85rem 0;
+  color: var(--text-primary);
+}
+
+.inst-header-lead {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 760px;
+}
+
+/* ── Corporate Hub Navigation Tabs ── */
+.inst-nav-tabs-wrapper {
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: -1px;
+}
+
+.inst-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.inst-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  background: transparent;
+  cursor: pointer;
+}
+
+.inst-nav-tab svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.inst-nav-tab:hover {
+  color: var(--text-primary);
+}
+
+.inst-nav-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.inst-nav-tab.active svg {
+  opacity: 1;
+  stroke: var(--accent-cyan);
+}
+
+/* ── Content Layout & Editorial Typography ── */
+.inst-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  line-height: 1.75;
+}
+
+.inst-editorial-prose {
+  font-size: 0.98rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.inst-editorial-prose p {
+  margin: 0 0 1.25rem 0;
+}
+
+.inst-editorial-prose strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ── Editorial Quote Callout (Subdued & Authoritative) ── */
+.inst-statement-box {
+  border-left: 3px solid var(--text-primary);
+  padding: 0.5rem 0 0.5rem 1.5rem;
+  margin: 1.5rem 0 2rem 0;
+}
+
+.inst-statement-text {
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.inst-statement-caption {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Clean Section Headings ── */
+.inst-sec-heading {
+  margin: 2.5rem 0 1.25rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-sec-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.35rem 0;
+}
+
+.inst-sec-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Clean Corporate Metadata Table / Definition List ── */
+.inst-meta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 1.25rem 0;
+}
+
+.inst-meta-table tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-meta-table th {
+  text-align: left;
+  padding: 0.85rem 1rem 0.85rem 0;
+  color: var(--text-muted);
+  font-weight: 600;
+  width: 35%;
+  vertical-align: top;
+}
+
+.inst-meta-table td {
+  padding: 0.85rem 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  vertical-align: top;
+}
+
+@media (max-width: 640px) {
+  .inst-meta-table th,
+  .inst-meta-table td {
+    display: block;
+    width: 100%;
+    padding: 0.35rem 0;
+  }
+  .inst-meta-table tr {
+    padding: 0.75rem 0;
+    display: block;
+  }
+}
+
+/* ── Two-Column Editorial Grid (Visi & Misi, Nilai-nilai) ── */
+.inst-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 720px) {
+  .inst-split-grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+}
+
+.inst-column-block h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.65rem 0;
+}
+
+.inst-column-block p {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.inst-numbered-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.inst-numbered-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.inst-list-num {
+  font-weight: 800;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* ── Masthead Redaksional (Boks Redaksi Resmi) ── */
+.inst-masthead-notice {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.inst-masthead-notice strong {
+  color: var(--text-primary);
+}
+
+.inst-masthead-group {
+  margin-bottom: 2.75rem;
+}
+
+.inst-masthead-group-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin: 0 0 1.25rem 0;
+}
+
+.inst-masthead-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.inst-masthead-person {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  transition: border-color var(--transition-fast);
+}
+
+.inst-masthead-person:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='light'] .inst-masthead-person:hover {
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+.inst-masthead-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.inst-masthead-avatar-fallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.inst-masthead-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.inst-masthead-role {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.inst-masthead-name {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0 0 0.35rem 0;
+}
+
+.inst-masthead-bio {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+}
+
+.inst-masthead-email {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color var(--transition-fast);
+}
+
+.inst-masthead-email:hover {
+  color: var(--text-primary);
+}
+
+/* ── Kode Etik Jurnalistik (Piagam Resmi) ── */
+.inst-preamble-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 2.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.inst-articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.inst-article-row {
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-article-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.inst-article-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.inst-article-num {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.inst-article-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.inst-article-text {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Pedoman Media Siber ── */
+.inst-siber-section {
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-siber-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.inst-siber-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.65rem 0;
+}
+
+.inst-siber-body {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Media Kit / Info Iklan (Sober, Commercial Grade) ── */
+.inst-ad-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0 2.5rem 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-ad-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.inst-ad-metric-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.inst-ad-metric-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.inst-ad-formats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.inst-ad-format-card {
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.inst-ad-format-card h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.inst-ad-format-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+}
+
+.inst-ad-spec-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* ── Hubungi Kami (Clean Split Layout) ── */
+.inst-contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 3rem;
+}
+
+@media (max-width: 768px) {
+  .inst-contact-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.inst-contact-channel-block {
+  margin-bottom: 1.75rem;
+}
+
+.inst-contact-channel-block h4 {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 0.4rem 0;
+}
+
+.inst-contact-channel-block p,
+.inst-contact-channel-block a {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.inst-contact-channel-block a:hover {
+  color: var(--accent-cyan);
+}
+
+/* ── Clean Correspondence Form ── */
+.inst-form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inst-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .inst-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inst-form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.inst-form-input,
+.inst-form-select,
+.inst-form-textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: var(--font-main);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+
+.inst-form-input:focus,
+.inst-form-select:focus,
+.inst-form-textarea:focus {
+  border-color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.inst-form-btn-submit {
+  padding: 0.75rem 1.75rem;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.inst-form-btn-submit:hover {
+  opacity: 0.85;
+}
+
+/* ── Disclaimer / Penafian Legal ── */
+.inst-legal-clause {
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inst-legal-clause:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.inst-legal-clause-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.inst-legal-clause-text {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin: 0;
+}

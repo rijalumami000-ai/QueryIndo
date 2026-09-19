@@ -164,6 +164,7 @@ function setupRouting() {
       ArticleReaderModal.close(false);
       InstitutionalPages.close();
       closeAdminCMSModal();
+      SeoService.setHomeSEO();
     } else if (route.type === 'admin') {
       ArticleReaderModal.close(false);
       InstitutionalPages.close();
@@ -175,7 +176,11 @@ function setupRouting() {
     } else if (route.type === 'page' && route.param) {
       ArticleReaderModal.close(false);
       closeAdminCMSModal();
-      InstitutionalPages.open(route.param as InstitutionalPageId, store.preferences.language);
+      const pageId = route.param as InstitutionalPageId;
+      InstitutionalPages.open(pageId, store.preferences.language);
+      const title = InstitutionalPages.getPageTitle(pageId, store.preferences.language);
+      const lead = InstitutionalPages.getPageLead(pageId, store.preferences.language);
+      SeoService.setPageSEO(pageId, title, lead);
     } else if (route.type === 'category' && route.param) {
       ArticleReaderModal.close(false);
       InstitutionalPages.close();
@@ -183,6 +188,7 @@ function setupRouting() {
       store.currentCategory = route.param as CategoryId;
       FeedSection.renderCategories();
       FeedSection.render();
+      SeoService.setCategorySEO(route.param.toUpperCase(), route.param as CategoryId);
     }
   });
 }
