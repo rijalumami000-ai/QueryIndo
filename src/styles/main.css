@@ -23,6 +23,7 @@
 @import './components/drawers-modals.css';
 @import './components/admin-cms.css';
 @import './components/institutional.css';
+@import './components/translate.css';
 
 /* 4. Global Responsive Overrides */
 @import './responsive/responsive.css';

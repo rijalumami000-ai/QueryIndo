@@ -12,6 +12,7 @@ import { ReaderComments } from '../components/ReaderComments';
 import { FocusMode } from '../components/FocusMode';
 import { ShareModal } from '../components/ShareModal';
 import { TranslationService } from '../utils/translationService';
+import { GoogleTranslateService } from '../utils/googleTranslateService';
 import { 
   escapeHtml, 
   formatDate, 
@@ -372,6 +373,7 @@ export class ArticleReaderModal {
     }
 
     AdBanner.bindAdEvents(modalReaderContent);
+    GoogleTranslateService.refreshModalTranslation();
   }
 
   public static close(updateUrl: boolean = true): void {

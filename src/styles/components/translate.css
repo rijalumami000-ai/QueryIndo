@@ -1,0 +1,46 @@
+/* ==========================================================================
+   Google Translate Headless Integration
+   Hides all intrusive Google frames, tooltips, and highlights while keeping
+   the translation engine active and responsive.
+   ========================================================================== */
+
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+.skiptranslate:not(#lang-toggle-switcher) {
+  display: none !important;
+}
+
+iframe[id^=":"] {
+  display: none !important;
+}
+
+font {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

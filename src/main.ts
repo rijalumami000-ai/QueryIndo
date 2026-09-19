@@ -23,6 +23,7 @@ import { BookmarksModal } from './sections/BookmarksModal';
 import { SearchPreview } from './sections/SearchPreview';
 import { UserAuthModal } from './components/UserAuthModal';
 import { CookieConsent } from './components/CookieConsent';
+import { GoogleTranslateService } from './utils/googleTranslateService';
 import Lenis from 'lenis';
 
 // Admin CMS & Modal
@@ -137,6 +138,7 @@ async function init() {
 
   // 6. Setup Listeners, Utilities & Routing
   setupEventListeners();
+  GoogleTranslateService.init();
   PWAUtils.setupPWAInstallPrompt();
   CookieConsent.init();
   updateFooterLabels();
@@ -375,13 +377,18 @@ function setupEventListeners() {
   // Language Switcher
   const langSwitcher = document.getElementById('lang-toggle-switcher');
   if (langSwitcher) {
+    const currentLang = store.preferences.language;
+    langSwitcher.querySelectorAll('.btn-lang').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-lang') === currentLang);
+    });
+
     langSwitcher.addEventListener('click', (e) => {
       const target = (e.target as HTMLElement).closest('.btn-lang') as HTMLElement | null;
       if (!target) return;
       const lang = target.getAttribute('data-lang') as 'id' | 'en';
       if (lang === store.preferences.language) return;
 
-      store.setLanguage(lang);
+      GoogleTranslateService.setLanguage(lang);
       langSwitcher.querySelectorAll('.btn-lang').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === lang));
       if (searchInput) searchInput.placeholder = store.t('searchPlaceholder');
 
@@ -396,7 +403,7 @@ function setupEventListeners() {
       updateFilterLabels();
       CookieConsent.updateLabels();
 
-      Toast.show(lang === 'en' ? 'Language switched to English' : 'Bahasa diubah ke Indonesia');
+      Toast.show(lang === 'en' ? 'Website diterjemahkan ke Bahasa Inggris' : 'Bahasa dikembalikan ke Indonesia');
     });
   }
 
