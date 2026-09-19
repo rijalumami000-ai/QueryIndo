@@ -227,7 +227,10 @@ function updateFooterLabels() {
     'link-ethics': 'ethicsCode',
     'link-cyber-guidelines': 'cyberGuidelines',
     'link-disclaimer': 'disclaimerText',
-    'link-ads': 'adsText'
+    'link-ads': 'adsText',
+    'link-privacy': 'privacyText',
+    'link-terms': 'termsText',
+    'link-sitemap': 'petaSitus'
   };
   Object.entries(ids).forEach(([id, key]) => {
     const el = document.getElementById(id);

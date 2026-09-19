@@ -270,6 +270,9 @@ func GetSitemap(c *fiber.Ctx) error {
 		{Loc: baseUrl + "/page/hubungi-kami", LastMod: nowDate, ChangeFreq: "monthly", Priority: 0.7},
 		{Loc: baseUrl + "/page/disclaimer", LastMod: nowDate, ChangeFreq: "monthly", Priority: 0.5},
 		{Loc: baseUrl + "/page/info-iklan", LastMod: nowDate, ChangeFreq: "monthly", Priority: 0.6},
+		{Loc: baseUrl + "/page/privasi", LastMod: nowDate, ChangeFreq: "monthly", Priority: 0.7},
+		{Loc: baseUrl + "/page/syarat-ketentuan", LastMod: nowDate, ChangeFreq: "monthly", Priority: 0.7},
+		{Loc: baseUrl + "/page/peta-situs", LastMod: nowDate, ChangeFreq: "weekly", Priority: 0.8},
 	}
 
 	var articles []models.Article

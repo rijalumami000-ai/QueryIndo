@@ -58,6 +58,8 @@ export const UI_TRANSLATIONS = {
     cyberGuidelines: 'Pedoman Media Siber',
     disclaimerText: 'Disclaimer (Penafian)',
     adsText: 'Info Iklan',
+    privacyText: 'Privasi',
+    termsText: 'Syarat & Ketentuan',
     chartFooter: '📊 Data real-time dari Yahoo Finance • Diperbarui setiap 5 menit',
     chartFooterFallback: '📊 Data 24 jam terakhir • Informasi statis'
   },
@@ -117,6 +119,8 @@ export const UI_TRANSLATIONS = {
     cyberGuidelines: 'Cyber Media Guidelines',
     disclaimerText: 'Disclaimer',
     adsText: 'Advertising',
+    privacyText: 'Privacy Policy',
+    termsText: 'Terms of Service',
     chartFooter: '📊 Real-time data from Yahoo Finance • Updated every 5 minutes',
     chartFooterFallback: '📊 Last 24 hours data • Static information'
   }

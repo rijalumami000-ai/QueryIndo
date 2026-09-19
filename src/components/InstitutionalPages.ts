@@ -10,7 +10,10 @@ export type InstitutionalPageId =
   | 'redaksi'
   | 'pedoman-media-siber'
   | 'disclaimer'
-  | 'info-iklan';
+  | 'info-iklan'
+  | 'privasi'
+  | 'syarat-ketentuan'
+  | 'peta-situs';
 
 interface PageMeta {
   title: { id: string; en: string };
@@ -74,6 +77,30 @@ const PAGE_METADATA: Record<InstitutionalPageId, PageMeta> = {
       id: 'Ketentuan batasan tanggung jawab pemberitaan, penafian nasihat keuangan, perlindungan hak cipta (UU 28/2014), dan kepatuhan privasi data (UU PDP 27/2022).',
       en: 'Terms regarding limitation of liability, non-financial advice notice, copyright protection, and data privacy compliance.'
     }
+  },
+  'privasi': {
+    title: { id: 'Kebijakan Privasi & PDP', en: 'Privacy Policy' },
+    kicker: { id: 'Pelindungan Data Pribadi', en: 'Data Privacy' },
+    lead: {
+      id: 'Komitmen perlindungan privasi pembaca dan kepatuhan penuh terhadap Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP) Republik Indonesia.',
+      en: 'Our commitment to reader privacy and full compliance with Indonesian Personal Data Protection Law (UU PDP No. 27/2022).'
+    }
+  },
+  'syarat-ketentuan': {
+    title: { id: 'Syarat & Ketentuan Penggunaan', en: 'Terms of Service' },
+    kicker: { id: 'Ketentuan Layanan', en: 'Terms of Use' },
+    lead: {
+      id: 'Ketentuan dan pedoman hukum penggunaan seluruh layanan, hak kekayaan intelektual (UU 28/2014), serta etika partisipasi publik pada platform QUERYINDO.',
+      en: 'Legal terms governing platform usage, intellectual property rights, reader comments etiquette, and liability standards.'
+    }
+  },
+  'peta-situs': {
+    title: { id: 'Peta Situs (Sitemap Direktori)', en: 'Site Directory' },
+    kicker: { id: 'Direktori Konten', en: 'Content Index' },
+    lead: {
+      id: 'Peta navigasi terstruktur yang mencakup seluruh kanal berita teknologi, direktori kelembagaan pers, serta berkas umpan sindikasi crawler.',
+      en: 'Comprehensive site index covering all technology news desks, editorial policies, article archives, and search engine syndication feeds.'
+    }
   }
 };
 
@@ -97,6 +124,21 @@ const NAVIGATION_TABS: Array<{ id: InstitutionalPageId; label: { id: string; en:
     id: 'pedoman-media-siber',
     label: { id: 'Pedoman Siber', en: 'Cyber Guidelines' },
     iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+  },
+  {
+    id: 'privasi',
+    label: { id: 'Privasi & PDP', en: 'Privacy' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+  },
+  {
+    id: 'syarat-ketentuan',
+    label: { id: 'Syarat Ketentuan', en: 'Terms' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+  },
+  {
+    id: 'peta-situs',
+    label: { id: 'Peta Situs', en: 'Sitemap' },
+    iconSvg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
   },
   {
     id: 'info-iklan',
@@ -756,6 +798,225 @@ function renderDisclaimer(): string {
 }
 
 // ──────────────────────────────────────────────
+// Page 8: Kebijakan Privasi & Perlindungan Data Pribadi (UU PDP No. 27/2022)
+// ──────────────────────────────────────────────
+
+function renderPrivasi(): string {
+  return `
+    <div class="inst-content-body">
+      <div class="inst-statement-box">
+        <p class="inst-statement-text">
+          "QUERYINDO menjunjung tinggi hak privasi pembaca. Kami tidak pernah dan tidak akan pernah menjual data pribadi pembaca kepada pialang data (data broker) maupun pihak ketiga manapun."
+        </p>
+        <span class="inst-statement-caption">Pernyataan Pelindungan Data Pribadi Redaksi QUERYINDO</span>
+      </div>
+
+      <div class="inst-editorial-prose">
+        <p>
+          Kebijakan Privasi ini menjelaskan komitmen <strong>PT Query Media Nusantara</strong> dalam mengumpulkan, mengelola, dan melindungi data pribadi Anda saat mengakses portal <code>queryindo.com</code>, aplikasi web (PWA), maupun layanan buletin digital kami, sesuai dengan amanat <strong>Undang-Undang Republik Indonesia Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)</strong>.
+        </p>
+      </div>
+
+      <div>
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">1. Landasan Hukum &amp; Kepatuhan Regulasi</h4>
+          <p class="inst-legal-clause-text">
+            Pemrosesan data pribadi di QUERYINDO berlandaskan pada asas kepatuhan hukum, integritas, dan transparansi sebagaimana diatur dalam UU PDP No. 27/2022. QUERYINDO bertindak sebagai <em>Pengendali Data Pribadi</em> (Data Controller) atas data akun pembaca dan langganan surel buletin resmi.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">2. Data yang Kami Kumpulkan</h4>
+          <p class="inst-legal-clause-text">
+            <strong>a. Data Teknis &amp; Navigasi:</strong> Alamat IP yang telah dianonimkan (anonymized IP), jenis peramban (browser), sistem operasi, resolusi layar, dan waktu akses untuk keperluan diagnostik stabilitas server dan analisis performa membaca agregat.<br />
+            <strong>b. Preferensi Antarmuka (Local Storage):</strong> Preferensi mode tampilan (terang/gelap), ukuran font baca, bookmark artikel, dan riwayat baca disimpan secara lokal di perangkat Anda (client-side storage) tanpa diunggah ke server kami.<br />
+            <strong>c. Data Langganan Surel &amp; Interaksi:</strong> Alamat surel (email) yang Anda berikan secara sukarela saat mendaftar buletin teknologi atau mengisi formulir Hak Jawab dan kontak redaksi.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">3. Kebijakan Cookie &amp; Penyimpanan Lokal</h4>
+          <p class="inst-legal-clause-text">
+            Kami menggunakan cookie fungsional esensial untuk mengelola sesi login pembaca, mengingat persetujuan banner privasi, dan menjaga keamanan sistem dari serangan DDoS atau scraping otomatis. Kami tidak menyuntikkan cookie pelacak lintas situs (cross-site tracking cookies) pihak ketiga yang menginvasi privasi penjelajahan Anda.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">4. Hak-Hak Subjek Data Pribadi (Pembaca)</h4>
+          <p class="inst-legal-clause-text">
+            Berdasarkan Pasal 5 sampai dengan Pasal 13 UU PDP, Anda memiliki hak penuh untuk:<br />
+            • Meminta konfirmasi dan salinan data pribadi yang tersimpan di sistem kami.<br />
+            • Memperbaiki atau memperbarui data pribadi yang tidak akurat.<br />
+            • Menghapus atau memusnahkan data pribadi Anda (<em>Right to Erasure / Right to be Forgotten</em>) kapan saja.<br />
+            • Menarik kembali persetujuan penerimaan buletin berita cukup dengan mengeklik tautan 'Unsubscribe' di bagian bawah setiap surel.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">5. Pengamanan &amp; Enkripsi Data</h4>
+          <p class="inst-legal-clause-text">
+            Seluruh transmisi data antara peramban pembaca dan server QUERYINDO dienkripsi menggunakan protokol aman Transport Layer Security (TLS 1.3 dengan sertifikasi SHA-256). Basis data kami dilindungi oleh firewall berlapis, otentikasi token JWT terenkripsi, dan akses terbatas hanya untuk staf IT yang terikat perjanjian kerahasiaan (NDA).
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">6. Kontak Pejabat Pelindungan Data (DPO)</h4>
+          <p class="inst-legal-clause-text">
+            Apabila Anda memiliki pertanyaan, keberatan, atau ingin mengajukan permohonan penghapusan data pribadi Anda, silakan hubungi Pejabat Pelindungan Data kami melalui surel: <code>privacy@queryindo.com</code> atau melalui formulir surat resmi di halaman Hubungi Kami.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Page 9: Syarat & Ketentuan Penggunaan (Terms of Service)
+// ──────────────────────────────────────────────
+
+function renderSyaratKetentuan(): string {
+  return `
+    <div class="inst-content-body">
+      <div class="inst-statement-box">
+        <p class="inst-statement-text">
+          "QUERYINDO didirikan untuk menyebarkan literasi dan wawasan teknologi yang mencerahkan bangsa. Setiap interaksi di platform ini diatur oleh semangat saling menghormati, integritas akademik, dan kepatuhan terhadap hukum Republik Indonesia."
+        </p>
+        <span class="inst-statement-caption">Ketentuan Layanan &amp; Penggunaan Platform</span>
+      </div>
+
+      <div class="inst-editorial-prose">
+        <p>
+          Selamat datang di <strong>QUERYINDO</strong> (<code>queryindo.com</code>). Dengan mengakses, membaca, berinteraksi di kolom komentar, atau menggunakan layanan buletin kami, Anda menyetujui untuk terikat secara hukum oleh Syarat dan Ketentuan Penggunaan Layanan ini.
+        </p>
+      </div>
+
+      <div>
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">1. Hak Cipta &amp; Hak Kekayaan Intelektual (UU No. 28/2014)</h4>
+          <p class="inst-legal-clause-text">
+            Seluruh konten jurnalistik, laporan mendalam, analisis data, foto, video, kode sumber antarmuka, dan tata letak merek dagang QUERYINDO adalah hak milik intelektual eksklusif <strong>PT Query Media Nusantara</strong> atau pemegang lisensi resminya, yang dilindungi oleh Undang-Undang No. 28 Tahun 2014 tentang Hak Cipta.<br />
+            <strong>Ketentuan Pengutipan:</strong> Pengutipan materi berita diperbolehkan maksimal 30% dari total artikel untuk keperluan edukasi, tinjauan pers, atau referensi riset, dengan kewajiban mutlak mencantumkan nama 'QUERYINDO' serta menyertakan tautan balik (hyperlink) aktif langsung menuju URL artikel asli.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">2. Larangan Scraping Otomatis &amp; Pelanggaran Sistem</h4>
+          <p class="inst-legal-clause-text">
+            Dilarang keras melakukan web scraping agresif, penarikan konten massal tanpa izin melalui bot/skrip otomatis yang membebani kapasitas server (DDoS), maupun upaya rekayasa balik (reverse-engineering) terhadap sistem backend QUERYINDO. Untuk sindikasi data terstruktur, silakan gunakan berkas resmi yang telah kami sediakan seperti <code>/rss.xml</code>, <code>/sitemap.xml</code>, dan <code>/feed.json</code> sesuai petunjuk <code>/robots.txt</code>.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">3. Etika Kolom Komentar &amp; Partisipasi Pembaca</h4>
+          <p class="inst-legal-clause-text">
+            Kolom komentar pembaca adalah ruang diskusi publik yang konstruktif. Redaksi melarang keras komentar yang mengandung ujaran kebencian, pelecehan, ancaman kekerasan, diskriminasi SARA, fitnah, konten pornografi, penipuan finansial, atau tautan promosi judi daring dan malware. Redaksi berhak penuh menyaring, memoderasi, atau menghapus komentar yang melanggar hukum tanpa pemberitahuan sebelumnya.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">4. Tautan Eksternal &amp; Transparansi Kemitraan Komersial</h4>
+          <p class="inst-legal-clause-text">
+            Dalam liputan tinjauan produk gadget atau rekomendasi perangkat keras (hardware), portal QUERYINDO dapat menyertakan tautan belanja resmi (merchant) atau tautan afiliasi. QUERYINDO mungkin menerima komisi rujukan apabila pembaca membeli produk melalui tautan tersebut, tanpa menambah biaya bagi pembaca. Independensi penilaian dan objektivitas review redaksi tetap terjaga tanpa dipengaruhi oleh pihak pengiklan.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">5. Batasan Tanggung Jawab (Limitation of Liability)</h4>
+          <p class="inst-legal-clause-text">
+            QUERYINDO berupaya menjaga agar situs web dapat diakses 24 jam sehari dengan performa tinggi. Namun, kami tidak bertanggung jawab atas gangguan teknis di luar kendali wajar kami (force majeure), seperti kegagalan jaringan telekomunikasi global, pemeliharaan darurat infrastruktur komputasi awan, atau peretasan siber massal.
+          </p>
+        </div>
+
+        <div class="inst-legal-clause">
+          <h4 class="inst-legal-clause-title">6. Hukum yang Mengatur &amp; Penyelesaian Sengketa</h4>
+          <p class="inst-legal-clause-text">
+            Syarat dan Ketentuan ini diatur dan ditafsirkan sesuai dengan hukum Negara Kesatuan Republik Indonesia. Setiap sengketa terkait produk pemberitaan jurnalistik diselesaikan terlebih dahulu melalui mekanisme Hak Jawab dan Mediasi Dewan Pers sesuai UU Pers No. 40/1999. Sengketa non-jurnalistik yang tidak mencapai kesepakatan mufakat akan diselesaikan melalui yurisdiksi Pengadilan Negeri Jakarta Pusat.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Page 10: Peta Situs (Interactive Site Directory)
+// ──────────────────────────────────────────────
+
+function renderPetaSitus(): string {
+  return `
+    <div class="inst-content-body">
+      <div class="inst-editorial-prose">
+        <p>
+          Selamat datang di <strong>Peta Situs Resmi QUERYINDO</strong>. Halaman direktori ini dirancang untuk memudahkan navigasi pembaca dan perayapan mesin pencari dalam menelusuri seluruh kanal berita teknologi, indeks topik khusus, transparansi institusi pers, serta berkas umpan sindikasi XML.
+        </p>
+      </div>
+
+      <div class="inst-sitemap-grid">
+        <!-- Card 1: Kanal Berita Teknologi -->
+        <div class="inst-sitemap-card">
+          <div class="inst-sitemap-card-header">
+            <div class="inst-sitemap-card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <h3 class="inst-sitemap-card-title">Kanal Berita Teknologi</h3>
+          </div>
+          <ul class="inst-sitemap-list">
+            <li class="inst-sitemap-item"><a href="/" class="inst-sitemap-link"><span>Beranda Berita Terkini</span><span class="inst-sitemap-badge">Home</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/ai" class="inst-sitemap-link"><span>Kecerdasan Buatan (AI &amp; LLM)</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/gadget" class="inst-sitemap-link"><span>Gadget &amp; Inovasi Perangkat</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/cybersecurity" class="inst-sitemap-link"><span>Keamanan Siber &amp; Enkripsi</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/startup" class="inst-sitemap-link"><span>Startup &amp; Bisnis Digital</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/policy" class="inst-sitemap-link"><span>Kebijakan Digital &amp; UU PDP</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/telecom" class="inst-sitemap-link"><span>Telekomunikasi (5G/6G)</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/kategori/developer" class="inst-sitemap-link"><span>Kolektif Developer &amp; Cloud</span><span class="inst-sitemap-badge">Kanal</span></a></li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Kelembagaan Pers & Regulasi E-E-A-T -->
+        <div class="inst-sitemap-card">
+          <div class="inst-sitemap-card-header">
+            <div class="inst-sitemap-card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="inst-sitemap-card-title">Institusi Pers &amp; Legal</h3>
+          </div>
+          <ul class="inst-sitemap-list">
+            <li class="inst-sitemap-item"><a href="/page/tentang-kami" class="inst-sitemap-link"><span>Tentang Kami (Profil Redaksi)</span><span class="inst-sitemap-badge">Info</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/redaksi" class="inst-sitemap-link"><span>Susunan Redaksi (Masthead)</span><span class="inst-sitemap-badge">UU Pers</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/kode-etik" class="inst-sitemap-link"><span>Kode Etik Jurnalistik (KEJ)</span><span class="inst-sitemap-badge">Etika</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/pedoman-media-siber" class="inst-sitemap-link"><span>Pedoman Pemberitaan Media Siber</span><span class="inst-sitemap-badge">Dewan Pers</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/privasi" class="inst-sitemap-link"><span>Kebijakan Privasi &amp; PDP</span><span class="inst-sitemap-badge">UU 27/22</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/syarat-ketentuan" class="inst-sitemap-link"><span>Syarat &amp; Ketentuan Penggunaan</span><span class="inst-sitemap-badge">Terms</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/disclaimer" class="inst-sitemap-link"><span>Disclaimer (Penafian Hukum)</span><span class="inst-sitemap-badge">Legal</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/info-iklan" class="inst-sitemap-link"><span>Info Iklan &amp; Media Kit</span><span class="inst-sitemap-badge">Komersial</span></a></li>
+            <li class="inst-sitemap-item"><a href="/page/hubungi-kami" class="inst-sitemap-link"><span>Hubungi Redaksi &amp; Hak Jawab</span><span class="inst-sitemap-badge">Kontak</span></a></li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Berkas Mesin Pencari & Sindikasi -->
+        <div class="inst-sitemap-card">
+          <div class="inst-sitemap-card-header">
+            <div class="inst-sitemap-card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+            </div>
+            <h3 class="inst-sitemap-card-title">Mesin Pencari &amp; Sindikasi</h3>
+          </div>
+          <ul class="inst-sitemap-list">
+            <li class="inst-sitemap-item"><a href="/sitemap.xml" target="_blank" rel="noopener" class="inst-sitemap-link"><span>Peta Situs Utama (Sitemap XML)</span><span class="inst-sitemap-badge">XML 0.9</span></a></li>
+            <li class="inst-sitemap-item"><a href="/sitemap-news.xml" target="_blank" rel="noopener" class="inst-sitemap-link"><span>Google News Sitemap (48 Jam)</span><span class="inst-sitemap-badge">Google News</span></a></li>
+            <li class="inst-sitemap-item"><a href="/rss.xml" target="_blank" rel="noopener" class="inst-sitemap-link"><span>RSS 2.0 Feed (PubSubHubbub)</span><span class="inst-sitemap-badge">RSS 2.0</span></a></li>
+            <li class="inst-sitemap-item"><a href="/feed.json" target="_blank" rel="noopener" class="inst-sitemap-link"><span>JSON Feed 1.1 Specification</span><span class="inst-sitemap-badge">JSON</span></a></li>
+            <li class="inst-sitemap-item"><a href="/robots.txt" target="_blank" rel="noopener" class="inst-sitemap-link"><span>Direktif Crawler (robots.txt)</span><span class="inst-sitemap-badge">Directives</span></a></li>
+            <li class="inst-sitemap-item"><a href="/queryindo7a9f8b1c2d3e4f5a6b7c8d9e0.txt" target="_blank" rel="noopener" class="inst-sitemap-link"><span>Kunci IndexNow Protocol</span><span class="inst-sitemap-badge">IndexNow</span></a></li>
+            <li class="inst-sitemap-item"><a href="/admin" class="inst-sitemap-link"><span>Portal Redaksi &amp; Login CMS</span><span class="inst-sitemap-badge">Admin</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
 // Main Exported Class
 // ──────────────────────────────────────────────
 
@@ -788,6 +1049,9 @@ export class InstitutionalPages {
       case 'pedoman-media-siber': contentHTML = renderPedomanMediaSiber(); break;
       case 'disclaimer': contentHTML = renderDisclaimer(); break;
       case 'info-iklan': contentHTML = renderInfoIklan(); break;
+      case 'privasi': contentHTML = renderPrivasi(); break;
+      case 'syarat-ketentuan': contentHTML = renderSyaratKetentuan(); break;
+      case 'peta-situs': contentHTML = renderPetaSitus(); break;
     }
 
     // Authentic Editorial Tab Navigation
