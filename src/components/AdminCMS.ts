@@ -24,6 +24,8 @@ export class AdminCMS {
   private filterCategory: string = 'all';
   private filterAuthor: string = 'all';
   private filterDateRange: string = 'all';
+  private currentPage: number = 1;
+  private pageSize: number = 30;
   private activeTab: 'articles' | 'analytics' | 'authors' | 'ads' | 'shopping' | 'polls' | 'subscribers' | 'social' | 'settings' = 'articles';
   private adPlacementFilter: string = 'all';
 
@@ -341,11 +343,18 @@ export class AdminCMS {
                       </select>
                     </div>
 
-                    ${isFiltered ? `
-                      <button id="cms-btn-reset-filters" style="padding: 0.35rem 0.75rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
-                        ✕ Reset Filter
-                      </button>
-                    ` : ''}
+                    <!-- Filter Search Berita -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem; position: relative;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Cari:</span>
+                      <div style="position: relative; display: flex; align-items: center;">
+                        <input type="text" id="cms-toolbar-search-input" value="${this.searchKeyword}" placeholder="Cari judul, tag, isi..." style="padding: 0.4rem 1.8rem 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); outline: none; width: 190px;" />
+                        <button id="cms-toolbar-search-clear" title="Hapus pencarian" style="position: absolute; right: 0.4rem; background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; display: ${this.searchKeyword ? 'block' : 'none'}; padding: 0.1rem 0.25rem;">✕</button>
+                      </div>
+                    </div>
+
+                    <button id="cms-btn-reset-filters" style="padding: 0.35rem 0.75rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: ${isFiltered ? 'inline-flex' : 'none'}; align-items: center; gap: 0.3rem;">
+                      ✕ Reset Filter
+                    </button>
                   </div>
 
                   <div id="cms-filter-counter" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
@@ -370,6 +379,11 @@ export class AdminCMS {
                     </tbody>
                   </table>
                 </div>
+
+                <!-- Pagination Bar Container -->
+                <div id="cms-pagination-container" style="padding: 0.85rem 1.5rem; background: var(--bg-tertiary); border-top: 1px solid var(--border-color); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+                  ${this.renderPaginationHTML()}
+                </div>
               </div>
             `}
 
@@ -384,13 +398,15 @@ export class AdminCMS {
     const now = Date.now();
     return this.articles.filter(art => {
       // 1. Search keyword
-      if (this.searchKeyword) {
-        const kw = this.searchKeyword.toLowerCase();
+      if (this.searchKeyword && this.searchKeyword.trim() !== '') {
+        const kw = this.searchKeyword.trim().toLowerCase();
         const inTitle = (art.title || '').toLowerCase().includes(kw);
         const inSubtitle = (art.subtitle || '').toLowerCase().includes(kw);
         const inAuthor = (art.author?.name || '').toLowerCase().includes(kw);
+        const inCategory = (art.category || '').toLowerCase().includes(kw);
         const inTags = Array.isArray(art.tags) && art.tags.some(t => (t || '').toLowerCase().includes(kw));
-        if (!inTitle && !inSubtitle && !inAuthor && !inTags) {
+        const inContent = (art.content || '').toLowerCase().includes(kw);
+        if (!inTitle && !inSubtitle && !inAuthor && !inCategory && !inTags && !inContent) {
           return false;
         }
       }
@@ -439,6 +455,66 @@ export class AdminCMS {
     });
   }
 
+  // Calculate total pages for pagination
+  private getTotalPages(): number {
+    const total = this.getFilteredArticles().length;
+    return Math.max(1, Math.ceil(total / this.pageSize));
+  }
+
+  // Get articles slice for current page
+  private getPagedArticles(): Article[] {
+    const filtered = this.getFilteredArticles();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+    if (this.currentPage > totalPages) {
+      this.currentPage = totalPages;
+    }
+    if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return filtered.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  // Render Pagination HTML
+  private renderPaginationHTML(): string {
+    const filtered = this.getFilteredArticles();
+    const total = filtered.length;
+    const totalPages = this.getTotalPages();
+    const start = total === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(total, this.currentPage * this.pageSize);
+    const pageSizes = [10, 30, 60, 100, 200, 300, 400, 500, 1000];
+
+    return `
+      <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--text-secondary);">
+        <span>Tampilkan:</span>
+        <select id="cms-page-size" style="padding: 0.35rem 0.65rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none; font-weight: 700;">
+          ${pageSizes.map(sz => `<option value="${sz}" ${this.pageSize === sz ? 'selected' : ''}>${sz}</option>`).join('')}
+        </select>
+        <span>naskah per halaman</span>
+      </div>
+
+      <div id="cms-pagination-info" style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+        Menampilkan <strong>${start} - ${end}</strong> dari <strong>${total}</strong> naskah
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <button id="cms-page-prev" ${this.currentPage <= 1 ? 'disabled' : ''} style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: ${this.currentPage <= 1 ? 'var(--text-muted)' : 'var(--text-primary)'}; cursor: ${this.currentPage <= 1 ? 'not-allowed' : 'pointer'}; opacity: ${this.currentPage <= 1 ? '0.45' : '1'}; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Previous</span>
+        </button>
+
+        <div style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); min-width: 90px; text-align: center;">
+          Hal ${this.currentPage} / ${totalPages}
+        </div>
+
+        <button id="cms-page-next" ${this.currentPage >= totalPages ? 'disabled' : ''} style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: ${this.currentPage >= totalPages ? 'var(--text-muted)' : 'var(--text-primary)'}; cursor: ${this.currentPage >= totalPages ? 'not-allowed' : 'pointer'}; opacity: ${this.currentPage >= totalPages ? '0.45' : '1'}; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;">
+          <span>Next</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    `;
+  }
+
   // Render Table Rows HTML
   private renderTableRowsHTML(): string {
     const filtered = this.getFilteredArticles();
@@ -457,7 +533,9 @@ export class AdminCMS {
       `;
     }
 
-    return filtered.map(art => `
+    const paged = this.getPagedArticles();
+
+    return paged.map(art => `
       <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
         <td style="padding: 0.9rem 1.25rem; max-width: 320px;">
           <div style="font-weight: 700; line-height: 1.35; color: var(--text-primary); font-size: 0.9rem;">${art.title}</div>
@@ -588,11 +666,37 @@ export class AdminCMS {
       });
     }
 
-    const searchInput = modalElem.querySelector('#cms-search-input, #admin-search-input') as HTMLInputElement;
+    // Search Inputs (Global Header & Toolbar Search)
+    const searchInput = modalElem.querySelector('#cms-search-input') as HTMLInputElement;
+    const toolbarSearchInput = modalElem.querySelector('#cms-toolbar-search-input') as HTMLInputElement;
+    const toolbarSearchClear = modalElem.querySelector('#cms-toolbar-search-clear') as HTMLButtonElement;
+
+    const handleSearchInput = (val: string) => {
+      this.searchKeyword = val;
+      this.currentPage = 1;
+      if (searchInput && searchInput.value !== val) searchInput.value = val;
+      if (toolbarSearchInput && toolbarSearchInput.value !== val) toolbarSearchInput.value = val;
+      if (toolbarSearchClear) {
+        toolbarSearchClear.style.display = val.trim() ? 'block' : 'none';
+      }
+      this.refreshTable(modalElem);
+    };
+
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        this.searchKeyword = (e.target as HTMLInputElement).value;
-        this.refreshTable(modalElem);
+        handleSearchInput((e.target as HTMLInputElement).value);
+      });
+    }
+
+    if (toolbarSearchInput) {
+      toolbarSearchInput.addEventListener('input', (e) => {
+        handleSearchInput((e.target as HTMLInputElement).value);
+      });
+    }
+
+    if (toolbarSearchClear) {
+      toolbarSearchClear.addEventListener('click', () => {
+        handleSearchInput('');
       });
     }
 
@@ -601,6 +705,7 @@ export class AdminCMS {
     if (filterCatSelect) {
       filterCatSelect.addEventListener('change', (e) => {
         this.filterCategory = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
         this.refreshTable(modalElem);
       });
     }
@@ -610,6 +715,7 @@ export class AdminCMS {
     if (filterAuthorSelect) {
       filterAuthorSelect.addEventListener('change', (e) => {
         this.filterAuthor = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
         this.refreshTable(modalElem);
       });
     }
@@ -619,6 +725,7 @@ export class AdminCMS {
     if (filterDateSelect) {
       filterDateSelect.addEventListener('change', (e) => {
         this.filterDateRange = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
         this.refreshTable(modalElem);
       });
     }
@@ -631,8 +738,11 @@ export class AdminCMS {
         this.filterAuthor = 'all';
         this.filterDateRange = 'all';
         this.searchKeyword = '';
-        const searchInp = modalElem.querySelector('#cms-search-input, #admin-search-input') as HTMLInputElement;
+        this.currentPage = 1;
+        const searchInp = modalElem.querySelector('#cms-search-input') as HTMLInputElement;
         if (searchInp) searchInp.value = '';
+        const tbSearchInp = modalElem.querySelector('#cms-toolbar-search-input') as HTMLInputElement;
+        if (tbSearchInp) tbSearchInp.value = '';
         this.refreshDashboard(modalElem);
       });
     }
@@ -679,6 +789,40 @@ export class AdminCMS {
       );
     } else if (this.activeTab === 'articles') {
       this.bindTableActionEvents(modalElem);
+      this.bindPaginationEvents(modalElem);
+    }
+  }
+
+  // Bind Pagination Events
+  private bindPaginationEvents(modalElem: HTMLElement) {
+    const pageSizeSelect = modalElem.querySelector('#cms-page-size') as HTMLSelectElement;
+    if (pageSizeSelect) {
+      pageSizeSelect.addEventListener('change', (e) => {
+        this.pageSize = parseInt((e.target as HTMLSelectElement).value, 10) || 30;
+        this.currentPage = 1;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    const prevBtn = modalElem.querySelector('#cms-page-prev') as HTMLButtonElement;
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (this.currentPage > 1) {
+          this.currentPage--;
+          this.refreshTable(modalElem);
+        }
+      });
+    }
+
+    const nextBtn = modalElem.querySelector('#cms-page-next') as HTMLButtonElement;
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        const totalPages = this.getTotalPages();
+        if (this.currentPage < totalPages) {
+          this.currentPage++;
+          this.refreshTable(modalElem);
+        }
+      });
     }
   }
 
@@ -739,6 +883,16 @@ export class AdminCMS {
     const counter = modalElem.querySelector('#cms-filter-counter');
     if (counter) {
       counter.innerHTML = `Menampilkan <strong>${this.getFilteredArticles().length}</strong> dari ${this.articles.length} naskah`;
+    }
+    const paginationContainer = modalElem.querySelector('#cms-pagination-container');
+    if (paginationContainer) {
+      paginationContainer.innerHTML = this.renderPaginationHTML();
+      this.bindPaginationEvents(modalElem);
+    }
+    const isFiltered = this.filterCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
+    const resetBtn = modalElem.querySelector('#cms-btn-reset-filters') as HTMLElement;
+    if (resetBtn) {
+      resetBtn.style.display = isFiltered ? 'inline-flex' : 'none';
     }
   }
 
