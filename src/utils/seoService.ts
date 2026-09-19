@@ -148,6 +148,11 @@ export class SeoService {
       'articleSection': article.category.toUpperCase(),
       'inLanguage': 'id-ID',
       'isAccessibleForFree': 'True',
+      'isPartOf': {
+        '@type': ['CreativeWork', 'Product'],
+        'name': 'QUERYINDO',
+        'productID': 'CAowvezHDA:openaccess'
+      },
       'author': {
         '@type': 'Person',
         'name': article.author.name,
