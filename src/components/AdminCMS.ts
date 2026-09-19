@@ -15,10 +15,15 @@ import { SubscribersManager } from './admin/SubscribersManager';
 import { SocialManager } from './admin/SocialManager';
 import { SettingsManager } from './admin/SettingsManager';
 
+import { CATEGORIES } from '../data/mockNews';
+
 export class AdminCMS {
   private articles: Article[];
   private onArticlesChange: () => void;
   private searchKeyword: string = '';
+  private filterCategory: string = 'all';
+  private filterAuthor: string = 'all';
+  private filterDateRange: string = 'all';
   private activeTab: 'articles' | 'analytics' | 'authors' | 'ads' | 'shopping' | 'polls' | 'subscribers' | 'social' | 'settings' = 'articles';
   private adPlacementFilter: string = 'all';
 
@@ -117,6 +122,31 @@ export class AdminCMS {
       ? user.avatar
       : (matchedAuthor?.avatar || currentReader?.avatar || user?.avatar || '');
     const activeAvatar = ImageUtils.normalizeImageUrl(userAvatar);
+
+    // Build unique categories list
+    const uniqueCategories = new Set<string>();
+    CATEGORIES.filter(c => c.id !== 'all').forEach(c => uniqueCategories.add(c.id));
+    this.articles.forEach(a => { if (a.category) uniqueCategories.add(a.category); });
+
+    const categoryOptionsHTML = Array.from(uniqueCategories).map(catId => {
+      const catObj = CATEGORIES.find(c => c.id === catId);
+      const label = catObj ? catObj.name : catId.toUpperCase();
+      const count = this.articles.filter(a => a.category === catId).length;
+      return `<option value="${catId}" ${this.filterCategory === catId ? 'selected' : ''}>${label} (${count})</option>`;
+    }).join('');
+
+    // Build unique authors list
+    const uniqueAuthors = new Set<string>();
+    AuthorService.getAuthors().forEach(a => { if (a.name) uniqueAuthors.add(a.name); });
+    this.articles.forEach(a => { if (a.author?.name) uniqueAuthors.add(a.author.name); });
+
+    const authorOptionsHTML = Array.from(uniqueAuthors).map(authorName => {
+      const count = this.articles.filter(a => a.author?.name === authorName).length;
+      return `<option value="${authorName}" ${this.filterAuthor === authorName ? 'selected' : ''}>${authorName} (${count})</option>`;
+    }).join('');
+
+    const filteredCount = this.getFilteredArticles().length;
+    const isFiltered = this.filterCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
 
     return `
       <div style="width: 100%; height: 100vh; display: flex; background: var(--bg-primary); color: var(--text-primary); overflow: hidden;">
@@ -269,10 +299,57 @@ export class AdminCMS {
 
               <!-- Content Manager Table Section -->
               <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
-                <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                   <div>
                     <h3 style="font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em;">Daftar Naskah & Berita Redaksi</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Kelola publikasi, kurasi naskah, verifikasi cek fakta, dan penugasan redaksional.</p>
+                  </div>
+                </div>
+
+                <!-- Comprehensive Filter Toolbar (Kategori, Penulis, Waktu/Tanggal) -->
+                <div style="padding: 0.9rem 1.5rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.85rem;">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+                    
+                    <!-- Filter Kategori -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Kategori:</span>
+                      <select id="cms-filter-category" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterCategory === 'all' ? 'selected' : ''}>Semua Kategori (${this.articles.length})</option>
+                        ${categoryOptionsHTML}
+                      </select>
+                    </div>
+
+                    <!-- Filter Penulis -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Penulis:</span>
+                      <select id="cms-filter-author" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterAuthor === 'all' ? 'selected' : ''}>Semua Penulis</option>
+                        ${authorOptionsHTML}
+                      </select>
+                    </div>
+
+                    <!-- Filter Waktu / Tanggal -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Waktu:</span>
+                      <select id="cms-filter-date" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterDateRange === 'all' ? 'selected' : ''}>Semua Waktu</option>
+                        <option value="today" ${this.filterDateRange === 'today' ? 'selected' : ''}>24 Jam Terakhir</option>
+                        <option value="7days" ${this.filterDateRange === '7days' ? 'selected' : ''}>7 Hari Terakhir</option>
+                        <option value="30days" ${this.filterDateRange === '30days' ? 'selected' : ''}>30 Hari Terakhir</option>
+                        <option value="this_month" ${this.filterDateRange === 'this_month' ? 'selected' : ''}>Bulan Ini</option>
+                        <option value="this_year" ${this.filterDateRange === 'this_year' ? 'selected' : ''}>Tahun Ini</option>
+                      </select>
+                    </div>
+
+                    ${isFiltered ? `
+                      <button id="cms-btn-reset-filters" style="padding: 0.35rem 0.75rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
+                        ✕ Reset Filter
+                      </button>
+                    ` : ''}
+                  </div>
+
+                  <div id="cms-filter-counter" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                    Menampilkan <strong>${filteredCount}</strong> dari ${this.articles.length} naskah
                   </div>
                 </div>
 
@@ -302,19 +379,79 @@ export class AdminCMS {
     `;
   }
 
+  // Filter articles based on keyword, category, author, and date range
+  private getFilteredArticles(): Article[] {
+    const now = Date.now();
+    return this.articles.filter(art => {
+      // 1. Search keyword
+      if (this.searchKeyword) {
+        const kw = this.searchKeyword.toLowerCase();
+        const inTitle = (art.title || '').toLowerCase().includes(kw);
+        const inSubtitle = (art.subtitle || '').toLowerCase().includes(kw);
+        const inAuthor = (art.author?.name || '').toLowerCase().includes(kw);
+        const inTags = Array.isArray(art.tags) && art.tags.some(t => (t || '').toLowerCase().includes(kw));
+        if (!inTitle && !inSubtitle && !inAuthor && !inTags) {
+          return false;
+        }
+      }
+
+      // 2. Category filter
+      if (this.filterCategory !== 'all') {
+        if ((art.category || '').toLowerCase() !== this.filterCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 3. Author filter
+      if (this.filterAuthor !== 'all') {
+        if ((art.author?.name || '').toLowerCase() !== this.filterAuthor.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 4. Date range filter
+      if (this.filterDateRange !== 'all') {
+        const pubTime = new Date(art.publishedAt).getTime();
+        if (!isNaN(pubTime)) {
+          if (this.filterDateRange === 'today') {
+            if (now - pubTime > 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === '7days') {
+            if (now - pubTime > 7 * 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === '30days') {
+            if (now - pubTime > 30 * 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === 'this_month') {
+            const nowDate = new Date();
+            const pubDate = new Date(pubTime);
+            if (pubDate.getMonth() !== nowDate.getMonth() || pubDate.getFullYear() !== nowDate.getFullYear()) {
+              return false;
+            }
+          } else if (this.filterDateRange === 'this_year') {
+            const nowDate = new Date();
+            const pubDate = new Date(pubTime);
+            if (pubDate.getFullYear() !== nowDate.getFullYear()) {
+              return false;
+            }
+          }
+        }
+      }
+
+      return true;
+    });
+  }
+
   // Render Table Rows HTML
   private renderTableRowsHTML(): string {
-    const filtered = this.articles.filter(art => {
-      if (!this.searchKeyword) return true;
-      const kw = this.searchKeyword.toLowerCase();
-      return art.title.toLowerCase().includes(kw) || art.subtitle.toLowerCase().includes(kw) || art.author.name.toLowerCase().includes(kw);
-    });
+    const filtered = this.getFilteredArticles();
 
     if (filtered.length === 0) {
       return `
         <tr>
-          <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-            Tidak ada naskah berita yang cocok dengan kata kunci pencarian.
+          <td colspan="6" style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="width: 2.8rem; height: 2.8rem; border-radius: 50%; background: var(--bg-tertiary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; color: var(--text-muted);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; font-size: 0.95rem;">Tidak Ada Naskah Berita yang Cocok</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 380px; margin: 0 auto;">Coba sesuaikan pilihan filter kategori, penulis, rentang waktu, atau kata kunci pencarian.</div>
           </td>
         </tr>
       `;
@@ -455,9 +592,48 @@ export class AdminCMS {
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchKeyword = (e.target as HTMLInputElement).value;
-        const tbody = modalElem.querySelector('#cms-table-body');
-        if (tbody) tbody.innerHTML = this.renderTableRowsHTML();
-        this.bindTableActionEvents(modalElem);
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Category Filter Select
+    const filterCatSelect = modalElem.querySelector('#cms-filter-category') as HTMLSelectElement;
+    if (filterCatSelect) {
+      filterCatSelect.addEventListener('change', (e) => {
+        this.filterCategory = (e.target as HTMLSelectElement).value;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Author Filter Select
+    const filterAuthorSelect = modalElem.querySelector('#cms-filter-author') as HTMLSelectElement;
+    if (filterAuthorSelect) {
+      filterAuthorSelect.addEventListener('change', (e) => {
+        this.filterAuthor = (e.target as HTMLSelectElement).value;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Date Range Filter Select
+    const filterDateSelect = modalElem.querySelector('#cms-filter-date') as HTMLSelectElement;
+    if (filterDateSelect) {
+      filterDateSelect.addEventListener('change', (e) => {
+        this.filterDateRange = (e.target as HTMLSelectElement).value;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Reset Filters Button
+    const resetFiltersBtn = modalElem.querySelector('#cms-btn-reset-filters');
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener('click', () => {
+        this.filterCategory = 'all';
+        this.filterAuthor = 'all';
+        this.filterDateRange = 'all';
+        this.searchKeyword = '';
+        const searchInp = modalElem.querySelector('#cms-search-input, #admin-search-input') as HTMLInputElement;
+        if (searchInp) searchInp.value = '';
+        this.refreshDashboard(modalElem);
       });
     }
 
@@ -467,7 +643,7 @@ export class AdminCMS {
         ArticleEditor.open(null, modalElem, () => {
           this.articles = ArticleService.getArticles();
           this.onArticlesChange();
-          this.refreshTable(modalElem);
+          this.refreshDashboard(modalElem);
         });
       });
     }
@@ -559,6 +735,10 @@ export class AdminCMS {
     if (tbody) {
       tbody.innerHTML = this.renderTableRowsHTML();
       this.bindTableActionEvents(modalElem);
+    }
+    const counter = modalElem.querySelector('#cms-filter-counter');
+    if (counter) {
+      counter.innerHTML = `Menampilkan <strong>${this.getFilteredArticles().length}</strong> dari ${this.articles.length} naskah`;
     }
   }
 
