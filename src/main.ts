@@ -21,7 +21,6 @@ import { FeedSection } from './sections/FeedSection';
 import { ArticleReaderModal } from './sections/ArticleReaderModal';
 import { BookmarksModal } from './sections/BookmarksModal';
 import { SearchPreview } from './sections/SearchPreview';
-import { TechTicker } from './components/TechTicker';
 import { UserAuthModal } from './components/UserAuthModal';
 import { CookieConsent } from './components/CookieConsent';
 import Lenis from 'lenis';
@@ -107,15 +106,8 @@ async function init() {
     console.warn('Backend unavailable, using local mock data', err);
   }
 
-  try {
-    const liveIndices = await ApiService.getTechIndexes();
-    if (liveIndices && liveIndices.length > 0) store.liveTechIndexes = liveIndices;
-  } catch (err) {
-    console.warn('Indices API error', err);
-  }
 
   // 4. Render All Sections
-  TechTicker.render();
   FeedSection.renderCategories();
   HeroSection.renderBreakingBanner();
   HeroSection.render();

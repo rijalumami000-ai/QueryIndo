@@ -182,6 +182,10 @@ func main() {
 	app.Get("/sitemap-news.xml", handlers.GetNewsSitemap)
 	app.Get("/robots.txt", handlers.GetRobotsTxt)
 
+	// SSR Article OpenGraph Metadata for Social Media Crawlers & Direct Access
+	app.Get("/berita/:slug", handlers.ServeArticleSSR)
+	app.Get("/berita", handlers.ServeArticleSSR)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

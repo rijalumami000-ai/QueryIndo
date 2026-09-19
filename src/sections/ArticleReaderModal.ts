@@ -5,7 +5,6 @@ import { Router } from '../router';
 import { ApiService } from '../services/apiService';
 import { ReaderAuthService } from '../services/authService';
 import { SeoService } from '../utils/seoService';
-import { TextToSpeechService } from '../utils/textToSpeech';
 import { Toast } from '../utils/toast';
 import { ImageUtils } from '../utils/imageUtils';
 import { AdBanner } from '../components/AdBanner';
@@ -27,7 +26,6 @@ import Lenis from 'lenis';
 
 export class ArticleReaderModal {
   private static readerLenis: Lenis | null = null;
-  private static currentArticleSpeechText: string = '';
 
   public static async open(articleIdOrSlug: string, updateUrl: boolean = true): Promise<void> {
     let article = findArticleBySlugOrId(articleIdOrSlug);
@@ -73,12 +71,6 @@ export class ArticleReaderModal {
     // Article Content Body
     const articleBody = article.content;
 
-    // Prepare text & duration for Text-to-Speech Engine
-    const plainBody = TextToSpeechService.extractPlainTextFromHTML(articleBody);
-    this.currentArticleSpeechText = `${article.title}. ${article.subtitle}. ${plainBody}`;
-    const totalWords = this.currentArticleSpeechText.split(/\s+/).length;
-    const initialDurationStr = TextToSpeechService.formatTime(Math.ceil(totalWords / 2.2));
-
     modalReaderContent.innerHTML = `
       <!-- Sticky Reading Progress Bar -->
       <div style="position:sticky; top:-2.5rem; left:0; right:0; height:4px; background:var(--bg-secondary); z-index:90; margin:-2.5rem -2.5rem 1.5rem -2.5rem; overflow:hidden;">
@@ -111,55 +103,21 @@ export class ArticleReaderModal {
         </div>
       </div>
 
-      <!-- Audio Player, Focus Mode & Text Size Toolbar -->
+      <!-- Focus Mode & Text Size Toolbar -->
       <div class="reader-toolbar-card">
-        <div class="reader-toolbar-top">
-          <div class="reader-audio-main">
-            <button id="btn-audio-play" class="btn-audio-circle-play" title="Play / Pause Audio">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </button>
-            <button id="btn-audio-stop" class="btn-audio-circle-stop" title="Stop Audio">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
-            </button>
-            <div class="reader-audio-text-group">
-              <div class="reader-audio-header">
-                <span>${store.t('audioNarrativeHeader')}</span>
-                <div class="audio-visualizer-wave" id="audio-visualizer-wave">
-                  <span class="audio-bar"></span>
-                  <span class="audio-bar"></span>
-                  <span class="audio-bar"></span>
-                  <span class="audio-bar"></span>
-                </div>
-              </div>
-              <div class="reader-audio-sub" id="audio-status-text">${store.t('audioNarrativeSub')}</div>
-            </div>
-          </div>
-
-          <div class="reader-audio-playback-ctrl">
-            <div class="audio-speed-pills">
-              <button class="btn-audio-speed active" data-speed="1.0">1.0x</button>
-              <button class="btn-audio-speed" data-speed="1.25">1.25x</button>
-              <button class="btn-audio-speed" data-speed="1.5">1.5x</button>
-            </div>
-            <span class="reader-audio-timer" id="audio-timer-text">00:00 / ${initialDurationStr}</span>
-          </div>
-        </div>
-
-        <div class="reader-toolbar-bottom">
-          <!-- Zen Focus Mode Button -->
-          <button id="btn-reader-focus-mode" class="btn-reader-zen-focus">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 2 2h3"/></svg>
-            <span>${store.preferences.language === 'en' ? 'Focus Mode' : 'Mode Fokus'}</span>
-          </button>
-          
-          <!-- Text Size Control Toggle -->
-          <div class="reader-font-size-group">
-            <span class="reader-font-size-label">${store.t('fontSizeLabel')}</span>
-            <div class="font-size-toggle">
-              <button class="btn-size ${!store.preferences.fontSize || store.preferences.fontSize === 'normal' ? 'active' : ''}" data-size="normal">A</button>
-              <button class="btn-size ${store.preferences.fontSize === 'large' ? 'active' : ''}" data-size="large">A+</button>
-              <button class="btn-size ${store.preferences.fontSize === 'xlarge' ? 'active' : ''}" data-size="xlarge">A++</button>
-            </div>
+        <!-- Zen Focus Mode Button -->
+        <button id="btn-reader-focus-mode" class="btn-reader-zen-focus">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 2 2h3"/></svg>
+          <span>${store.preferences.language === 'en' ? 'Focus Mode' : 'Mode Fokus'}</span>
+        </button>
+        
+        <!-- Text Size Control Toggle -->
+        <div class="reader-font-size-group">
+          <span class="reader-font-size-label">${store.t('fontSizeLabel')}</span>
+          <div class="font-size-toggle">
+            <button class="btn-size ${!store.preferences.fontSize || store.preferences.fontSize === 'normal' ? 'active' : ''}" data-size="normal">A</button>
+            <button class="btn-size ${store.preferences.fontSize === 'large' ? 'active' : ''}" data-size="large">A+</button>
+            <button class="btn-size ${store.preferences.fontSize === 'xlarge' ? 'active' : ''}" data-size="xlarge">A++</button>
           </div>
         </div>
       </div>
@@ -413,64 +371,6 @@ export class ArticleReaderModal {
       });
     }
 
-    // Audio Playback Speed Buttons
-    modalReaderContent.querySelectorAll('.btn-audio-speed').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalReaderContent?.querySelectorAll('.btn-audio-speed').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const speed = parseFloat(btn.getAttribute('data-speed') || '1.0');
-        TextToSpeechService.setSpeed(speed);
-      });
-    });
-
-    // Real Web Speech Synthesis Text-to-Speech Handler
-    const audioBtn = document.getElementById('btn-audio-play');
-    const audioStopBtn = document.getElementById('btn-audio-stop');
-    const audioStatusText = document.getElementById('audio-status-text');
-    const audioTimerText = document.getElementById('audio-timer-text');
-    const waveVisualizer = document.getElementById('audio-visualizer-wave');
-
-    TextToSpeechService.stop();
-
-    if (audioBtn && audioStatusText && audioTimerText) {
-      audioBtn.addEventListener('click', () => {
-        if (TextToSpeechService.getIsPlaying()) {
-          TextToSpeechService.pause();
-        } else {
-          TextToSpeechService.play(this.currentArticleSpeechText, store.preferences.language, (state, curTime, durTime) => {
-            const curStr = TextToSpeechService.formatTime(curTime);
-            const durStr = TextToSpeechService.formatTime(durTime);
-
-            if (state === 'playing') {
-              audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-              (audioBtn as HTMLElement).style.background = 'var(--accent-emerald)';
-              audioStatusText.textContent = store.t('audioPlaying');
-              audioTimerText.textContent = `${curStr} / ${durStr}`;
-              waveVisualizer?.classList.add('playing');
-            } else if (state === 'paused') {
-              audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-              (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
-              audioStatusText.textContent = store.t('audioPaused');
-              audioTimerText.textContent = `${curStr} / ${durStr}`;
-              waveVisualizer?.classList.remove('playing');
-            } else {
-              // stopped
-              audioBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-              (audioBtn as HTMLElement).style.background = 'var(--accent-cyan)';
-              audioStatusText.textContent = store.t('audioNarrativeSub');
-              audioTimerText.textContent = `00:00 / ${durStr}`;
-              waveVisualizer?.classList.remove('playing');
-            }
-          });
-        }
-      });
-
-      audioStopBtn?.addEventListener('click', () => {
-        TextToSpeechService.stop();
-        waveVisualizer?.classList.remove('playing');
-      });
-    }
-
     AdBanner.bindAdEvents(modalReaderContent);
   }
 
@@ -484,7 +384,6 @@ export class ArticleReaderModal {
     }
     readerModal.classList.remove('open');
     document.body.style.overflow = '';
-    TextToSpeechService.stop();
 
     window.dispatchEvent(new CustomEvent('modal-closed'));
 

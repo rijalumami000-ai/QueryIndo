@@ -127,17 +127,14 @@
 </head>
 <body>
   <div id="app">
-    <!-- Top Bar: Live Tech Index -->
+    <!-- Top Bar -->
     <div class="top-bar">
       <div class="container top-bar-content">
-        <div class="tech-ticker-container">
-          <div class="tech-ticker-label">
-            <span id="pulse-dot" class="tech-ticker-dot"></span>
-            Indeks Tekno:
-          </div>
-          <div class="tech-ticker-list" id="tech-ticker-list">
-            <!-- Rendered by JS -->
-          </div>
+        <div class="top-bar-left">
+          <span class="top-bar-tagline">
+            <span class="top-bar-pulse"></span>
+            Jurnalisme Teknologi Independen Indonesia
+          </span>
         </div>
         <div class="top-bar-right" style="display: flex; align-items: center; gap: 1rem;">
           <span class="date-badge" id="current-date-text">Sabtu, 1 Agustus 2026</span>
@@ -467,46 +464,13 @@
             </div>
           </div>
 
-          <div>
-            <h4 class="footer-links-title">Layanan & Distribusi</h4>
-            <div class="footer-service-block">
-              <ul class="footer-service-list">
-                <li>
-                  <a href="/rss.xml" target="_blank" class="footer-service-link" id="link-rss-feed">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-                    <span>Sindikasi RSS Feed</span>
-                    <span class="footer-service-badge">XML</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://news.google.com" target="_blank" rel="noopener" class="footer-service-link" id="link-google-news">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span>Google News Publisher</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/page/info-iklan" class="footer-service-link" id="link-mediakit-press">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                    <span>Media Kit & Riset 2026</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/page/hubungi-kami" class="footer-service-link" id="link-hotline-redaksi">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    <span>Kanal Whistleblower & Tip</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
         <div class="footer-bottom">
           <p>© 2026 QUERYINDO, All Rights Reserved. Portal Berita Teknologi Terdepan.</p>
           <div class="footer-bottom-links">
             <a href="/page/privasi" id="link-privacy">Privasi</a>
             <a href="/page/syarat-ketentuan" id="link-terms">Syarat & Ketentuan</a>
             <a href="/page/peta-situs" id="link-sitemap">Peta Situs</a>
+            <a href="/rss.xml" target="_blank" rel="alternate" id="link-rss-bottom">RSS Feed</a>
             <a href="/admin" id="link-admin-footer">Portal Redaksi</a>
           </div>
         </div>

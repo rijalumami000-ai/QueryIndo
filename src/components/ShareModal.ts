@@ -1,9 +1,11 @@
 import type { Article } from '../types/news';
 import { Toast } from '../utils/toast';
+import { slugifyTitle } from '../utils/helpers';
 
 export class ShareModal {
   public static async shareArticle(article: Article, lang: 'id' | 'en' = 'id') {
-    const url = window.location.href;
+    const slug = article.slug || slugifyTitle(article.title);
+    const url = `https://www.queryindo.com/berita/${slug}`;
     const title = article.title;
     const summary = article.subtitle || article.title;
 
@@ -30,9 +32,10 @@ export class ShareModal {
     if (existing) existing.remove();
 
     const title = article.title;
+    const subtitle = article.subtitle ? `${article.subtitle}\n\n` : '';
     const encodedUrl = encodeURIComponent(url);
-    const encodedText = encodeURIComponent(`${title} — Baca di QUERYINDO:`);
-    const fullWaText = encodeURIComponent(`*${title}*\n\n${article.subtitle}\n\nBaca selengkapnya di QUERYINDO:\n${url}`);
+    const encodedText = encodeURIComponent(`${title} — Baca selengkapnya di QUERYINDO:`);
+    const fullWaText = encodeURIComponent(`*${title}*\n\n${subtitle}Baca selengkapnya di QUERYINDO:\n${url}`);
 
     const shareLinks = {
       whatsapp: `https://api.whatsapp.com/send?text=${fullWaText}`,
