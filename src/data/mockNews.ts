@@ -1,22 +1,210 @@
-import type { Article, Category, TechIndexItem } from '../types/news';
+import type { Article, Category, SubCategory, TechIndexItem } from '../types/news';
+
+export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
+  ai: [
+    { id: 'gen-ai', name: 'Generatif AI & LLM', slug: 'gen-ai', description: 'Model penalaran, GPT, Claude, Gemini, Llama, DeepSeek' },
+    { id: 'agentic-coding', name: 'Agentic AI & Koding Otonom', slug: 'agentic-coding', description: 'Autonomous agents, workflow automations, tool use' },
+    { id: 'robotics-humanoid', name: 'Robotika & Humanoid Cerdas', slug: 'robotics-humanoid', description: 'Robot industri, bipedal humanoid, Tesla Optimus' },
+    { id: 'ai-chips-infra', name: 'Chipset AI & Superkomputer', slug: 'ai-chips-infra', description: 'NVIDIA GPU, TPU, NPU on-device, server rack, klaster komputasi' },
+    { id: 'quantum-computing', name: 'Komputasi Kuantum & Fisika Komputasi', slug: 'quantum-computing', description: 'Qubit, error correction, simulasi molekuler' },
+    { id: 'ethics-governance', name: 'Etika, Regulasi & AI Safety', slug: 'ethics-governance', description: 'AI Act, copyright data latih, alignment, mitigasi bias' },
+    { id: 'computer-vision', name: 'Visi Komputer & Sintesis Media', slug: 'computer-vision', description: 'Video generator Sora, voice clone, pengenalan objek' },
+    { id: 'enterprise-ai', name: 'AI Korporasi & Solusi Enterprise', slug: 'enterprise-ai', description: 'Integrasi ERP, database vektor, fine-tuning model internal' },
+    { id: 'open-source-ai', name: 'Open Source AI & Komunitas Model', slug: 'open-source-ai', description: 'Hugging Face, model bobot terbuka, Ollama, local LLM' },
+    { id: 'agi-frontier', name: 'AGI & Riset Perbatasan', slug: 'agi-frontier', description: 'Penelitian superintelligence, neuro-symbolic AI, riset akademis' }
+  ],
+  gadget: [
+    { id: 'smartphones', name: 'Smartphone & Ponsel Lipat', slug: 'smartphones', description: 'Flagship, foldables, flip, mid-range, inovasi optik kamera' },
+    { id: 'laptops-pc', name: 'Laptop, Mini PC & Workstation', slug: 'laptops-pc', description: 'MacBook, Windows Copilot+ PC, ultrabook, desktop' },
+    { id: 'wearables-health', name: 'Smartwatch, Cincin Pintar & Pelacak Kebugaran', slug: 'wearables-health', description: 'Apple Watch, Garmin, Galaxy Ring, biosensor' },
+    { id: 'audio-sound', name: 'Audio Hi-Fi, TWS & Headphone', slug: 'audio-sound', description: 'Active noise cancellation, DAC, audiophile, spatial audio' },
+    { id: 'tablets-ereaders', name: 'Tablet & Layar E-Ink', slug: 'tablets-ereaders', description: 'iPad, Android tablet produktif, Kindle, color e-ink' },
+    { id: 'smart-home', name: 'Smart Home & Ekosistem IoT', slug: 'smart-home', description: 'Protokol Matter, robot vacuum, smart lock, ambient lighting' },
+    { id: 'monitors-display', name: 'Monitor & Teknologi Display', slug: 'monitors-display', description: 'OLED 240Hz/360Hz, Mini-LED, color grading studio, ultra-wide' },
+    { id: 'pc-components', name: 'Komponen PC, CPU & GPU Konsumen', slug: 'pc-components', description: 'Prosesor Intel/AMD, GPU konsumen, motherboard, RAM' },
+    { id: 'charging-power', name: 'Pengisian Daya, GaN & Baterai Portabel', slug: 'charging-power', description: 'GaN charger 100W+, Qi2 wireless, power station outdoor' },
+    { id: 'retro-niche-tech', name: 'Gadget Unik, Retro & Niche Gear', slug: 'retro-niche-tech', description: 'Kamera saku vintage, keyboard kustom mechanical, handheld retro' }
+  ],
+  software: [
+    { id: 'mobile-apps', name: 'Aplikasi Mobile Android & iOS', slug: 'mobile-apps', description: 'Inovasi apps baru, navigasi, media sosial, kurasi mingguan' },
+    { id: 'operating-systems', name: 'Sistem Operasi Desktop & Mobile', slug: 'operating-systems', description: 'Android, iOS, Windows 11, macOS, Linux desktop' },
+    { id: 'productivity-saas', name: 'Produktivitas & Tools Kolaborasi', slug: 'productivity-saas', description: 'Notion, Obsidian, Slack, Google Workspace, project management' },
+    { id: 'cloud-infrastructure', name: 'Komputasi Awan & DevOps', slug: 'cloud-infrastructure', description: 'AWS, GCP, Azure, Kubernetes, CI/CD, arsitektur serverless' },
+    { id: 'dev-tools-frameworks', name: 'Bahasa Pemrograman & Framework', slug: 'dev-tools-frameworks', description: 'Rust, Go, TypeScript, React, Next.js, Python' },
+    { id: 'browsers-search', name: 'Browser & Mesin Pencari Modern', slug: 'browsers-search', description: 'Chromium, Firefox, Arc, search engine berbasis AI' },
+    { id: 'system-utility', name: 'Utilitas Sistem, Benchmark & Virtualisasi', slug: 'system-utility', description: 'Docker desktop, virtual machines, disk utility, terminal' },
+    { id: 'api-backends', name: 'API, Basis Data & Backend Engineering', slug: 'api-backends', description: 'PostgreSQL, Supabase, Redis, GraphQL, ORM' },
+    { id: 'open-source-software', name: 'Software FOSS & Ekosistem Bebas', slug: 'open-source-software', description: 'Lisensi open-source, proyek komunitas GitHub, alternatif mandiri' },
+    { id: 'creative-software', name: 'Software Desain Grafis, Video & 3D', slug: 'creative-software', description: 'Figma, Adobe Creative Cloud, DaVinci Resolve, Blender' }
+  ],
+  startup: [
+    { id: 'funding-vc', name: 'Pendanaan & Modal Ventura', slug: 'funding-vc', description: 'Seed, Series A-D, angel investor, venture debt, tren portofolio VC' },
+    { id: 'unicorns-ipo', name: 'Unicorn, Decacorn & Pasar Saham IPO', slug: 'unicorns-ipo', description: 'Valuasi startup, prospek pencatatan bursa saham IDX/NASDAQ' },
+    { id: 'big-tech', name: 'Big Tech & Dinamika Konglomerasi', slug: 'big-tech', description: 'Strategi raksasa: Apple, Microsoft, Alphabet, Meta, Amazon, Tencent' },
+    { id: 'early-stage-founders', name: 'Founder Stories & Bootstrapping', slug: 'early-stage-founders', description: 'Kisah perjalanan pendiri awal, pencarian Product-Market Fit' },
+    { id: 'business-models', name: 'Model Bisnis, Unit Economics & Monetisasi', slug: 'business-models', description: 'SaaS pricing, strategi profitabilitas, monetisasi platform' },
+    { id: 'accelerator-incubator', name: 'Akselerator, Inkubator & Hub Startup', slug: 'accelerator-incubator', description: 'Y Combinator, program inkubasi nasional, demo day' },
+    { id: 'ma-exits', name: 'Merger, Akuisisi & Exit Strategy', slug: 'ma-exits', description: 'Konsolidasi industri, buy-out, likuidasi aset, merger korporasi' },
+    { id: 'tech-workforce', name: 'Ketenagakerjaan, Talenta & Budaya Kerja', slug: 'tech-workforce', description: 'Gaji insinyur software, layoff, budaya kerja remote, talent war' },
+    { id: 'b2b-enterprise-tech', name: 'Startup B2B & Transformasi Korporat', slug: 'b2b-enterprise-tech', description: 'Solusi enterprise, pengadaan digital rantai pasok B2B' },
+    { id: 'southeast-asia-ecosystem', name: 'Ekosistem Startup Asia Tenggara', slug: 'southeast-asia-ecosystem', description: 'Konektivitas Indonesia-Singapura-Vietnam, ekspansi regional' }
+  ],
+  fintech: [
+    { id: 'digital-banking', name: 'Bank Digital & Neobank', slug: 'digital-banking', description: 'Fitur tabungan, bunga simpanan, onboarding biometrik, core banking' },
+    { id: 'digital-payments', name: 'Pembayaran Digital, QRIS & Gerbang Bayar', slug: 'digital-payments', description: 'QRIS antarnegara, BI-FAST, e-wallet, payment gateway' },
+    { id: 'crypto-bitcoin', name: 'Bitcoin & Dinamika Pasar Kripto', slug: 'crypto-bitcoin', description: 'Halving, ETF spot, on-chain metrics, sentimen makro kripto' },
+    { id: 'ethereum-smart-contracts', name: 'Ethereum, Layer-2 & Smart Contract', slug: 'ethereum-smart-contracts', description: 'Arbitrum, Optimism, zkSync, ekosistem EVM' },
+    { id: 'defi-lending', name: 'Keuangan Terdesentralisasi (DeFi) & Staking', slug: 'defi-lending', description: 'Liquidity pool, DEX, yield generation, protokol lending' },
+    { id: 'tokenized-rwa', name: 'Aset Dunia Nyata Tertokenisasi (RWA)', slug: 'tokenized-rwa', description: 'Tokenisasi properti, sekuritas digital, komoditas emas token' },
+    { id: 'stablecoins-cbdc', name: 'Stablecoin & Uang Digital Bank Sentral', slug: 'stablecoins-cbdc', description: 'USDT, USDC, Rupiah Digital/CBDC, regulasi cadangan aset' },
+    { id: 'p2p-lending-bnpl', name: 'Pinjaman Digital, P2P Lending & Paylater', slug: 'p2p-lending-bnpl', description: 'Credit scoring alternatif AI, BNPL, pendanaan UMKM' },
+    { id: 'insurtech-wealthtech', name: 'Investasi Digital & Asuransi Pintar', slug: 'insurtech-wealthtech', description: 'Reksa dana mikro, saham fraksional luar negeri, robo-advisor' },
+    { id: 'regtech-anti-fraud', name: 'Kepatuhan Regulasi (OJK/BI), AML & Anti-Fraud', slug: 'regtech-anti-fraud', description: 'KYC biometrik, mitigasi penipuan transaksi' }
+  ],
+  ev: [
+    { id: 'electric-cars', name: 'Mobil Penumpang Listrik', slug: 'electric-cars', description: 'EV Sedan, SUV, City Car, uji efisiensi daya, impresi berkendara' },
+    { id: 'two-wheelers-motorcycle', name: 'Motor Listrik & Skuter Komuter', slug: 'two-wheelers-motorcycle', description: 'Motor listrik subsidi, konversi mesin bakar, motor komuter' },
+    { id: 'commercial-fleet', name: 'Armada Komersial, Truk & Bus Listrik', slug: 'commercial-fleet', description: 'Bus rapid transit listrik, armada ekspedisi logistik hijau' },
+    { id: 'battery-tech', name: 'Teknologi Sel Baterai & Rantai Pasok Bahan Mentah', slug: 'battery-tech', description: 'LFP, NMC, Solid-state, hilirisasi nikel Indonesia' },
+    { id: 'charging-infra-spklu', name: 'SPKLU, Ultra Fast Charging & Swap Station', slug: 'charging-infra-spklu', description: 'Infrastruktur pengisian daya umum, stasiun tukar baterai' },
+    { id: 'autonomous-adas', name: 'Kemudi Otonom & Teknologi Sensor ADAS', slug: 'autonomous-adas', description: 'Level 2-4 autonomy, LiDAR, kamera computer vision' },
+    { id: 'in-car-software-sdv', name: 'Software-Defined Vehicle & Sistem Operasi Mobil', slug: 'in-car-software-sdv', description: 'Android Automotive, infotainment, pembaruan OTA' },
+    { id: 'micromobility', name: 'Sepeda Listrik, Skuter & Mobilitas Mikro', slug: 'micromobility', description: 'E-bike jarak menengah, mobilitas first/last mile' },
+    { id: 'v2x-smart-grid', name: 'Integrasi Kendaraan ke Jaringan (V2G/V2L)', slug: 'v2x-smart-grid', description: 'Integrasi baterai mobil ke jaringan listrik rumah tangga' },
+    { id: 'alternative-clean-mobility', name: 'Mobilitas Hidrogen & Bahan Bakar Nol Emisi', slug: 'alternative-clean-mobility', description: 'Fuel cell hydrogen EV, e-fuels ramah lingkungan' }
+  ],
+  gaming: [
+    { id: 'pc-hardware-rigs', name: 'Perangkat Keras PC Gaming & Komponen Ekstrem', slug: 'pc-hardware-rigs', description: 'GPU flagship, prosesor X3D, benchmark FPS' },
+    { id: 'console-ecosystem', name: 'Ekosistem Konsol Game', slug: 'console-ecosystem', description: 'PlayStation, Xbox, Nintendo, langganan Game Pass/PS Plus' },
+    { id: 'mobile-handheld', name: 'Game Mobile & Handheld PC', slug: 'mobile-handheld', description: 'Steam Deck, ROG Ally, game kompetitif Android/iOS' },
+    { id: 'indie-local-games', name: 'Industri Game Lokal Indonesia & Pengembang Mandiri', slug: 'indie-local-games', description: 'Karya developer nusantara, publisher lokal' },
+    { id: 'esports-pro-scene', name: 'Skena Esports & Turnamen Internasional', slug: 'esports-pro-scene', description: 'MPL, VCT, The International, analitik pro scene' },
+    { id: 'game-engines-graphics', name: 'Game Engine, Grafis 3D & Audio Spasial', slug: 'game-engines-graphics', description: 'Unreal Engine 5, Unity, Ray tracing, DLSS/FSR' },
+    { id: 'vr-ar-immersive', name: 'Game Realitas Virtual & Spasial', slug: 'vr-ar-immersive', description: 'VR Headset, mixed reality, spatial games' },
+    { id: 'game-narrative-design', name: 'Desain Narasi, Game Mechanics & Desain Level', slug: 'game-narrative-design', description: 'Studi kasus cerita game, ekonomi in-game' },
+    { id: 'game-audio-music', name: 'Musik Game & Desain Efek Suara', slug: 'game-audio-music', description: 'Soundtrack orkestra, adaptive music, sound engineering' },
+    { id: 'streamers-content-creators', name: 'Industri Streaming & Kreator Konten Game', slug: 'streamers-content-creators', description: 'Setup broadcast OBS, ekosistem streaming video' }
+  ],
+  cybersecurity: [
+    { id: 'data-privacy-pdp', name: 'Hukum Perlindungan Data Pribadi (UU PDP)', slug: 'data-privacy-pdp', description: 'Hak subjek data, denda kepatuhan, ISO 27001' },
+    { id: 'malware-ransomware', name: 'Analisis Malware, Ransomware & Trojan', slug: 'malware-ransomware', description: 'Teknik dekripsi ancaman, vektor serangan, analisis payload' },
+    { id: 'data-breaches-leaks', name: 'Investigasi Kebocoran Database & Dark Web', slug: 'data-breaches-leaks', description: 'Audit kebocoran data instansi, pemantauan forum peretas' },
+    { id: 'threat-intelligence-apt', name: 'Intelijen Ancaman & Peretas Negara (APT)', slug: 'threat-intelligence-apt', description: 'Spionase siber, taktik perang informasi' },
+    { id: 'cloud-infrastructure-security', name: 'Keamanan Cloud, Server & Kubernetes', slug: 'cloud-infrastructure-security', description: 'Konfigurasi IAM, postur keamanan cloud CSPM' },
+    { id: 'vulnerability-zero-day', name: 'Kerentanan Sistem, CVE & Eksploit Zero-Day', slug: 'vulnerability-zero-day', description: 'Laporan bug bounty, pembobolan autentikasi' },
+    { id: 'cryptography-encryption', name: 'Kriptografi & Komputasi Aman', slug: 'cryptography-encryption', description: 'Enkripsi end-to-end, post-quantum cryptography, ZK proofs' },
+    { id: 'identity-auth', name: 'Manajemen Identitas, MFA & Passkey', slug: 'identity-auth', description: 'Passwordless login, FIDO2 passkeys, mitigasi pembajakan sesi' },
+    { id: 'network-ddos-mitigation', name: 'Keamanan Jaringan, Firewall & Pertahanan DDoS', slug: 'network-ddos-mitigation', description: 'Mitigasi serangan volumetrik, segmentasi zero trust' },
+    { id: 'social-engineering-phishing', name: 'Rekayasa Sosial, Phishing & Edukasi Pengguna', slug: 'social-engineering-phishing', description: 'Simulasi serangan phishing, deepfake vishing' }
+  ],
+  internet: [
+    { id: 'telecom-5g-6g', name: 'Infrastruktur Telekomunikasi, 5G & Riset 6G', slug: 'telecom-5g-6g', description: 'Frekuensi spektrum, menara BTS, operator seluler nasional' },
+    { id: 'satellite-constellation', name: 'Internet Satelit LEO & Komunikasi Luar Angkasa', slug: 'satellite-constellation', description: 'Starlink, konstelasi orbit rendah, akses kepulauan' },
+    { id: 'submarine-cables', name: 'Jaringan Kabel Bawah Laut & Pusat Interkoneksi', slug: 'submarine-cables', description: 'Serat optik internasional, landing station, latensi RI' },
+    { id: 'fiber-broadband-isp', name: 'Fiber Optic Rumahan (FTTH) & Layanan ISP', slug: 'fiber-broadband-isp', description: 'Provider internet rumah, Wi-Fi 7, kestabilan bandwidth' },
+    { id: 'data-centers-ixp', name: 'Pusat Data Nasional & Internet Exchange', slug: 'data-centers-ixp', description: 'Fasilitas hyperscale data center, IXP peering' },
+    { id: 'digital-sovereignty-policy', name: 'Kedaulatan Digital & Regulasi Internet', slug: 'digital-sovereignty-policy', description: 'Aturan PSE, hak cipta digital, net neutrality' },
+    { id: 'social-platforms-dynamics', name: 'Dinamika Media Sosial & Budaya Internet', slug: 'social-platforms-dynamics', description: 'Algoritma FYP, moderasi konten, tren platform komunitas' },
+    { id: 'e-commerce-logistics', name: 'Infrastruktur E-Commerce & Logistik Digital', slug: 'e-commerce-logistics', description: 'Platform marketplace, sistem pelacakan gudang pintar' },
+    { id: 'web-standards-protocols', name: 'Standar Web, Domain & Protokol Jaringan', slug: 'web-standards-protocols', description: 'HTTP/3, QUIC, DNS over HTTPS, IPv6 adoption' },
+    { id: 'digital-inclusion-rural', name: 'Inklusi Digital & Konektivitas Wilayah Terluar', slug: 'digital-inclusion-rural', description: 'Akses internet sekolah 3T, literasi digital pedesaan' }
+  ],
+  space: [
+    { id: 'rocket-propulsion', name: 'Roket Peluncur & Rekayasa Antariksa', slug: 'rocket-propulsion', description: 'SpaceX Starship, peluncur daur ulang, propulsi metana cair' },
+    { id: 'satellite-earth-observation', name: 'Satelit Penginderaan Jauh & Pemetaan Bumi', slug: 'satellite-earth-observation', description: 'Citra satelit resolusi tinggi, pemantauan deforestasi' },
+    { id: 'deep-space-exploration', name: 'Eksplorasi Luar Angkasa & Misi Antariksa', slug: 'deep-space-exploration', description: 'Misi Bulan Artemis, robot penjelajah Mars, teleskop James Webb' },
+    { id: 'astronomy-astrophysics', name: 'Astronomi, Lubang Hitam & Kosmologi', slug: 'astronomy-astrophysics', description: 'Eksoplanet layak huni, gelombang gravitasi, materi gelap' },
+    { id: 'space-industry-commercial', name: 'Ekonomi Antariksa Komersial & Startup Space-Tech', slug: 'space-industry-commercial', description: 'Stasiun luar angkasa swasta, pariwisata orbit' },
+    { id: 'planetary-defense', name: 'Pertahanan Planet & Sampah Antariksa', slug: 'planetary-defense', description: 'Penghindaran tabrakan debris orbit, defleksi asteroid' },
+    { id: 'materials-science-semiconductor', name: 'Sains Material Maju & Semikonduktor', slug: 'materials-science-semiconductor', description: 'Superkonduktor suhu ruang, litografi EUV sub-2nm' },
+    { id: 'fusion-clean-energy-physics', name: 'Fisika Fusi Nuklir & Energi Bintang', slug: 'fusion-clean-energy-physics', description: 'Tokamak, eksperimen fusi kurungan inersia, net energy gain' },
+    { id: 'atmospheric-ocean-science', name: 'Sains Atmosfer, Lautan & Iklim Global', slug: 'atmospheric-ocean-science', description: 'Model komputer cuaca superkomputer, arus laut dalam' },
+    { id: 'indonesian-space-research', name: 'Riset Antariksa & Observatorium Nasional', slug: 'indonesian-space-research', description: 'Aktivitas BRIN antariksa, observatorium Timau' }
+  ],
+  climatetech: [
+    { id: 'solar-clean-energy', name: 'Energi Surya & Fotovoltaik Efisiensi Tinggi', slug: 'solar-clean-energy', description: 'Panel surya perovskite, PLTS terapung, inverter cerdas' },
+    { id: 'wind-hydro-geothermal', name: 'Energi Angin, PLTA & Panas Bumi', slug: 'wind-hydro-geothermal', description: 'Turbin angin lepas pantai, pemanfaatan geothermal nusantara' },
+    { id: 'carbon-capture-removal', name: 'Penangkapan Karbon (CCS/CCUS) & Reboisasi Digital', slug: 'carbon-capture-removal', description: 'Direct air capture, teknologi injeksi karbon' },
+    { id: 'battery-grid-storage', name: 'Penyimpanan Energi Grid (BESS) & Baterai Industri', slug: 'battery-grid-storage', description: 'Baterai sodium-ion, iron-air storage, stabilisasi frekuensi' },
+    { id: 'smart-grid-metering', name: 'Smart Grid & Sistem Distribusi Daya Cerdas', slug: 'smart-grid-metering', description: 'Pencatatan meteran cerdas AMI, transmisi HVDC' },
+    { id: 'green-hydrogen-biofuels', name: 'Hidrogen Hijau & Bahan Bakar Nabati Berkelanjutan', slug: 'green-hydrogen-biofuels', description: 'Elektrolisis air tenaga surya, bio-avtur aviasi' },
+    { id: 'circular-economy-recycling', name: 'Daur Ulang Elektronik & Ekonomi Sirkular', slug: 'circular-economy-recycling', description: 'Pengolahan e-waste, ekstraksi logam tanah jarang dari HP bekas' },
+    { id: 'agritech-sustainable-farming', name: 'Agritech Presisi & Pertanian Cerdas Iklim', slug: 'agritech-sustainable-farming', description: 'Sensor kelembaban tanah IoT, drone semprot presisi' },
+    { id: 'esg-reporting-carbon-market', name: 'Bursa Karbon & Verifikasi Pelaporan ESG', slug: 'esg-reporting-carbon-market', description: 'Bursa Karbon Indonesia/IDXCarbon, verifikasi emisi' },
+    { id: 'water-purification-ocean-tech', name: 'Konservasi Air, Desalinasi & Pemulihan Ekosistem', slug: 'water-purification-ocean-tech', description: 'Desalinasi air laut hemat energi, sensor air cerdas' }
+  ],
+  biotech: [
+    { id: 'genomics-crispr', name: 'Genomika, Sekuensing DNA & Rekayasa Genetik', slug: 'genomics-crispr', description: 'CRISPR-Cas9, pengurutan genom generasi baru, terapi gen' },
+    { id: 'digital-health-telemedicine', name: 'Telemedicine & Pelayanan Medis Terintegrasi', slug: 'digital-health-telemedicine', description: 'Platform konsultasi online, rekam medis SATUSEHAT' },
+    { id: 'ai-drug-discovery', name: 'Desain Obat Berbasis AI & Biologi Komputasi', slug: 'ai-drug-discovery', description: 'Prediksi lipatan protein AlphaFold, penemuan molekul obat' },
+    { id: 'medical-devices-diagnostics', name: 'Perangkat Medis Cerdas & Diagnostik Point-of-Care', slug: 'medical-devices-diagnostics', description: 'Mesin USG portabel, biosensor mikrofluida' },
+    { id: 'bci-neurotechnology', name: 'Antarmuka Otak-Komputer (BCI) & Neuroteknologi', slug: 'bci-neurotechnology', description: 'Neuralink, implan saraf motorik, stimulasi otak' },
+    { id: 'health-wearables-continuous', name: 'Sensor Pemantau Kesehatan Kontinu', slug: 'health-wearables-continuous', description: 'Pemantau glukosa non-invasif, sensor tekanan darah optik' },
+    { id: 'synthetic-biology-biomanufacturing', name: 'Biologi Sintetis & Bio-Manufaktur', slug: 'synthetic-biology-biomanufacturing', description: 'Ragi rekayasa pembuat insulin, kultur protein alternatif' },
+    { id: 'bioinformatics-health-data', name: 'Bioinformatika & Keamanan Data Medis', slug: 'bioinformatics-health-data', description: 'Analisis data populasi kesehatan, interoperabilitas biomedis' },
+    { id: 'longevity-anti-aging', name: 'Riset Longevity & Terapi Regeneratif', slug: 'longevity-anti-aging', description: 'Penelitian penuaan seluler, terapi stem cell terverifikasi' },
+    { id: 'public-health-epidemiology', name: 'Pengawasan Epidemiologi & Keamanan Hayati', slug: 'public-health-epidemiology', description: 'Sistem deteksi dini wabah penyakit berbasis AI' }
+  ],
+  review: [
+    { id: 'flagship-smartphone-reviews', name: 'Uji Performa & Review Smartphone Flagship', slug: 'flagship-smartphone-reviews', description: 'Uji lab kamera, baterai, performa grafis gaming' },
+    { id: 'laptop-computing-benchmarks', name: 'Benchmark Laptop, Mac & PC Komputasi', slug: 'laptop-computing-benchmarks', description: 'Perbandingan benchmark Geekbench, Cinebench, baterai' },
+    { id: 'audiophile-sound-testing', name: 'Uji Akustik Audio & Perangkat Dengar', slug: 'audiophile-sound-testing', description: 'Kurva frekuensi respon, isolasi kebisingan ANC, latensi' },
+    { id: 'camera-optics-gear', name: 'Review Kamera, Lensa & Alat Pembuat Konten', slug: 'camera-optics-gear', description: 'Sensor full-frame, gimbal stabilisator, mikrofon wireless' },
+    { id: 'home-smart-appliances', name: 'Uji Perlengkapan Rumah Pintar & IoT', slug: 'home-smart-appliances', description: 'Robot vacuum, air purifier terhubung, smart TV' },
+    { id: 'ergonomics-desk-setup', name: 'Uji Ergonomi, Meja Kerja & Aksesoris Produktivitas', slug: 'ergonomics-desk-setup', description: 'Kursi ergonomis, monitor light bar, mouse vertikal' },
+    { id: 'gaming-peripherals-review', name: 'Review Aksesoris Gaming & Monitor Kencang', slug: 'gaming-peripherals-review', description: 'Mouse gaming ringan, keyboard 8000Hz, headset spasial' },
+    { id: 'long-term-verdict', name: 'Ulasan Penggunaan Jangka Panjang (Long-Term Review)', slug: 'long-term-verdict', description: 'Kondisi gadget setelah 6 bulan/1 tahun pemakaian riil' },
+    { id: 'buying-guides-tierlists', name: 'Panduan Beli, Rekomendasi Anggaran & Tier List', slug: 'buying-guides-tierlists', description: 'Rekomendasi HP terbaik di bawah 3 juta, 5 juta, laptop kuliah' },
+    { id: 'market-trends-gadget-hype', name: 'Analisis Tren Pasar & Skeptisisme Inovasi', slug: 'market-trends-gadget-hype', description: 'Membedah fitur gimmick vs inovasi nyata, tren harga gadget' }
+  ],
+  tips: [
+    { id: 'smartphones-tips-tricks', name: 'Panduan Optimalisasi Smartphone', slug: 'smartphones-tips-tricks', description: 'Trik rahasia Android & iOS, hemat baterai, optimasi kamera, storage' },
+    { id: 'pc-windows-mac-optimization', name: 'Tutorial Sistem Windows & Mac', slug: 'pc-windows-mac-optimization', description: 'Pembersihan registry aman, shortcut produktivitas OS' },
+    { id: 'ai-prompting-workflows', name: 'Panduan Prompt Engineering & Alur Kerja AI', slug: 'ai-prompting-workflows', description: 'Template prompt efektif, otomasi dokumen AI, panduan Claude/GPT' },
+    { id: 'cyber-hygiene-safety', name: 'Panduan Keamanan Siber Personal & Privasi Akun', slug: 'cyber-hygiene-safety', description: 'Cara pasang Passkey, pemulihan akun 2FA, hapus jejak digital' },
+    { id: 'home-wifi-networking', name: 'Trik Jaringan Internet Rumah & Wi-Fi Router', slug: 'home-wifi-networking', description: 'Mengatasi Wi-Fi lemot, setting DNS cepat, router mesh' },
+    { id: 'developer-how-to', name: 'Tutorial Pemrograman Praktis & Tools Dev', slug: 'developer-how-to', description: 'Setup terminal Linux, integrasi Git/GitHub, deploy website mandiri' },
+    { id: 'creative-design-video-editing', name: 'Panduan Software Kreatif & Editing Konten', slug: 'creative-design-video-editing', description: 'Trik color grading video kilat, template Figma' },
+    { id: 'data-backup-recovery', name: 'Panduan Backup Data & Pemulihan File', slug: 'data-backup-recovery', description: 'Aturan backup 3-2-1, pemulihan harddisk, transfer antar HP' },
+    { id: 'gadget-maintenance-diy', name: 'Perawatan & Perbaikan Mandiri (DIY Gadget Care)', slug: 'gadget-maintenance-diy', description: 'Pembersihan port charging, penggantian pasta pendingin laptop' },
+    { id: 'app-mastery-efficiency', name: 'Tutorial Kuasai Aplikasi Produktivitas', slug: 'app-mastery-efficiency', description: 'Rumus Excel/Google Sheets, database Notion, otomatisasi Zapier' }
+  ]
+};
 
 export const CATEGORIES: Category[] = [
-  { id: 'all', name: 'Semua Berita', icon: 'layers', description: 'Semua kabar & pembaruan teknologi terkini' },
-  { id: 'ai', name: 'Future Tech & AI', icon: 'cpu', description: 'Inovasi AI, LLM, Robotika & Komputasi Cerdas' },
-  { id: 'gadget', name: 'Gadget & Hardware', icon: 'smartphone', description: 'Review, rumor & rilis perangkat smartphone, laptop & chip' },
-  { id: 'software', name: 'Software & Apps', icon: 'layout', description: 'Aplikasi mobile, OS, cloud computing & SaaS' },
-  { id: 'startup', name: 'Bisnis Teknologi & Startup', icon: 'trending-up', description: 'Ekosistem pendanaan, unicorn & valuasi korporasi teknologi' },
-  { id: 'fintech', name: 'Fintech & Aset Digital', icon: 'coins', description: 'Perbankan digital, QRIS, blockchain & tokenisasi aset' },
-  { id: 'ev', name: 'Kendaraan Listrik & Mobilitas', icon: 'zap', description: 'Mobil/motor listrik, teknologi baterai, SPKLU & autonomous' },
-  { id: 'gaming', name: 'Gaming & Industri Kreatif', icon: 'gamepad-2', description: 'Industri game, esports, game engine & grafis 3D' },
-  { id: 'cybersecurity', name: 'Keamanan Siber & Privasi', icon: 'shield-alert', description: 'Perlindungan data pribadi, privasi siber & mitigasi ancaman' },
-  { id: 'internet', name: 'Internet & Digital', icon: 'globe', description: 'Infrastruktur 5G/6G, ISP, internet satelit & dinamika sosial digital' },
-  { id: 'space', name: 'Sains & Eksplorasi Antariksa', icon: 'orbit', description: 'Konstelasi satelit LEO, riset luar angkasa & astronomi modern' },
-  { id: 'climatetech', name: 'Teknologi Hijau & Iklim', icon: 'leaf', description: 'Transisi energi bersih, dekarbonisasi & agritech berkelanjutan' },
-  { id: 'biotech', name: 'Bioteknologi & Kesehatan', icon: 'activity', description: 'HealthTech, perangkat wearable medis & rekayasa genetika' },
-  { id: 'review', name: 'Review & Tren', icon: 'star', description: 'Uji performa mendalam, benchmark produk & tren belanja teknologi' },
-  { id: 'tips', name: 'Tips & Tutorial', icon: 'help-circle', description: 'Panduan praktis langkah demi langkah, how-to & trik digital' }
+  { id: 'all', name: 'Semua Berita', slug: 'semua', icon: 'layers', description: 'Semua kabar & pembaruan teknologi terkini', subCategories: [] },
+  { id: 'ai', name: 'Future Tech & AI', slug: 'ai', icon: 'cpu', description: 'Inovasi AI, LLM, Robotika & Komputasi Cerdas', subCategories: MASTER_TAXONOMY.ai },
+  { id: 'gadget', name: 'Gadget & Hardware', slug: 'gadget', icon: 'smartphone', description: 'Review, rumor & rilis perangkat smartphone, laptop & chip', subCategories: MASTER_TAXONOMY.gadget },
+  { id: 'software', name: 'Software & Apps', slug: 'software', icon: 'layout', description: 'Aplikasi mobile, OS, cloud computing & SaaS', subCategories: MASTER_TAXONOMY.software },
+  { id: 'startup', name: 'Bisnis Teknologi & Startup', slug: 'startup', icon: 'trending-up', description: 'Ekosistem pendanaan, unicorn & valuasi korporasi teknologi', subCategories: MASTER_TAXONOMY.startup },
+  { id: 'fintech', name: 'Fintech & Aset Digital', slug: 'fintech', icon: 'coins', description: 'Perbankan digital, QRIS, blockchain & tokenisasi aset', subCategories: MASTER_TAXONOMY.fintech },
+  { id: 'ev', name: 'Kendaraan Listrik & Mobilitas', slug: 'ev', icon: 'zap', description: 'Mobil/motor listrik, teknologi baterai, SPKLU & autonomous', subCategories: MASTER_TAXONOMY.ev },
+  { id: 'gaming', name: 'Gaming & Industri Kreatif', slug: 'gaming', icon: 'gamepad-2', description: 'Industri game, esports, game engine & grafis 3D', subCategories: MASTER_TAXONOMY.gaming },
+  { id: 'cybersecurity', name: 'Keamanan Siber & Privasi', slug: 'cybersecurity', icon: 'shield-alert', description: 'Perlindungan data pribadi, privasi siber & mitigasi ancaman', subCategories: MASTER_TAXONOMY.cybersecurity },
+  { id: 'internet', name: 'Internet & Digital', slug: 'internet', icon: 'globe', description: 'Infrastruktur 5G/6G, ISP, internet satelit & dinamika sosial digital', subCategories: MASTER_TAXONOMY.internet },
+  { id: 'space', name: 'Sains & Eksplorasi Antariksa', slug: 'space', icon: 'orbit', description: 'Konstelasi satelit LEO, riset luar angkasa & astronomi modern', subCategories: MASTER_TAXONOMY.space },
+  { id: 'climatetech', name: 'Teknologi Hijau & Iklim', slug: 'climatetech', icon: 'leaf', description: 'Transisi energi bersih, dekarbonisasi & agritech berkelanjutan', subCategories: MASTER_TAXONOMY.climatetech },
+  { id: 'biotech', name: 'Bioteknologi & Kesehatan', slug: 'biotech', icon: 'activity', description: 'HealthTech, perangkat wearable medis & rekayasa genetika', subCategories: MASTER_TAXONOMY.biotech },
+  { id: 'review', name: 'Review & Tren', slug: 'review', icon: 'star', description: 'Uji performa mendalam, benchmark produk & tren belanja teknologi', subCategories: MASTER_TAXONOMY.review },
+  { id: 'tips', name: 'Tips & Tutorial', slug: 'tips', icon: 'help-circle', description: 'Panduan praktis langkah demi langkah, how-to & trik digital', subCategories: MASTER_TAXONOMY.tips }
 ];
+
+export function getSubCategories(categoryId: string): SubCategory[] {
+  return MASTER_TAXONOMY[categoryId] || [];
+}
+
+export function findSubCategory(categoryId: string, subIdOrSlug: string): SubCategory | undefined {
+  const list = MASTER_TAXONOMY[categoryId] || [];
+  return list.find(s => s.id === subIdOrSlug || s.slug === subIdOrSlug);
+}
+
+export function getCategoryById(categoryId: string): Category | undefined {
+  return CATEGORIES.find(c => c.id === categoryId);
+}
+
+export function getCategoryBySlug(slug: string): Category | undefined {
+  return CATEGORIES.find(c => c.slug === slug || c.id === slug);
+}
 
 export const TECH_INDEXES: TechIndexItem[] = [
   {

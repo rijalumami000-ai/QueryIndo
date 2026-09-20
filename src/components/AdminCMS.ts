@@ -15,13 +15,14 @@ import { SubscribersManager } from './admin/SubscribersManager';
 import { SocialManager } from './admin/SocialManager';
 import { SettingsManager } from './admin/SettingsManager';
 
-import { CATEGORIES } from '../data/mockNews';
+import { CATEGORIES, getSubCategories } from '../data/mockNews';
 
 export class AdminCMS {
   private articles: Article[];
   private onArticlesChange: () => void;
   private searchKeyword: string = '';
   private filterCategory: string = 'all';
+  private filterSubCategory: string = 'all';
   private filterAuthor: string = 'all';
   private filterDateRange: string = 'all';
   private currentPage: number = 1;
@@ -147,8 +148,18 @@ export class AdminCMS {
       return `<option value="${authorName}" ${this.filterAuthor === authorName ? 'selected' : ''}>${authorName} (${count})</option>`;
     }).join('');
 
+    // Build subcategory options
+    let subCategoryOptionsHTML = '<option value="all">Semua Sub-Kanal</option>';
+    if (this.filterCategory !== 'all') {
+      const subCats = getSubCategories(this.filterCategory);
+      subCategoryOptionsHTML += subCats.map(sub => {
+        const count = this.articles.filter(a => a.category === this.filterCategory && (a.subCategory === sub.id || a.subCategory === sub.slug)).length;
+        return `<option value="${sub.id}" ${this.filterSubCategory === sub.id ? 'selected' : ''}>${sub.name} (${count})</option>`;
+      }).join('');
+    }
+
     const filteredCount = this.getFilteredArticles().length;
-    const isFiltered = this.filterCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
+    const isFiltered = this.filterCategory !== 'all' || this.filterSubCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
 
     return `
       <div style="width: 100%; height: 100vh; display: flex; background: var(--bg-primary); color: var(--text-primary); overflow: hidden;">
@@ -321,6 +332,14 @@ export class AdminCMS {
                       </select>
                     </div>
 
+                    <!-- Filter Sub-Kanal -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Sub-Kanal:</span>
+                      <select id="cms-filter-subcategory" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;" ${this.filterCategory === 'all' ? 'disabled' : ''}>
+                        ${subCategoryOptionsHTML}
+                      </select>
+                    </div>
+
                     <!-- Filter Penulis -->
                     <div style="display: flex; align-items: center; gap: 0.4rem;">
                       <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Penulis:</span>
@@ -414,6 +433,13 @@ export class AdminCMS {
       // 2. Category filter
       if (this.filterCategory !== 'all') {
         if ((art.category || '').toLowerCase() !== this.filterCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 2b. Sub-category filter
+      if (this.filterSubCategory !== 'all') {
+        if ((art.subCategory || '').toLowerCase() !== this.filterSubCategory.toLowerCase()) {
           return false;
         }
       }
@@ -543,6 +569,7 @@ export class AdminCMS {
         </td>
         <td style="padding: 0.9rem 1.25rem;">
           <span class="tag-badge" style="font-size: 0.68rem;">${art.category.toUpperCase()}</span>
+          ${art.subCategory ? `<div style="margin-top: 0.3rem;"><span class="tag-badge" style="font-size: 0.62rem; background: var(--bg-tertiary); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.3); font-weight: 700;">${art.subCategory}</span></div>` : ''}
         </td>
         <td style="padding: 0.9rem 1.25rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -705,6 +732,17 @@ export class AdminCMS {
     if (filterCatSelect) {
       filterCatSelect.addEventListener('change', (e) => {
         this.filterCategory = (e.target as HTMLSelectElement).value;
+        this.filterSubCategory = 'all';
+        this.currentPage = 1;
+        this.refreshDashboard(modalElem);
+      });
+    }
+
+    // Sub-Category Filter Select
+    const filterSubCatSelect = modalElem.querySelector('#cms-filter-subcategory') as HTMLSelectElement;
+    if (filterSubCatSelect) {
+      filterSubCatSelect.addEventListener('change', (e) => {
+        this.filterSubCategory = (e.target as HTMLSelectElement).value;
         this.currentPage = 1;
         this.refreshTable(modalElem);
       });
@@ -735,6 +773,7 @@ export class AdminCMS {
     if (resetFiltersBtn) {
       resetFiltersBtn.addEventListener('click', () => {
         this.filterCategory = 'all';
+        this.filterSubCategory = 'all';
         this.filterAuthor = 'all';
         this.filterDateRange = 'all';
         this.searchKeyword = '';
@@ -889,7 +928,7 @@ export class AdminCMS {
       paginationContainer.innerHTML = this.renderPaginationHTML();
       this.bindPaginationEvents(modalElem);
     }
-    const isFiltered = this.filterCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
+    const isFiltered = this.filterCategory !== 'all' || this.filterSubCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
     const resetBtn = modalElem.querySelector('#cms-btn-reset-filters') as HTMLElement;
     if (resetBtn) {
       resetBtn.style.display = isFiltered ? 'inline-flex' : 'none';

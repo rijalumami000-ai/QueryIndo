@@ -115,6 +115,7 @@ async function init() {
 
   // 4. INSTANT First Paint (0ms) from local memory/cache
   FeedSection.renderCategories();
+  FeedSection.renderSubCategories();
   HeroSection.renderBreakingBanner();
   HeroSection.render();
   BentoSection.renderBillboardAd();
@@ -134,6 +135,7 @@ async function init() {
   ]).then(() => {
     updateCachedDimensions();
     FeedSection.renderCategories();
+    FeedSection.renderSubCategories();
     HeroSection.renderBreakingBanner();
     HeroSection.render();
     BentoSection.render();
@@ -179,6 +181,11 @@ function setupRouting() {
       ArticleReaderModal.close(false);
       InstitutionalPages.close();
       closeAdminCMSModal();
+      store.currentCategory = 'all';
+      store.currentSubCategory = null;
+      FeedSection.renderCategories();
+      FeedSection.renderSubCategories();
+      FeedSection.render();
       SeoService.setHomeSEO();
     } else if (route.type === 'admin') {
       ArticleReaderModal.close(false);
@@ -196,14 +203,29 @@ function setupRouting() {
       const title = InstitutionalPages.getPageTitle(pageId, store.preferences.language);
       const lead = InstitutionalPages.getPageLead(pageId, store.preferences.language);
       SeoService.setPageSEO(pageId, title, lead);
-    } else if (route.type === 'category' && route.param) {
+    } else if (route.type === 'category' && (route.category || route.param)) {
       ArticleReaderModal.close(false);
       InstitutionalPages.close();
       closeAdminCMSModal();
-      store.currentCategory = route.param as CategoryId;
+      const cat = (route.category || route.param) as CategoryId;
+      store.currentCategory = cat;
+      store.currentSubCategory = null;
       FeedSection.renderCategories();
+      FeedSection.renderSubCategories();
       FeedSection.render();
-      SeoService.setCategorySEO(route.param.toUpperCase(), route.param as CategoryId);
+      SeoService.setCategorySEO(cat.toUpperCase(), cat);
+    } else if (route.type === 'subcategory') {
+      ArticleReaderModal.close(false);
+      InstitutionalPages.close();
+      closeAdminCMSModal();
+      const cat = (route.category || route.param) as CategoryId;
+      const sub = route.subCategory || route.subParam || null;
+      store.currentCategory = cat;
+      store.currentSubCategory = sub;
+      FeedSection.renderCategories();
+      FeedSection.renderSubCategories();
+      FeedSection.render();
+      SeoService.setCategorySEO(`${cat.toUpperCase()} - ${sub || ''}`, cat);
     }
   });
 }
@@ -396,8 +418,14 @@ function setupEventListeners() {
   const handleCategoryNavClick = (catId: string) => {
     if (!catId) return;
     store.currentCategory = catId as any;
-    Router.navigateToCategory(catId as any);
+    store.currentSubCategory = null;
+    if (catId === 'all') {
+      Router.navigateHome();
+    } else {
+      Router.navigateToCategory(catId as any);
+    }
     FeedSection.renderCategories();
+    FeedSection.renderSubCategories();
     FeedSection.render();
     
     // Update active state in masthead nav

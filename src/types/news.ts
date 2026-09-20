@@ -18,11 +18,21 @@ export type CategoryId =
   | 'telecom'
   | 'developer';
 
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+}
+
 export interface Category {
   id: CategoryId;
   name: string;
+  slug: string;
   icon: string;
   description: string;
+  subCategories?: SubCategory[];
 }
 
 export interface Author {
@@ -51,6 +61,7 @@ export interface Article {
   slug: string;
   subtitle: string;
   category: CategoryId;
+  subCategory?: string;
   tags: string[];
   author: Author;
   publishedAt: string;

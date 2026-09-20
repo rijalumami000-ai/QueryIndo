@@ -1,5 +1,5 @@
 import type { Article, CategoryId } from '../../types/news';
-import { CATEGORIES } from '../../data/mockNews';
+import { CATEGORIES, getSubCategories } from '../../data/mockNews';
 import { AuthService } from '../../services/authService';
 import { AuthorService } from '../../services/authorService';
 import { ArticleService } from '../../services/articleService';
@@ -155,6 +155,13 @@ export class ArticleEditor {
           </div>
 
           <div>
+            <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Sub-Kanal Spesifik (Sub-Kategori)</label>
+            <select id="edit-subcategory" style="width: 100%; padding: 0.65rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem; font-weight: 600;">
+              <!-- Dynamic options -->
+            </select>
+          </div>
+
+          <div>
             <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-secondary);">Tags Berita (Pisahkan Koma)</label>
             <input type="text" id="edit-tags" value="${article ? article.tags.join(', ') : 'Teknologi, Indonesia, AI'}" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem;" />
           </div>
@@ -213,6 +220,29 @@ export class ArticleEditor {
     const editTitle = editorPage.querySelector('#edit-title') as HTMLInputElement;
     const editSubtitle = editorPage.querySelector('#edit-subtitle') as HTMLInputElement;
     const editCategory = editorPage.querySelector('#edit-category') as HTMLSelectElement;
+    const editSubcategory = editorPage.querySelector('#edit-subcategory') as HTMLSelectElement;
+
+    const populateSubcategories = (catId: string, preselected?: string) => {
+      if (!editSubcategory) return;
+      const subList = getSubCategories(catId);
+      if (subList.length === 0) {
+        editSubcategory.innerHTML = '<option value="">-- Tidak ada sub-kanal --</option>';
+        return;
+      }
+      editSubcategory.innerHTML = subList.map(s => `
+        <option value="${s.id}" ${preselected === s.id || preselected === s.slug ? 'selected' : ''}>${s.name}</option>
+      `).join('');
+    };
+
+    if (editCategory && editSubcategory) {
+      populateSubcategories(editCategory.value, article?.subCategory);
+      editCategory.addEventListener('change', () => {
+        populateSubcategories(editCategory.value);
+        if (previewCategory) {
+          previewCategory.textContent = editCategory.value.toUpperCase();
+        }
+      });
+    }
 
     const authorSelect = editorPage.querySelector('#edit-author-select') as HTMLSelectElement;
     const authorCustomInput = editorPage.querySelector('#edit-author-custom') as HTMLInputElement;
@@ -630,6 +660,7 @@ export class ArticleEditor {
       const title = (editorPage.querySelector('#edit-title') as HTMLInputElement).value;
       const subtitle = (editorPage.querySelector('#edit-subtitle') as HTMLInputElement).value;
       const category = (editorPage.querySelector('#edit-category') as HTMLSelectElement).value as CategoryId;
+      const subCategory = (editorPage.querySelector('#edit-subcategory') as HTMLSelectElement)?.value || undefined;
       const tagsStr = (editorPage.querySelector('#edit-tags') as HTMLInputElement).value;
       const rawImageUrl = (editorPage.querySelector('#edit-image-url') as HTMLInputElement).value.trim();
       const imageUrl = ImageUtils.normalizeImageUrl(rawImageUrl);
@@ -649,6 +680,7 @@ export class ArticleEditor {
           title,
           subtitle,
           category,
+          subCategory,
           tags,
           imageUrl,
           author: {
@@ -670,6 +702,7 @@ export class ArticleEditor {
           slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           subtitle,
           category,
+          subCategory,
           tags,
           author: {
             name: authorName,

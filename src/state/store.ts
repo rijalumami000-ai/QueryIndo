@@ -34,6 +34,7 @@ class Store {
   };
 
   public currentCategory: CategoryId = 'all';
+  public currentSubCategory: string | null = null;
   public searchQuery: string = '';
   public liveTechIndexes: TechIndexItem[] = [...TECH_INDEXES];
   public selectedFilterSortBy: string = 'latest';

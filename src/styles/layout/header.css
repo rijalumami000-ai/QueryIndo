@@ -1184,6 +1184,109 @@ body.is-scrolled .brand-word-indo {
   background: #0284c7;
 }
 
+/* Sub-Channel Secondary Horizontal Ribbon */
+.subcategory-bar {
+  margin: -0.5rem 0 1rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  contain: layout paint;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .subcategory-bar {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+.subcategory-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.1rem 0.2rem;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+.subcategory-scroll::-webkit-scrollbar { display: none; }
+
+.subcat-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.775rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subcat-pill:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.subcat-pill.active {
+  background: var(--bg-primary);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+[data-theme="light"] .subcat-pill.active {
+  background: #ffffff;
+  color: #0284c7;
+  border-color: #0284c7;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.15);
+}
+
+/* Editorial Breadcrumb Navigation */
+.reader-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-family: var(--font-main);
+}
+
+.crumb-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+  font-weight: 600;
+}
+
+.crumb-link:hover {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+
+.crumb-separator {
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+.crumb-current {
+  color: var(--text-primary);
+  font-weight: 700;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* ==========================================================================
    Language Switcher (ID/EN Toggle)

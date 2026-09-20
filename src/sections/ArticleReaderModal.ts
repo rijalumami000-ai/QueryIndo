@@ -3,6 +3,7 @@ import { ArticleService } from '../services/articleService';
 import { store } from '../state/store';
 import { Router } from '../router';
 import { ApiService } from '../services/apiService';
+import { getCategoryById, findSubCategory } from '../data/mockNews';
 import { ReaderAuthService } from '../services/authService';
 import { SeoService } from '../utils/seoService';
 import { Toast } from '../utils/toast';
@@ -55,7 +56,11 @@ export class ArticleReaderModal {
     // Push clean URL to browser history
     if (updateUrl) {
       const slug = article.slug || slugifyTitle(article.title);
-      Router.navigateTo(`/berita/${slug}`);
+      if (article.category && article.subCategory) {
+        Router.navigateTo(`/${article.category}/${article.subCategory}/${slug}`);
+      } else {
+        Router.navigateTo(`/berita/${slug}`);
+      }
     }
 
     // Record into Reading History
@@ -70,6 +75,12 @@ export class ArticleReaderModal {
     // Record article view counter to PostgreSQL server in background
     ApiService.viewArticle(article.id).catch(() => {});
 
+    // Category and Sub-category metadata
+    const catObj = getCategoryById(article.category);
+    const subCatObj = article.subCategory ? findSubCategory(article.category, article.subCategory) : undefined;
+    const catName = catObj ? catObj.name : article.category.toUpperCase();
+    const subCatName = subCatObj ? subCatObj.name : (article.subCategory || '');
+
     // Article Content Body
     const articleBody = article.content;
 
@@ -80,8 +91,22 @@ export class ArticleReaderModal {
       </div>
 
       <div class="reader-header">
+        <!-- Editorial Breadcrumb Navigation -->
+        <nav class="reader-breadcrumbs" aria-label="Breadcrumb Navigasi">
+          <a href="/" class="crumb-link" data-crumb="home">Beranda</a>
+          <span class="crumb-separator">/</span>
+          <a href="/kategori/${article.category}" class="crumb-link" data-crumb="category" data-cat="${article.category}">${catName}</a>
+          ${article.subCategory ? `
+            <span class="crumb-separator">/</span>
+            <a href="/${article.category}/${subCatObj?.slug || article.subCategory}" class="crumb-link" data-crumb="subcategory" data-cat="${article.category}" data-sub="${subCatObj?.slug || article.subCategory}">${subCatName}</a>
+          ` : ''}
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">${escapeHtml(article.title)}</span>
+        </nav>
+
         <div class="badge-group">
           <span class="tag-badge">${article.category.toUpperCase()}</span>
+          ${article.subCategory ? `<span class="tag-badge" style="background:rgba(0,242,254,0.1); color:var(--accent-cyan); border-color:rgba(0,242,254,0.3); font-weight:700;">${subCatName}</span>` : ''}
           ${article.tags.map(t => `<span class="tag-badge" style="background:var(--bg-tertiary); color:var(--text-secondary); border-color:var(--border-color);">#${t}</span>`).join('')}
         </div>
         <h1 class="reader-title" id="reader-article-title">${article.title}</h1>
@@ -260,6 +285,25 @@ export class ArticleReaderModal {
         if (subtitleEl) subtitleEl.textContent = translated.subtitle;
       });
     }
+
+    // Breadcrumb Click Navigation Handlers
+    modalReaderContent.querySelectorAll('.crumb-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const crumbType = link.getAttribute('data-crumb');
+        ArticleReaderModal.close(false);
+        if (crumbType === 'home') {
+          Router.navigateHome();
+        } else if (crumbType === 'category') {
+          const cat = link.getAttribute('data-cat') || 'all';
+          Router.navigateToCategory(cat);
+        } else if (crumbType === 'subcategory') {
+          const cat = link.getAttribute('data-cat') || 'all';
+          const sub = link.getAttribute('data-sub') || '';
+          Router.navigateToSubCategory(cat, sub);
+        }
+      });
+    });
 
     this.setupReaderControls(article);
   }

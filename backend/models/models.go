@@ -45,6 +45,7 @@ type Article struct {
 	Slug            string         `gorm:"uniqueIndex;not null" json:"slug"`
 	Subtitle        string         `gorm:"type:text" json:"subtitle"`
 	CategoryID      string         `gorm:"index;not null" json:"category"`
+	SubCategory     string         `gorm:"index" json:"subCategory,omitempty"`
 	Category        Category       `gorm:"foreignKey:CategoryID" json:"category_detail,omitempty"`
 	AuthorJSON      string         `gorm:"type:text" json:"-"`
 	Author          ArticleAuthor  `gorm:"-" json:"author"`

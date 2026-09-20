@@ -1,11 +1,16 @@
 import { findArticleBySlugOrId, slugifyTitle } from '../utils/helpers';
 import { InstitutionalPages } from '../components/InstitutionalPages';
+import { findSubCategory, getCategoryBySlug, getCategoryById } from '../data/mockNews';
 
-export type RouteType = 'home' | 'admin' | 'article' | 'page' | 'category';
+export type RouteType = 'home' | 'admin' | 'article' | 'page' | 'category' | 'subcategory';
 
 export interface RouteMatch {
   type: RouteType;
   param?: string;
+  subParam?: string;
+  category?: string;
+  subCategory?: string;
+  articleSlug?: string;
   rawPath: string;
 }
 
@@ -46,7 +51,7 @@ export class Router {
         e.preventDefault();
         this.navigateTo(href);
       } else if (href.startsWith('#') && href.length > 1) {
-        // Smoothly migrate hash clicks (e.g. #page/tentang-kami -> /page/tentang-kami)
+        // Smoothly migrate hash clicks
         if (href.startsWith('#admin')) {
           e.preventDefault();
           this.navigateTo('/admin');
@@ -56,6 +61,12 @@ export class Router {
         } else if (href.startsWith('#article/')) {
           e.preventDefault();
           this.navigateTo(href.replace('#article/', '/berita/'));
+        } else if (href.startsWith('#subcategory/')) {
+          e.preventDefault();
+          const parts = href.replace('#subcategory/', '').split('/');
+          if (parts.length >= 2) {
+            this.navigateTo(`/${parts[0]}/${parts[1]}`);
+          }
         } else if (href.startsWith('#category/')) {
           e.preventDefault();
           this.navigateTo(href.replace('#category/', '/kategori/'));
@@ -83,7 +94,7 @@ export class Router {
     this.handleRouting();
   }
 
-  public static navigateToArticle(slugOrId: string, title?: string): void {
+  public static navigateToArticle(slugOrId: string, title?: string, category?: string, subCategory?: string): void {
     if (!slugOrId && !title) return;
     let target = slugOrId;
     if (!target || target.startsWith('art-')) {
@@ -91,7 +102,12 @@ export class Router {
     } else {
       target = slugifyTitle(target);
     }
-    this.navigateTo(`/berita/${target}`);
+
+    if (category && subCategory) {
+      this.navigateTo(`/${category}/${subCategory}/${target}`);
+    } else {
+      this.navigateTo(`/berita/${target}`);
+    }
   }
 
   public static navigateToPage(pageId: string): void {
@@ -100,6 +116,10 @@ export class Router {
 
   public static navigateToCategory(category: string): void {
     this.navigateTo(`/kategori/${category}`);
+  }
+
+  public static navigateToSubCategory(category: string, subCategory: string): void {
+    this.navigateTo(`/${category}/${subCategory}`);
   }
 
   public static navigateToAdmin(): void {
@@ -124,6 +144,12 @@ export class Router {
         const pageParam = hash.replace('#page/', '');
         window.history.replaceState(null, '', `/page/${pageParam}`);
         path = `page/${pageParam}`;
+      } else if (hash.startsWith('#subcategory/')) {
+        const parts = hash.replace('#subcategory/', '').split('/');
+        if (parts.length >= 2) {
+          window.history.replaceState(null, '', `/${parts[0]}/${parts[1]}`);
+          path = `${parts[0]}/${parts[1]}`;
+        }
       } else if (hash.startsWith('#category/')) {
         const catParam = hash.replace('#category/', '');
         window.history.replaceState(null, '', `/kategori/${catParam}`);
@@ -140,20 +166,108 @@ export class Router {
       routeMatch = { type: 'admin', rawPath: '/admin' };
     } else if (path.startsWith('berita/') || path.startsWith('article/')) {
       const slugOrId = path.replace(/^(berita|article)\//, '');
-      routeMatch = { type: 'article', param: slugOrId, rawPath: `/${path}` };
+      routeMatch = { type: 'article', param: slugOrId, articleSlug: slugOrId, rawPath: `/${path}` };
     } else if (path.startsWith('page/') || path.startsWith('halaman/')) {
       const pageId = path.replace(/^(page|halaman)\//, '');
       if (InstitutionalPages.isValidPageId(pageId)) {
         routeMatch = { type: 'page', param: pageId, rawPath: `/${path}` };
       }
-    } else if (path.startsWith('kategori/') || path.startsWith('category/')) {
-      const category = path.replace(/^(kategori|category)\//, '');
-      routeMatch = { type: 'category', param: category, rawPath: `/${path}` };
-    } else if (!path.startsWith('api/') && !path.startsWith('health')) {
-      // Direct title slug fallback e.g. /Indonesia-Resmi-Operasikan-Pusat-Data...
-      const matchedArticle = findArticleBySlugOrId(path);
-      if (matchedArticle) {
-        routeMatch = { type: 'article', param: matchedArticle.slug || matchedArticle.id, rawPath: `/${path}` };
+    } else {
+      // Split path segments
+      // Strip optional leading 'kategori/' or 'category/'
+      const normalizedPath = path.replace(/^(kategori|category)\//, '');
+      const segments = normalizedPath.split('/').filter(Boolean);
+
+      if (segments.length === 1) {
+        const catOrSlug = segments[0];
+        const matchedCategory = getCategoryBySlug(catOrSlug) || getCategoryById(catOrSlug);
+        if (matchedCategory) {
+          routeMatch = {
+            type: 'category',
+            param: matchedCategory.id,
+            category: matchedCategory.id,
+            rawPath: `/${path}`
+          };
+        } else {
+          // Direct title slug fallback e.g. /Indonesia-Resmi-Operasikan-Pusat-Data...
+          const matchedArticle = findArticleBySlugOrId(path);
+          if (matchedArticle) {
+            routeMatch = {
+              type: 'article',
+              param: matchedArticle.slug || matchedArticle.id,
+              articleSlug: matchedArticle.slug || matchedArticle.id,
+              category: matchedArticle.category,
+              subCategory: matchedArticle.subCategory,
+              rawPath: `/${path}`
+            };
+          } else {
+            routeMatch = { type: 'home', rawPath: '/' };
+          }
+        }
+      } else if (segments.length === 2) {
+        // Either /:category/:subCategory OR /kategori/:category/:subCategory OR /:category/:articleSlug
+        const [seg1, seg2] = segments;
+        const matchedCategory = getCategoryBySlug(seg1) || getCategoryById(seg1);
+        if (matchedCategory) {
+          const matchedSub = findSubCategory(matchedCategory.id, seg2);
+          if (matchedSub) {
+            routeMatch = {
+              type: 'subcategory',
+              param: matchedCategory.id,
+              subParam: matchedSub.id,
+              category: matchedCategory.id,
+              subCategory: matchedSub.id,
+              rawPath: `/${path}`
+            };
+          } else {
+            // Check if seg2 is an article slug in seg1 category
+            const matchedArticle = findArticleBySlugOrId(seg2);
+            if (matchedArticle) {
+              routeMatch = {
+                type: 'article',
+                param: matchedArticle.slug || matchedArticle.id,
+                articleSlug: matchedArticle.slug || matchedArticle.id,
+                category: matchedCategory.id,
+                rawPath: `/${path}`
+              };
+            } else {
+              routeMatch = {
+                type: 'category',
+                param: matchedCategory.id,
+                category: matchedCategory.id,
+                rawPath: `/${path}`
+              };
+            }
+          }
+        } else {
+          // Fallback to article search
+          const matchedArticle = findArticleBySlugOrId(seg2);
+          if (matchedArticle) {
+            routeMatch = {
+              type: 'article',
+              param: matchedArticle.slug || matchedArticle.id,
+              articleSlug: matchedArticle.slug || matchedArticle.id,
+              rawPath: `/${path}`
+            };
+          } else {
+            routeMatch = { type: 'home', rawPath: '/' };
+          }
+        }
+      } else if (segments.length >= 3) {
+        // Hierarchical 3-level route: /:category/:subCategory/:articleSlug
+        const [seg1, seg2, seg3] = segments;
+        const matchedCategory = getCategoryBySlug(seg1) || getCategoryById(seg1);
+        const articleSlug = seg3;
+        const matchedArticle = findArticleBySlugOrId(articleSlug);
+
+        routeMatch = {
+          type: 'article',
+          param: matchedArticle ? (matchedArticle.slug || matchedArticle.id) : articleSlug,
+          articleSlug: articleSlug,
+          category: matchedCategory ? matchedCategory.id : seg1,
+          subCategory: seg2,
+          rawPath: `/${path}`
+        };
       } else {
         routeMatch = { type: 'home', rawPath: '/' };
       }

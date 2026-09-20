@@ -15,6 +15,7 @@ import (
 // GET /api/v1/articles
 func GetArticles(c *fiber.Ctx) error {
 	category := c.Query("category")
+	subCategory := c.Query("subcategory")
 	search := c.Query("search")
 	status := c.Query("status", "published")
 
@@ -31,6 +32,10 @@ func GetArticles(c *fiber.Ctx) error {
 
 	if category != "" && category != "all" {
 		query = query.Where("category_id = ?", category)
+	}
+
+	if subCategory != "" && subCategory != "all" {
+		query = query.Where("sub_category = ?", subCategory)
 	}
 
 	if search != "" {
