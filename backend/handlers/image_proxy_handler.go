@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -13,9 +14,55 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+var safeDialer = &net.Dialer{
+	Timeout:   8 * time.Second,
+	KeepAlive: 15 * time.Second,
+}
+
+// secureHTTPClient enforces strict Anti-SSRF at both redirect time and TCP socket dial time
 var secureHTTPClient = &http.Client{
 	Timeout: 12 * time.Second,
+	// CheckRedirect validates every single hop to prevent open redirect SSRF bypasses
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 3 {
+			return fmt.Errorf("terlalu banyak redirect (maksimal 3 redirect)")
+		}
+		if _, err := validateSafeTargetURL(req.URL.String()); err != nil {
+			return fmt.Errorf("redirect ditolak (SSRF protection): %w", err)
+		}
+		return nil
+	},
 	Transport: &http.Transport{
+		// DialContext verifies physical IP at exact moment of connection to defeat DNS Rebinding (TOCTOU)
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			host, port, err := net.SplitHostPort(addr)
+			if err != nil {
+				return nil, fmt.Errorf("format target host:port tidak valid: %w", err)
+			}
+
+			ips, err := net.DefaultResolver.LookupIP(ctx, "ip", host)
+			if err != nil {
+				return nil, fmt.Errorf("resolusi DNS gagal untuk %s: %w", host, err)
+			}
+
+			if len(ips) == 0 {
+				return nil, fmt.Errorf("tidak ada alamat IP ditemukan untuk %s", host)
+			}
+
+			var safeIP net.IP
+			for _, ip := range ips {
+				if isRestrictedIP(ip) {
+					return nil, fmt.Errorf("akses ditolak (SSRF): IP target %s adalah jaringan internal/privat", ip.String())
+				}
+				if safeIP == nil {
+					safeIP = ip
+				}
+			}
+
+			// Connect directly to the validated IP address
+			safeAddr := net.JoinHostPort(safeIP.String(), port)
+			return safeDialer.DialContext(ctx, network, safeAddr)
+		},
 		TLSClientConfig: &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		},

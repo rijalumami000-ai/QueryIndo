@@ -24,17 +24,13 @@ func ConnectDB() (*gorm.DB, error) {
 	dbName := os.Getenv("DB_NAME")
 	dbSSLMode := os.Getenv("DB_SSLMODE")
 
-	if dbHost == "" {
-		dbHost = "localhost"
+	if dbHost == "" || dbUser == "" || dbName == "" {
+		log.Println("⚠️ Konfigurasi database belum lengkap (DB_HOST, DB_USER, dan DB_NAME wajib disetel di .env).")
+		return nil, fmt.Errorf("konfigurasi environment database tidak lengkap")
 	}
+
 	if dbPort == "" {
 		dbPort = "5432"
-	}
-	if dbUser == "" {
-		dbUser = "Rijalumami1002"
-	}
-	if dbName == "" {
-		dbName = "byteindonesia_db"
 	}
 	if dbSSLMode == "" {
 		dbSSLMode = "disable"
@@ -88,16 +84,13 @@ func seedSuperuserIfEmpty(db *gorm.DB) {
 	db.Model(&models.User{}).Count(&userCount)
 	if userCount == 0 {
 		adminUser := os.Getenv("ADMIN_USER")
-		if adminUser == "" {
-			adminUser = "Rijalumami"
-		}
 		adminEmail := os.Getenv("ADMIN_EMAIL")
-		if adminEmail == "" {
-			adminEmail = "rijalumami000@gmail.com"
-		}
 		adminPass := os.Getenv("ADMIN_PASSWORD")
-		if adminPass == "" {
-			adminPass = "rijalumami1002"
+
+		// Fail-closed: Never seed superuser with hardcoded fallback password
+		if adminUser == "" || adminEmail == "" || adminPass == "" {
+			log.Println("⚠️ [SECURITY NOTICE] ADMIN_USER, ADMIN_EMAIL, atau ADMIN_PASSWORD belum disetel di .env. Auto-seeding superuser dibatalkan demi keamanan (fail-closed).")
+			return
 		}
 
 		hash, err := utils.HashPassword(adminPass)

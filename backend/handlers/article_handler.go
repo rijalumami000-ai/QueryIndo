@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"byteindonesia/backend/database"
@@ -11,6 +13,24 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
+
+var htmlTagRegex = regexp.MustCompile("<[^>]*>")
+
+func sanitizePlainText(input string) string {
+	return strings.TrimSpace(htmlTagRegex.ReplaceAllString(input, ""))
+}
+
+func sanitizeArticleMetadata(article *models.Article) {
+	article.Title = sanitizePlainText(article.Title)
+	article.Subtitle = sanitizePlainText(article.Subtitle)
+	article.ImageCaption = sanitizePlainText(article.ImageCaption)
+	article.SubCategory = sanitizePlainText(article.SubCategory)
+	article.Author.Name = sanitizePlainText(article.Author.Name)
+	article.Author.Role = sanitizePlainText(article.Author.Role)
+	for i, tag := range article.Tags {
+		article.Tags[i] = sanitizePlainText(tag)
+	}
+}
 
 // GET /api/v1/articles
 func GetArticles(c *fiber.Ctx) error {
@@ -104,6 +124,9 @@ func CreateArticle(c *fiber.Ctx) error {
 		article.Status = "published"
 	}
 
+	// Sanitize text metadata to strip dangerous HTML tags
+	sanitizeArticleMetadata(&article)
+
 	if database.DB != nil {
 		if err := database.DB.Create(&article).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{
@@ -152,6 +175,9 @@ func UpdateArticle(c *fiber.Ctx) error {
 			"message": "Invalid payload",
 		})
 	}
+
+	// Sanitize text metadata to strip dangerous HTML tags
+	sanitizeArticleMetadata(&article)
 
 	database.DB.Save(&article)
 

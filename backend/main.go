@@ -22,6 +22,11 @@ func main() {
 		log.Println("ℹ️ Info: Menggunakan environment sistem / default.")
 	}
 
+	// Fail-closed validation: JWT_SECRET is mandatory for production security
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Fatal("🚨 [FATAL ERROR] Variabel JWT_SECRET belum disetel. Server menolak berjalan tanpa kunci JWT.")
+	}
+
 	if os.Getenv("HOSTINGER_MAIL_API_KEY") != "" {
 		log.Println("📧 Mailer System: Hostinger Mail REST API (HTTPS Port 443) Aktif")
 	} else if os.Getenv("SMTP_PASS") != "" {
@@ -66,14 +71,12 @@ func main() {
 	})
 	app.Use("/api/", apiLimiter)
 
-	// Health Check Route
+	// Health Check Route (Cleaned - No Database / System Info Disclosure)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status":    "online",
-			"service":   "QUERYINDO High-Performance Go Service",
-			"db_status": database.DB != nil,
-			"user_db":   os.Getenv("DB_USER"),
-			"database":  os.Getenv("DB_NAME"),
+			"status":             "online",
+			"service":            "QUERYINDO High-Performance Go Service",
+			"database_connected": database.DB != nil,
 		})
 	})
 

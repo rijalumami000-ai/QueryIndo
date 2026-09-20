@@ -96,32 +96,32 @@ export class ArticleReaderModal {
         <nav class="reader-breadcrumbs" aria-label="Breadcrumb Navigasi">
           <a href="/" class="crumb-link" data-crumb="home">Beranda</a>
           <span class="crumb-separator">/</span>
-          <a href="/kategori/${article.category}" class="crumb-link" data-crumb="category" data-cat="${article.category}">${catName}</a>
+          <a href="/kategori/${article.category}" class="crumb-link" data-crumb="category" data-cat="${article.category}">${escapeHtml(catName)}</a>
           ${article.subCategory ? `
             <span class="crumb-separator">/</span>
-            <a href="/${article.category}/${subCatObj?.slug || article.subCategory}" class="crumb-link" data-crumb="subcategory" data-cat="${article.category}" data-sub="${subCatObj?.slug || article.subCategory}">${subCatName}</a>
+            <a href="/${article.category}/${subCatObj?.slug || article.subCategory}" class="crumb-link" data-crumb="subcategory" data-cat="${article.category}" data-sub="${subCatObj?.slug || article.subCategory}">${escapeHtml(subCatName)}</a>
           ` : ''}
           <span class="crumb-separator">/</span>
           <span class="crumb-current">${escapeHtml(article.title)}</span>
         </nav>
 
         <div class="badge-group">
-          <span class="tag-badge">${article.category.toUpperCase()}</span>
-          ${article.subCategory ? `<span class="tag-badge" style="background:rgba(0,242,254,0.1); color:var(--accent-cyan); border-color:rgba(0,242,254,0.3); font-weight:700;">${subCatName}</span>` : ''}
-          ${article.tags.map(t => `<span class="tag-badge" style="background:var(--bg-tertiary); color:var(--text-secondary); border-color:var(--border-color);">#${t}</span>`).join('')}
+          <span class="tag-badge">${escapeHtml(article.category.toUpperCase())}</span>
+          ${article.subCategory ? `<span class="tag-badge" style="background:rgba(0,242,254,0.1); color:var(--accent-cyan); border-color:rgba(0,242,254,0.3); font-weight:700;">${escapeHtml(subCatName)}</span>` : ''}
+          ${article.tags.map(t => `<span class="tag-badge" style="background:var(--bg-tertiary); color:var(--text-secondary); border-color:var(--border-color);">#${escapeHtml(t)}</span>`).join('')}
         </div>
-        <h1 class="reader-title" id="reader-article-title">${article.title}</h1>
-        <p class="reader-subtitle" id="reader-article-subtitle">${article.subtitle}</p>
+        <h1 class="reader-title" id="reader-article-title">${escapeHtml(article.title)}</h1>
+        <p class="reader-subtitle" id="reader-article-subtitle">${escapeHtml(article.subtitle)}</p>
 
         <div class="author-meta-block">
           <div class="author-detail">
-            <img src="${article.author.avatar}" alt="${article.author.name}" class="author-lg-avatar" />
+            <img src="${getSafeImageUrl(article.author.avatar)}" alt="${escapeHtml(article.author.name)}" class="author-lg-avatar" />
             <div>
               <div class="author-name-text" style="display: flex; align-items: center; gap: 0.35rem;">
-                ${article.author.name}
+                ${escapeHtml(article.author.name)}
                 ${ImageUtils.getVerifiedBadgeHTML(16, 'Dewan Redaksi Terverifikasi')}
               </div>
-              <div class="author-role-text">${article.author.role}</div>
+              <div class="author-role-text">${escapeHtml(article.author.role)}</div>
             </div>
           </div>
           <div class="author-meta-right">
@@ -151,7 +151,7 @@ export class ArticleReaderModal {
       </div>
 
       <img src="${getSafeImageUrl(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="reader-hero-image" ${IMG_ONERROR} />
-      ${article.imageCaption ? `<div class="image-caption">${article.imageCaption}</div>` : ''}
+      ${article.imageCaption ? `<div class="image-caption">${escapeHtml(article.imageCaption)}</div>` : ''}
 
       <div class="article-rich-content size-${store.preferences.fontSize || 'normal'}" id="article-content-wrapper">
         ${articleBody}
@@ -168,7 +168,7 @@ export class ArticleReaderModal {
           </strong>
           ${article.revisionHistory.map(rev => `
             <div style="margin-top:0.25rem;">
-              <span style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.75rem;">[${rev.date}]</span> ${rev.note}
+              <span style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.75rem;">[${escapeHtml(rev.date)}]</span> ${escapeHtml(rev.note)}
             </div>
           `).join('')}
         </div>
