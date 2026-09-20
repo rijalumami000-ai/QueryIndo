@@ -178,12 +178,14 @@ export class ReaderComments {
     this.saveComments(articleId, comments);
 
     // Persist to PostgreSQL backend in background
+    const currentReader = ReaderAuthService.getCurrentReader();
     ApiService.postComment(articleId, {
       authorName: newComment.authorName,
       authorRole: newComment.authorRole,
       avatar: newComment.avatar,
       content: newComment.content,
-      parentId: newComment.parentId
+      parentId: newComment.parentId,
+      googleAccessToken: currentReader?.accessToken
     }).then(serverComment => {
       if (serverComment && serverComment.id) {
         newComment.id = serverComment.id;

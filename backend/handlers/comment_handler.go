@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -17,6 +19,18 @@ import (
 )
 
 var commentTagRegex = regexp.MustCompile(`<[^>]*>`)
+
+const googleUserInfoURL = "https://openidconnect.googleapis.com/v1/userinfo"
+
+var googleUserInfoClient = &http.Client{Timeout: 5 * time.Second}
+
+type googleUserInfo struct {
+	Subject       string `json:"sub"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+}
 
 func sanitizeCommentText(s string) string {
 	clean := commentTagRegex.ReplaceAllString(s, "")
@@ -44,8 +58,41 @@ func sanitizeAvatarURL(raw string, defaultAvatar string) string {
 	return u.String()
 }
 
+// verifyGoogleAccessToken validates a reader's OAuth access token with
+// Google's userinfo endpoint. Identity fields must come from this response,
+// never from the browser payload.
+func verifyGoogleAccessToken(token string) (*googleUserInfo, error) {
+	if strings.TrimSpace(token) == "" {
+		return nil, fmt.Errorf("token Google diperlukan")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, googleUserInfoURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("gagal membuat request verifikasi Google")
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := googleUserInfoClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("gagal menghubungi layanan verifikasi Google")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("token Google tidak valid atau telah kedaluwarsa")
+	}
+
+	var profile googleUserInfo
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 64*1024)).Decode(&profile); err != nil {
+		return nil, fmt.Errorf("respons verifikasi Google tidak valid")
+	}
+	if profile.Subject == "" || profile.Email == "" || !profile.EmailVerified {
+		return nil, fmt.Errorf("akun Google belum memiliki email terverifikasi")
+	}
+	return &profile, nil
+}
+
 
 type CreateCommentRequest struct {
+	GoogleAccessToken string `json:"googleAccessToken"`
 	AuthorName string `json:"authorName"`
 	AuthorRole string `json:"authorRole"`
 	Avatar     string `json:"avatar"`
@@ -84,13 +131,24 @@ func GetArticleComments(c *fiber.Ctx) error {
 	var rootComments []models.CommentResponse
 
 	for _, cmt := range allComments {
+		// Normalize legacy records created before comment hardening. This stops
+		// pre-existing stored values from reaching a browser in executable form.
+		fallbackAvatar := "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+		authorName := sanitizeCommentText(cmt.AuthorName)
+		if authorName == "" {
+			authorName = "Pembaca QUERYINDO"
+		}
+		authorRole := sanitizeCommentText(cmt.AuthorRole)
+		if authorRole == "" {
+			authorRole = "Pembaca"
+		}
 		resp := models.CommentResponse{
 			ID:         cmt.ID,
 			ArticleID:  cmt.ArticleID,
-			AuthorName: cmt.AuthorName,
-			AuthorRole: cmt.AuthorRole,
-			Avatar:     cmt.Avatar,
-			Content:    cmt.Content,
+			AuthorName: authorName,
+			AuthorRole: authorRole,
+			Avatar:     sanitizeAvatarURL(cmt.Avatar, fallbackAvatar),
+			Content:    sanitizeCommentText(cmt.Content),
 			CreatedAt:  cmt.CreatedAt.Format(time.RFC3339),
 			LikesCount: cmt.LikesCount,
 			ParentID:   cmt.ParentID,
@@ -146,6 +204,13 @@ func PostArticleComment(c *fiber.Ctx) error {
 		}
 	}
 
+	if database.DB == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"success": false,
+			"message": "Layanan komentar tidak tersedia saat basis data offline.",
+		})
+	}
+
 	cleanContent := sanitizeCommentText(req.Content)
 	if len([]rune(cleanContent)) < 2 {
 		return c.Status(400).JSON(fiber.Map{
@@ -160,24 +225,39 @@ func PostArticleComment(c *fiber.Ctx) error {
 		})
 	}
 
-	authorName := sanitizeCommentText(req.AuthorName)
-	if authorName == "" {
-		authorName = "Pembaca QUERYINDO"
+	var authorName string
+	var authorRole string
+	var avatar string
+	defaultAvatar := "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+
+	if strings.TrimSpace(req.GoogleAccessToken) != "" {
+		profile, err := verifyGoogleAccessToken(req.GoogleAccessToken)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Verifikasi Akun Google gagal atau token telah kedaluwarsa. Silakan masuk kembali.",
+			})
+		}
+		authorName = sanitizeCommentText(profile.Name)
+		if authorName == "" {
+			authorName = sanitizeCommentText(strings.Split(profile.Email, "@")[0])
+		}
+		authorRole = "Pembaca Google Terverifikasi"
+		avatar = sanitizeAvatarURL(profile.Picture, defaultAvatar)
+	} else {
+		// Guest / Unauthenticated Comment:
+		// Never allow client to spoof "Terverifikasi" or "Admin" roles.
+		authorName = sanitizeCommentText(req.AuthorName)
+		if authorName == "" {
+			authorName = "Pembaca QUERYINDO"
+		}
+		authorRole = "Pembaca"
+		avatar = sanitizeAvatarURL(req.Avatar, defaultAvatar)
 	}
+
 	if len([]rune(authorName)) > 60 {
 		authorName = string([]rune(authorName)[:60])
 	}
-
-	authorRole := sanitizeCommentText(req.AuthorRole)
-	if authorRole == "" {
-		authorRole = "Pembaca Terverifikasi"
-	}
-	if len([]rune(authorRole)) > 50 {
-		authorRole = string([]rune(authorRole)[:50])
-	}
-
-	defaultAvatar := "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
-	avatar := sanitizeAvatarURL(req.Avatar, defaultAvatar)
 
 	commentID := fmt.Sprintf("cmt-%d-%04d", time.Now().Unix(), rand.Intn(10000))
 
@@ -203,14 +283,12 @@ func PostArticleComment(c *fiber.Ctx) error {
 		UpdatedAt:  time.Now(),
 	}
 
-	if database.DB != nil {
-		if err := database.DB.Create(&comment).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"success": false,
-				"message": "Gagal menyimpan komentar ke basis data",
-				"error":   err.Error(),
-			})
-		}
+	if err := database.DB.Create(&comment).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "Gagal menyimpan komentar ke basis data",
+			"error":   err.Error(),
+		})
 	}
 
 	return c.Status(201).JSON(fiber.Map{

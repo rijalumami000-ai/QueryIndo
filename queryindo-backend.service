@@ -11,6 +11,7 @@ ExecStart=/var/www/queryindo/backend/queryindo-backend
 Restart=always
 RestartSec=5s
 EnvironmentFile=/var/www/queryindo/backend/.env
+Environment=ALLOW_DEGRADED_MODE=false
 
 # Security Hardening & Sandboxing
 NoNewPrivileges=true
@@ -25,4 +26,3 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-

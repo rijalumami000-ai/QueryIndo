@@ -102,10 +102,22 @@ export function formatDate(dateStr: string, language: 'id' | 'en' = 'id'): strin
 }
 
 export function getSafeImageUrl(url?: string): string {
-  return ImageUtils.normalizeImageUrl(url || '') || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
+  const fallback = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
+  const normalized = ImageUtils.normalizeImageUrl(url || '');
+  if (!normalized || /["'<>\s]/.test(normalized)) return fallback;
+  if (normalized.startsWith('/')) return normalized;
+  if (normalized.startsWith('data:image/') || normalized.startsWith('blob:')) return normalized;
+  try {
+    const parsed = new URL(normalized);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.toString() : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
-export const IMG_ONERROR = `onerror="if(this.dataset.tried!=='1'&&this.src.includes('lh3.googleusercontent.com/d/')){this.dataset.tried='1';const id=this.src.split('/d/')[1];if(id){this.src='https://drive.google.com/thumbnail?id='+id+'&sz=w1200';return;}}this.onerror=null;this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';"`;
+// Image failures are handled with DOM listeners so CSP can forbid inline
+// event-handler attributes.
+export const IMG_ONERROR = '';
 
 export function findArticleBySlugOrId(idOrSlug: string): Article | undefined {
   return ArticleService.getArticleBySlugOrId(idOrSlug);

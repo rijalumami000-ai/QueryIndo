@@ -601,7 +601,7 @@ export class ApiService {
 
   public static async postComment(
     articleId: string,
-    payload: { authorName: string; authorRole?: string; avatar?: string; content: string; parentId?: string | null }
+    payload: { authorName: string; authorRole?: string; avatar?: string; content: string; parentId?: string | null; googleAccessToken?: string }
   ): Promise<CommentItem | null> {
     if (this.isBackendAvailable) {
       try {

@@ -38,9 +38,10 @@ func main() {
 	// Initialize Database Connection
 	if _, err := database.ConnectDB(); err != nil {
 		log.Printf("⚠️ PERINGATAN KRITIS: Gagal terhubung ke basis data PostgreSQL: %v\n", err)
-		if os.Getenv("ENV") == "production" || os.Getenv("FAIL_ON_DB_ERROR") == "true" {
-			log.Fatalf("FATAL: Basis data wajib aktif di lingkungan produksi. Server dihentikan (Fail-Closed): %v", err)
+		if os.Getenv("ALLOW_DEGRADED_MODE") != "true" {
+			log.Fatalf("FATAL: Basis data wajib aktif. Set ALLOW_DEGRADED_MODE=true hanya untuk development: %v", err)
 		}
+		log.Println("⚠️ Development degraded mode aktif; rute terlindungi tetap menolak akses.")
 	}
 
 	// Initialize Fiber App

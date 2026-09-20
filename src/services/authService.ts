@@ -33,6 +33,7 @@ export interface ReaderUser {
   savedArticles: string[];
   likedArticles?: string[];
   registeredAt: string;
+  accessToken?: string;
 }
 
 const TOKEN_KEY = 'byte_jwt_token';
@@ -266,7 +267,7 @@ export class ReaderAuthService {
     return this.getCurrentReader() !== null;
   }
 
-  public static loginWithGoogleProfile(profile: { email: string; name?: string; avatar?: string }): { success: boolean; message: string; user: ReaderUser } {
+  public static loginWithGoogleProfile(profile: { email: string; name?: string; avatar?: string; accessToken?: string }): { success: boolean; message: string; user: ReaderUser } {
     if (!profile.email || !profile.email.trim()) {
       throw new Error('Alamat email Google diperlukan');
     }
@@ -291,13 +292,15 @@ export class ReaderAuthService {
         avatar: avatarUrl,
         authProvider: 'google',
         savedArticles: localBookmarks,
-        registeredAt: new Date().toISOString()
+        registeredAt: new Date().toISOString(),
+        accessToken: profile.accessToken
       };
       users.push(existingUser);
     } else {
       existingUser.savedArticles = Array.from(new Set([...existingUser.savedArticles, ...localBookmarks]));
       if (profile.name) existingUser.name = formattedName;
       if (profile.avatar) existingUser.avatar = avatarUrl;
+      if (profile.accessToken) existingUser.accessToken = profile.accessToken;
     }
 
     this.saveStoredUsers(users);
@@ -336,7 +339,8 @@ export class ReaderAuthService {
                     const authResult = ReaderAuthService.loginWithGoogleProfile({
                       email: data.email,
                       name: data.name || data.given_name || data.email.split('@')[0],
-                      avatar: data.picture
+                      avatar: data.picture,
+                      accessToken: tokenResponse.access_token
                     });
                     resolve(authResult);
                     return;
