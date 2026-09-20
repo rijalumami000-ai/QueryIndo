@@ -1,9 +1,9 @@
-/* Header & Navigation */
+/* Header & Navigation (Reuters/TechCrunch Editorial Masthead System) */
 .top-bar {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.825rem;
-  padding: 0.5rem 0;
+  font-size: 0.8rem;
+  padding: 0.45rem 0;
 }
 
 .top-bar-content {
@@ -16,7 +16,7 @@
 .top-bar-left {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .top-bar-tagline {
@@ -38,37 +38,84 @@
   box-shadow: 0 0 8px var(--accent-cyan);
 }
 
+.top-bar-divider {
+  color: var(--border-color);
+  font-size: 0.8rem;
+}
+
+.top-bar-edition {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.top-bar-edition strong {
+  color: var(--text-primary);
+}
+
 .top-bar-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   white-space: nowrap;
 }
 
 .date-badge {
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  font-weight: 500;
 }
 
-/* Navbar Main */
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-top-util {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.btn-top-util:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  background: rgba(0, 242, 254, 0.08);
+}
+
+/* Navbar Main (Reuters-Style Authoritative Masthead) */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
-  transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  contain: layout paint;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .navbar {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .navbar.is-scrolled,
 body.is-scrolled .navbar {
-  background: var(--bg-glass);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(0, 242, 254, 0.22);
-  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+}
+
+[data-theme="light"] .navbar.is-scrolled,
+[data-theme="light"] body.is-scrolled .navbar {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .navbar-scroll-progress {
@@ -90,12 +137,6 @@ body.is-scrolled .navbar {
   justify-content: space-between;
   height: 4.25rem;
   gap: 1.5rem;
-  transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.navbar.is-scrolled .navbar-content,
-body.is-scrolled .navbar-content {
-  height: 3.4rem;
 }
 
 .brand-logo {
@@ -224,6 +265,305 @@ body.is-scrolled .brand-word-indo {
   color: #0284C7;
   background: rgba(2, 132, 199, 0.08);
   border-color: rgba(2, 132, 199, 0.3);
+}
+
+/* Editorial Nav Links (Center Masthead - Reuters/TechCrunch Layout) */
+.masthead-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.masthead-nav-link {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.45rem 0.15rem;
+  position: relative;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.masthead-nav-link:hover {
+  color: var(--text-primary);
+}
+
+.masthead-nav-link.active {
+  color: var(--text-primary);
+}
+
+.masthead-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+}
+
+.masthead-nav-more {
+  position: relative;
+}
+
+.masthead-nav-link.more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.masthead-more-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  min-width: 230px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem 0;
+  z-index: 250;
+  display: none;
+  animation: dropdownSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.masthead-more-dropdown.show {
+  display: block;
+}
+
+.more-dropdown-item {
+  display: block;
+  padding: 0.6rem 1.15rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.more-dropdown-item:hover {
+  color: var(--text-primary);
+  background: rgba(0, 242, 254, 0.08);
+  padding-left: 1.35rem;
+}
+
+.more-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.4rem 0;
+}
+
+/* Search Trigger Button */
+.btn-search-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-search-toggle:hover {
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+  background: rgba(0, 242, 254, 0.08);
+}
+
+.search-toggle-label {
+  font-size: 0.78rem;
+}
+
+.search-toggle-kbd {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  padding: 0.05rem 0.35rem;
+  color: var(--text-muted);
+}
+
+/* Subscribe CTA Button (TechCrunch / Reuters Bold CTA) */
+.btn-subscribe-header {
+  padding: 0.48rem 1.15rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btn-subscribe-header:hover {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+/* Mobile Hamburger Menu Toggle */
+.btn-mobile-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Expandable Search Overlay Bar */
+.search-overlay-bar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: dropdownSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-overlay-content {
+  display: flex;
+  justify-content: center;
+}
+
+.search-overlay-content .search-box {
+  max-width: 720px;
+  width: 100%;
+}
+
+.btn-search-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: color var(--transition-fast);
+}
+
+.btn-search-close:hover {
+  color: var(--accent-rose);
+}
+
+/* Mobile Drawer Overlay */
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+}
+
+.mobile-drawer.show {
+  display: block;
+}
+
+.mobile-drawer-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 82%;
+  max-width: 320px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-xl);
+  overflow-y: auto;
+}
+
+.mobile-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.mobile-drawer-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mobile-drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.mobile-drawer-link {
+  display: block;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.mobile-drawer-link:hover,
+.mobile-drawer-link.active {
+  background: rgba(0, 242, 254, 0.08);
+  color: var(--accent-cyan);
+}
+
+.mobile-drawer-footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-drawer-footer a {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.mobile-drawer-footer a:hover {
+  color: var(--text-primary);
+}
+
+@media (max-width: 1024px) {
+  .masthead-nav {
+    display: none;
+  }
+  .btn-mobile-menu {
+    display: inline-flex;
+  }
 }
 
 /* Search Bar */
@@ -723,31 +1063,26 @@ body.is-scrolled .brand-word-indo {
 }
 .breaking-title:hover { text-decoration: underline; color: var(--accent-cyan); }
 
-/* Category Filter Bar (Sticky Floating Navigation Pill Capsule) */
+/* Category Filter Bar (Reuters/Bloomberg-style Editorial Horizontal Ribbon) */
 .category-bar {
   position: sticky;
   top: 4.25rem;
   z-index: 90;
-  padding: 0.35rem 0.5rem;
-  margin: 0.4rem 0 1rem;
-  background: var(--bg-glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.22);
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem 0 1rem;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  contain: layout paint;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
+  gap: 0.5rem;
+  transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
 }
 
-.navbar.is-scrolled ~ main .category-bar,
-body.is-scrolled .category-bar,
-.category-bar.is-scrolled {
-  top: 3.4rem;
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
-  border-color: rgba(0, 242, 254, 0.18);
+[data-theme="light"] .category-bar {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 .cat-nav-arrow {
@@ -788,9 +1123,9 @@ body.is-scrolled .category-bar,
 .category-scroll {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.35rem;
   overflow-x: auto;
-  padding: 0.15rem 0.25rem;
+  padding: 0.15rem 0.2rem;
   scrollbar-width: none;
   scroll-behavior: smooth;
   flex: 1;
@@ -800,32 +1135,53 @@ body.is-scrolled .category-bar,
 .cat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.42rem 0.95rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
+  padding: 0.45rem 0.85rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: 0.825rem;
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  position: relative;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .cat-pill:hover {
   color: var(--text-primary);
-  background: var(--bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] .cat-pill:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .cat-pill.active {
-  background: var(--accent-primary);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.15);
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  color: #00D2FF;
+  font-weight: 700;
+  background: rgba(0, 210, 255, 0.08);
+}
+
+[data-theme="light"] .cat-pill.active {
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.08);
+}
+
+.cat-pill.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0.85rem;
+  right: 0.85rem;
+  height: 2px;
+  background: #00D2FF;
+  border-radius: 2px;
+}
+
+[data-theme="light"] .cat-pill.active::after {
+  background: #0284c7;
 }
 
 

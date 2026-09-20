@@ -24,7 +24,6 @@ import { SearchPreview } from './sections/SearchPreview';
 import { UserAuthModal } from './components/UserAuthModal';
 import { CookieConsent } from './components/CookieConsent';
 import { GoogleTranslateService } from './utils/googleTranslateService';
-import Lenis from 'lenis';
 
 // Admin CMS & Modal
 const adminCmsModal = document.getElementById('admin-cms-modal');
@@ -37,12 +36,11 @@ const adminCMS = new AdminCMS(() => {
   FeedSection.render();
 });
 
-// Smooth Scroll (Lenis)
-let lenisInstance: Lenis | null = null;
-window.addEventListener('modal-opened', () => lenisInstance?.stop());
+// Modal Scroll Lock Handling (Native 120fps)
+window.addEventListener('modal-opened', () => document.body.classList.add('modal-open'));
 window.addEventListener('modal-closed', () => {
   if (!document.querySelector('.modal-overlay.open, #byte-focus-mode-overlay, #manuscript-editor-fullscreen')) {
-    lenisInstance?.start();
+    document.body.classList.remove('modal-open');
   }
 });
 
@@ -106,15 +104,8 @@ async function init() {
   updateCachedDimensions();
   window.addEventListener('resize', updateCachedDimensions, { passive: true });
 
-  // 2. Lenis Smooth Scroll (Ultra-Snappy 120fps Configuration)
-  if (window.innerWidth > 768) {
-    lenisInstance = new Lenis({ duration: 0.6, lerp: 0.12, smoothWheel: true, touchMultiplier: 1.2 });
-    lenisInstance.on('scroll', handleGlobalScroll);
-    const raf = (time: number) => { lenisInstance?.raf(time); requestAnimationFrame(raf); };
-    requestAnimationFrame(raf);
-  } else {
-    window.addEventListener('scroll', handleGlobalScroll, { passive: true });
-  }
+  // 2. Native Hardware-Accelerated 120Hz/144Hz Smooth Scrolling (Zero Input Latency)
+  window.addEventListener('scroll', handleGlobalScroll, { passive: true });
   handleGlobalScroll();
 
   // 3. Initialize Store Badges
@@ -362,14 +353,140 @@ function setupEventListeners() {
     FeedSection.render();
   });
 
+  // Search Overlay Toggle
+  const searchOverlayBar = document.getElementById('search-overlay-bar');
+  const btnSearchToggle = document.getElementById('btn-search-toggle');
+  const btnSearchClose = document.getElementById('btn-search-close');
+
+  const openSearchOverlay = () => {
+    if (searchOverlayBar) {
+      searchOverlayBar.style.display = 'block';
+      searchInput?.focus();
+    }
+  };
+
+  const closeSearchOverlay = () => {
+    if (searchOverlayBar) {
+      searchOverlayBar.style.display = 'none';
+      SearchPreview.close();
+    }
+  };
+
+  btnSearchToggle?.addEventListener('click', () => {
+    if (searchOverlayBar && searchOverlayBar.style.display !== 'none') {
+      closeSearchOverlay();
+    } else {
+      openSearchOverlay();
+    }
+  });
+
+  btnSearchClose?.addEventListener('click', closeSearchOverlay);
+
+  // Subscribe Header CTA Button
+  document.getElementById('btn-subscribe-header')?.addEventListener('click', () => {
+    const newsletterSec = document.getElementById('newsletter-section');
+    if (newsletterSec) {
+      newsletterSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const emailInp = newsletterSec.querySelector('.newsletter-input') as HTMLInputElement | null;
+      setTimeout(() => emailInp?.focus(), 600);
+    }
+  });
+
+  // Editorial Masthead Navigation Links
+  const handleCategoryNavClick = (catId: string) => {
+    if (!catId) return;
+    store.currentCategory = catId as any;
+    Router.navigateToCategory(catId as any);
+    FeedSection.renderCategories();
+    FeedSection.render();
+    
+    // Update active state in masthead nav
+    document.querySelectorAll('.masthead-nav-link').forEach(link => {
+      const linkCat = link.getAttribute('data-nav-category');
+      link.classList.toggle('active', linkCat === catId || (catId === 'all' && link.getAttribute('href') === '#hero-section'));
+    });
+
+    const feedEl = document.getElementById('hero-section') || document.getElementById('category-container');
+    feedEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  document.querySelectorAll('.masthead-nav a[data-nav-category], .masthead-more-dropdown a[data-nav-category]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cat = link.getAttribute('data-nav-category');
+      if (cat) handleCategoryNavClick(cat);
+      document.getElementById('masthead-more-dropdown')?.classList.remove('show');
+    });
+  });
+
+  // More Navigation Dropdown
+  const btnMoreNav = document.getElementById('btn-more-nav');
+  const mastheadMoreDropdown = document.getElementById('masthead-more-dropdown');
+  btnMoreNav?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    mastheadMoreDropdown?.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (mastheadMoreDropdown && !mastheadMoreDropdown.contains(e.target as Node) && e.target !== btnMoreNav) {
+      mastheadMoreDropdown.classList.remove('show');
+    }
+  });
+
+  // Footer Category Links
+  document.querySelectorAll('.footer-category-link[data-footer-category]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cat = link.getAttribute('data-footer-category');
+      if (cat) handleCategoryNavClick(cat);
+    });
+  });
+
+  // Mobile Drawer Toggle
+  const mobileDrawer = document.getElementById('mobile-drawer');
+  const btnMobileMenu = document.getElementById('btn-mobile-menu');
+  const btnMobileDrawerClose = document.getElementById('btn-mobile-drawer-close');
+
+  const openMobileDrawer = () => {
+    if (mobileDrawer) {
+      mobileDrawer.style.display = 'block';
+      mobileDrawer.classList.add('show');
+    }
+  };
+  const closeMobileDrawer = () => {
+    if (mobileDrawer) {
+      mobileDrawer.classList.remove('show');
+      mobileDrawer.style.display = 'none';
+    }
+  };
+
+  btnMobileMenu?.addEventListener('click', openMobileDrawer);
+  btnMobileDrawerClose?.addEventListener('click', closeMobileDrawer);
+  mobileDrawer?.addEventListener('click', (e) => {
+    if (e.target === mobileDrawer) closeMobileDrawer();
+  });
+
+  document.querySelectorAll('.mobile-drawer-link[data-nav-category]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cat = link.getAttribute('data-nav-category');
+      if (cat) {
+        handleCategoryNavClick(cat);
+        closeMobileDrawer();
+      }
+    });
+  });
+
   // Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
     const isTyping = document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA';
     if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) && !isTyping) {
       e.preventDefault();
-      searchInput?.focus();
+      openSearchOverlay();
     }
     if (e.key === 'Escape') {
+      closeSearchOverlay();
+      closeMobileDrawer();
       SearchPreview.close();
       ArticleReaderModal.close(true);
       UserAuthModal.close();
@@ -457,11 +574,7 @@ function setupEventListeners() {
 
   // Back to Top Button click handler
   document.getElementById('btn-back-to-top')?.addEventListener('click', () => {
-    if (lenisInstance) {
-      lenisInstance.scrollTo(0, { duration: 0.8 });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
 

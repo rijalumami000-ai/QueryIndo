@@ -97,7 +97,10 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="/rss.xml" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-  <meta name="theme-color" content="#0d0e12" />
+  <!-- Preconnect & Asynchronous Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <!-- Google Identity Services SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -127,28 +130,40 @@
 </head>
 <body>
   <div id="app">
-    <!-- Top Bar -->
+    <!-- Top Utility Bar (Reuters-style authoritative strip) -->
     <div class="top-bar">
       <div class="container top-bar-content">
         <div class="top-bar-left">
           <span class="top-bar-tagline">
-            <span class="top-bar-pulse"></span>
+            <span class="top-bar-pulse" aria-hidden="true"></span>
             Jurnalisme Teknologi Independen Indonesia
           </span>
+          <span class="top-bar-divider" aria-hidden="true">•</span>
+          <span class="top-bar-edition">Edisi: <strong>Indonesia</strong> / Global</span>
         </div>
-        <div class="top-bar-right" style="display: flex; align-items: center; gap: 1rem;">
-          <span class="date-badge" id="current-date-text">Sabtu, 1 Agustus 2026</span>
-          <div class="lang-switcher" id="lang-toggle-switcher">
-            <button class="btn-lang active" data-lang="id">ID</button>
-            <button class="btn-lang" data-lang="en">EN</button>
+        <div class="top-bar-right">
+          <span class="date-badge" id="current-date-text">Sabtu, 20 September 2026</span>
+          <div class="top-bar-actions">
+            <button id="theme-toggle" class="btn-top-util" title="Ubah Mode Gelap/Terang" aria-label="Toggle Theme">
+              <svg id="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <button id="bookmarks-btn" class="btn-top-util" title="Artikel Tersimpan" aria-label="Bookmarks">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              <span class="badge-count" id="bookmark-count">0</span>
+            </button>
+            <div class="lang-switcher" id="lang-toggle-switcher">
+              <button class="btn-lang active" data-lang="id">ID</button>
+              <button class="btn-lang" data-lang="en">EN</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main Navigation Header -->
-    <header class="navbar">
+    <!-- Main Navigation Header (Reuters/TechCrunch Editorial Masthead) -->
+    <header class="navbar" id="site-header">
       <div class="container navbar-content">
+        <!-- Brand Logo -->
         <a href="#" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
           <div class="brand-emblem-wrap">
             <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="38" height="38" aria-hidden="true">
@@ -187,42 +202,123 @@
           </div>
         </a>
 
-        <!-- Search Bar with Live Preview Dropdown -->
-        <div class="search-box" id="navbar-search-box">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="text" id="search-input" class="search-input" placeholder="Cari berita AI, gadget, kedaulatan digital..." autocomplete="off" />
-          <div class="search-actions">
-            <button id="btn-filter-toggle" class="btn-filter-icon" title="Filter Lanjutan (Advanced Filter)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <!-- Center Editorial Navigation Links (Reuters / FT / TechCrunch Style) -->
+        <nav class="masthead-nav" aria-label="Navigasi Editorial Utama">
+          <a href="#hero-section" class="masthead-nav-link active" data-nav-category="all">Terkini</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="ai">AI & Deep Tech</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="gadget">Gadget</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="startup">Bisnis & Startup</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="ev">Kendaraan Listrik</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="fintech">Fintech</a>
+          <a href="#" class="masthead-nav-link" data-nav-category="cybersecurity">Keamanan Siber</a>
+          <div class="masthead-nav-more" id="masthead-nav-more">
+            <button class="masthead-nav-link more-btn" id="btn-more-nav" aria-haspopup="true" aria-expanded="false">
+              <span>Lainnya</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <span class="search-kbd">/</span>
+            <div class="masthead-more-dropdown" id="masthead-more-dropdown">
+              <a href="#" class="more-dropdown-item" data-nav-category="software">Software & Apps</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="space">Sains & Antariksa</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="gaming">Gaming & Industri Kreatif</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="internet">Internet & Digital</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="climatetech">Teknologi Hijau & Iklim</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="biotech">Bioteknologi & Kesehatan</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="review">Review & Tren</a>
+              <a href="#" class="more-dropdown-item" data-nav-category="tips">Tips & Tutorial</a>
+              <div class="more-dropdown-divider"></div>
+              <a href="/page/redaksi" class="more-dropdown-item">Susunan Dewan Redaksi</a>
+              <a href="/page/pedoman-media-siber" class="more-dropdown-item">Pedoman Media Siber</a>
+            </div>
           </div>
+        </nav>
 
-          <!-- Instant Live Search Preview Dropdown Container -->
-          <div id="search-preview-dropdown" class="search-preview-dropdown" style="display: none;"></div>
-        </div>
-
-        <!-- Action Buttons -->
+        <!-- Right Header Action Items (Search Trigger, Auth, Subscribe CTA) -->
         <div class="nav-actions">
+          <!-- Search Trigger Button -->
+          <button id="btn-search-toggle" class="btn-search-toggle" title="Cari Berita (Tekan /)" aria-label="Buka Pencarian">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="search-toggle-label">Cari</span>
+            <span class="search-toggle-kbd">/</span>
+          </button>
+
+          <!-- PWA Install Button -->
           <button id="pwa-install-btn" class="btn-action nav-feature-btn" title="Pasang Aplikasi QUERYINDO di Perangkat Anda">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Pasang App</span>
           </button>
+
           <!-- Reader Auth & User Profile Button -->
           <button id="user-auth-btn" class="btn-action nav-auth-btn" title="Akun Pembaca QUERYINDO">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="user-auth-btn-text">Masuk</span>
           </button>
 
-          <button id="theme-toggle" class="btn-icon" title="Ubah Mode Gelap/Terang" aria-label="Toggle Theme">
-            <svg id="theme-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <!-- High-End Subscribe CTA Button (TechCrunch/Reuters style) -->
+          <button id="btn-subscribe-header" class="btn-subscribe-header" title="Berlangganan Newsletter & Akses Eksklusif">
+            <span>Berlangganan</span>
           </button>
-          <button id="bookmarks-btn" class="btn-icon" title="Artikel Tersimpan" aria-label="Bookmarks">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-            <span class="badge-count" id="bookmark-count">0</span>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button id="btn-mobile-menu" class="btn-mobile-menu" aria-label="Menu Navigasi Mobile">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
           </button>
         </div>
       </div>
+
+      <!-- Expandable Search Overlay Bar (Integrated with existing SearchPreview & Filter) -->
+      <div class="search-overlay-bar" id="search-overlay-bar" style="display: none;">
+        <div class="container search-overlay-content">
+          <div class="search-box" id="navbar-search-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Cari liputan AI, gadget, semikonduktor, startup..." autocomplete="off" />
+            <div class="search-actions">
+              <button id="btn-filter-toggle" class="btn-filter-icon" title="Filter Lanjutan (Advanced Filter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </button>
+              <button id="btn-search-close" class="btn-search-close" title="Tutup Pencarian (Esc)">✕</button>
+            </div>
+            <!-- Instant Live Search Preview Dropdown Container -->
+            <div id="search-preview-dropdown" class="search-preview-dropdown" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Drawer / Slideout -->
+      <div class="mobile-drawer" id="mobile-drawer" style="display: none;">
+        <div class="mobile-drawer-content">
+          <div class="mobile-drawer-header">
+            <span class="mobile-drawer-title">Kanal Berita</span>
+            <button id="btn-mobile-drawer-close" class="btn-close" aria-label="Tutup Menu">✕</button>
+          </div>
+          <div class="mobile-drawer-links">
+            <a href="#hero-section" class="mobile-drawer-link active" data-nav-category="all">Terkini</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="ai">Future Tech & AI</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="gadget">Gadget & Hardware</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="startup">Bisnis & Startup</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="ev">Kendaraan Listrik</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="fintech">Fintech & Aset Digital</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="cybersecurity">Keamanan Siber</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="software">Software & Apps</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="space">Sains & Antariksa</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="gaming">Gaming & Industri Kreatif</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="climatetech">Teknologi Hijau & Iklim</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="biotech">Bioteknologi & Kesehatan</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="review">Review & Tren</a>
+            <a href="#" class="mobile-drawer-link" data-nav-category="tips">Tips & Tutorial</a>
+          </div>
+          <div class="mobile-drawer-footer">
+            <a href="/page/tentang-kami">Tentang Kami</a>
+            <a href="/page/redaksi">Susunan Redaksi</a>
+            <a href="/page/pedoman-media-siber">Pedoman Media Siber</a>
+            <a href="/page/kode-etik">Kode Etik</a>
+          </div>
+        </div>
+      </div>
+
       <!-- Subtle Ambient Page Scroll Progress Indicator -->
       <div id="navbar-scroll-progress" class="navbar-scroll-progress"></div>
     </header>
@@ -402,7 +498,7 @@
       </section>
 
       <!-- Newsletter Subscription Section -->
-      <section class="newsletter-box">
+      <section class="newsletter-box" id="newsletter-section">
         <div class="newsletter-content">
           <h3 class="newsletter-title">Langganan Wawasan Tekno Harian</h3>
           <p class="newsletter-desc">Dapatkan rangkuman berita teknologi paling krusial, analisis mendalam, dan ringkasan AI langsung ke kotak masuk email Anda setiap pagi.</p>
@@ -417,10 +513,11 @@
     <!-- Institutional Full-Page Container (hidden by default) -->
     <div id="institutional-page-container" style="display:none;"></div>
 
-    <!-- Footer -->
+    <!-- Footer (TechCrunch-style Deep Obsidian 4-Column Luxury Layout) -->
     <footer class="footer">
       <div class="container" style="position: relative; z-index: 5;">
         <div class="footer-grid">
+          <!-- Column 1: Brand & Identity -->
           <div class="footer-col-brand">
             <a href="#" class="brand-logo footer-brand-logo" aria-label="QueryIndo Home">
               <div class="brand-emblem-wrap">
@@ -441,43 +538,72 @@
               </div>
             </a>
             <p class="footer-desc">
-              Portal jurnalisme teknologi independen nasional. Mengulas kecerdasan buatan, infrastruktur komputasi awan, keamanan siber, dan kedaulatan digital nusantara.
+              Portal jurnalisme teknologi independen nasional. Menyajikan investigasi mendalam kecerdasan buatan, infrastruktur komputasi awan, keamanan siber, dan kedaulatan digital nusantara.
             </p>
+            <div class="footer-compliance-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Verifikasi Pedoman Media Siber Dewan Pers</span>
+            </div>
             <ul class="footer-social-list" id="footer-social-list">
               <!-- Dynamic Official Social Channels from SocialMediaService -->
             </ul>
           </div>
           
-          <div>
-            <h4 class="footer-links-title" id="footer-company-title">Company</h4>
+          <!-- Column 2: Redaksi & Kelembagaan -->
+          <div class="footer-col-links">
+            <h4 class="footer-links-title" id="footer-company-title">Redaksi & Lembaga</h4>
             <ul class="footer-links-list">
-              <li><a href="/page/tentang-kami" id="link-about">About Us</a></li>
-              <li><a href="/page/hubungi-kami" id="link-contact">Get in Touch</a></li>
+              <li><a href="/page/tentang-kami" id="link-about">Tentang Kami</a></li>
               <li><a href="/page/redaksi" id="link-redaksi">Susunan Redaksi</a></li>
-              <li><a href="/page/kode-etik" id="link-ethics">Redactional Ethics</a></li>
-              <li><a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Cyber Media Guidelines</a></li>
-              <li><a href="/page/disclaimer" id="link-disclaimer">Disclaimer</a></li>
-              <li><a href="/page/info-iklan" id="link-ads">Advertising</a></li>
+              <li><a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Pedoman Media Siber</a></li>
+              <li><a href="/page/kode-etik" id="link-ethics">Kode Etik Jurnalistik</a></li>
+              <li><a href="/page/hubungi-kami" id="link-contact">Kontak & Ruang Berita</a></li>
+              <li><a href="/page/kode-etik#hak-jawab" id="link-disclaimer">Hak Jawab & Koreksi</a></li>
             </ul>
           </div>
 
-          <div>
-            <h4 class="footer-links-title">Information</h4>
-            <div class="footer-contact-info-block">
-              <p>QueryIndo Office. Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan Lampung</p>
-              <p>+62895323861966</p>
-              <p>redaksi@queryindo.com</p>
-            </div>
+          <!-- Column 3: Liputan Khusus -->
+          <div class="footer-col-links">
+            <h4 class="footer-links-title">Liputan Khusus</h4>
+            <ul class="footer-links-list">
+              <li><a href="#" class="footer-category-link" data-footer-category="ai">Kecerdasan Buatan & AI</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="gadget">Gadget & Perangkat Pintar</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="startup">Startup & Modal Ventura</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="ev">Kendaraan Listrik & Baterai</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="fintech">Fintech & Aset Digital</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="cybersecurity">Keamanan Siber & Privasi</a></li>
+              <li><a href="#" class="footer-category-link" data-footer-category="space">Sains & Antariksa</a></li>
+            </ul>
           </div>
 
+          <!-- Column 4: Layanan & Bisnis -->
+          <div class="footer-col-links">
+            <h4 class="footer-links-title">Layanan & Bisnis</h4>
+            <ul class="footer-links-list">
+              <li><a href="/page/info-iklan" id="link-ads">Informasi Iklan & Kemitraan</a></li>
+              <li><a href="#newsletter-section" id="link-footer-newsletter">Newsletter Harian</a></li>
+              <li><a href="/rss.xml" target="_blank" rel="alternate" id="link-rss-bottom">RSS Feed Global</a></li>
+              <li><a href="/page/disclaimer">Cek Fakta Tekno</a></li>
+              <li><a href="/page/peta-situs" id="link-sitemap">Peta Situs (Sitemap)</a></li>
+              <li><a href="/admin" id="link-admin-footer">Portal Redaksi CMS</a></li>
+            </ul>
+            <div class="footer-address-snippet">
+              <span class="footer-address-label">Kantor Redaksi:</span>
+              <p>Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan</p>
+              <p class="footer-contact-row">redaksi@queryindo.com • +62 895-3238-61966</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Bottom Legal Strip -->
         <div class="footer-bottom">
-          <p>© 2026 QUERYINDO, All Rights Reserved. Portal Berita Teknologi Terdepan.</p>
+          <p>© 2026 QUERYINDO (PT Inovasi Media Nusantara). Hak Cipta Dilindungi Undang-Undang.</p>
           <div class="footer-bottom-links">
             <a href="/page/privasi" id="link-privacy">Privasi</a>
             <a href="/page/syarat-ketentuan" id="link-terms">Syarat & Ketentuan</a>
-            <a href="/page/peta-situs" id="link-sitemap">Peta Situs</a>
-            <a href="/rss.xml" target="_blank" rel="alternate" id="link-rss-bottom">RSS Feed</a>
-            <a href="/admin" id="link-admin-footer">Portal Redaksi</a>
+            <a href="/page/peta-situs">Peta Situs</a>
+            <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed</a>
+            <a href="/admin">Portal Redaksi</a>
           </div>
         </div>
       </div>
