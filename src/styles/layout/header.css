@@ -728,7 +728,7 @@ body.is-scrolled .brand-word-indo {
   position: sticky;
   top: 4.25rem;
   z-index: 90;
-  padding: 0.45rem 0.85rem;
+  padding: 0.35rem 0.5rem;
   margin: 0.4rem 0 1rem;
   background: var(--bg-glass);
   backdrop-filter: blur(18px);
@@ -736,6 +736,9 @@ body.is-scrolled .brand-word-indo {
   border-radius: var(--radius-full);
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -747,13 +750,50 @@ body.is-scrolled .category-bar,
   border-color: rgba(0, 242, 254, 0.18);
 }
 
+.cat-nav-arrow {
+  display: none;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.cat-nav-arrow:hover {
+  background: var(--bg-secondary);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+}
+
+.cat-nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .cat-nav-arrow {
+    display: flex;
+  }
+}
+
 .category-scroll {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   overflow-x: auto;
-  padding: 0.15rem 0;
+  padding: 0.15rem 0.25rem;
   scrollbar-width: none;
+  scroll-behavior: smooth;
+  flex: 1;
 }
 .category-scroll::-webkit-scrollbar { display: none; }
 
@@ -761,7 +801,7 @@ body.is-scrolled .category-bar,
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
+  padding: 0.42rem 0.95rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
@@ -769,6 +809,8 @@ body.is-scrolled .category-bar,
   font-size: 0.825rem;
   font-weight: 600;
   white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 

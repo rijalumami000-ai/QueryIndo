@@ -4,12 +4,23 @@ import { TranslationService, UI_TRANSLATIONS } from '../utils/translationService
 
 export const CATEGORIES_EN: Record<string, string> = {
   'all': 'All News',
-  'ai': 'Artificial Intelligence',
-  'gadget': 'Gadget & Innovation',
-  'cybersecurity': 'Cybersecurity',
-  'startup': 'Startup & Business',
-  'policy': 'Digital Policy',
-  'telecom': 'Telecommunications',
+  'ai': 'Future Tech & AI',
+  'gadget': 'Gadget & Hardware',
+  'software': 'Software & Apps',
+  'startup': 'Tech Business & Startup',
+  'fintech': 'Fintech & Digital Assets',
+  'ev': 'EV & Smart Mobility',
+  'gaming': 'Gaming & Creative Industry',
+  'cybersecurity': 'Cybersecurity & Privacy',
+  'internet': 'Internet & Digital',
+  'space': 'SpaceTech & Deep Science',
+  'climatetech': 'Green Tech & Climate',
+  'biotech': 'HealthTech & Biotech',
+  'review': 'Reviews & Trends',
+  'tips': 'Tips & Guides',
+  // Legacy aliases
+  'policy': 'Digital Policy & Governance',
+  'telecom': 'Telecommunications & 5G',
   'developer': 'Developer Collective'
 };
 

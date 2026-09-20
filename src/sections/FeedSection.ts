@@ -27,9 +27,45 @@ export class FeedSection {
           Router.navigateToCategory(catId);
           this.renderCategories();
           this.render();
+          target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
       });
     });
+
+    // Wire up category scroll arrows
+    const scrollLeftBtn = document.getElementById('cat-scroll-left') as HTMLButtonElement;
+    const scrollRightBtn = document.getElementById('cat-scroll-right') as HTMLButtonElement;
+
+    const updateArrowStates = () => {
+      if (!categoryContainer) return;
+      if (scrollLeftBtn) {
+        scrollLeftBtn.disabled = categoryContainer.scrollLeft <= 5;
+      }
+      if (scrollRightBtn) {
+        const maxScroll = categoryContainer.scrollWidth - categoryContainer.clientWidth;
+        scrollRightBtn.disabled = categoryContainer.scrollLeft >= maxScroll - 5;
+      }
+    };
+
+    if (scrollLeftBtn) {
+      scrollLeftBtn.onclick = () => {
+        categoryContainer.scrollBy({ left: -260, behavior: 'smooth' });
+        setTimeout(updateArrowStates, 300);
+      };
+    }
+
+    if (scrollRightBtn) {
+      scrollRightBtn.onclick = () => {
+        categoryContainer.scrollBy({ left: 260, behavior: 'smooth' });
+        setTimeout(updateArrowStates, 300);
+      };
+    }
+
+    categoryContainer.onscroll = () => {
+      updateArrowStates();
+    };
+
+    updateArrowStates();
   }
 
   public static renderFilterTags(): void {

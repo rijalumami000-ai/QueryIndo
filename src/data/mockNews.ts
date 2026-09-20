@@ -2,13 +2,20 @@ import type { Article, Category, TechIndexItem } from '../types/news';
 
 export const CATEGORIES: Category[] = [
   { id: 'all', name: 'Semua Berita', icon: 'layers', description: 'Semua kabar & pembaruan teknologi terkini' },
-  { id: 'ai', name: 'Kecerdasan Buatan', icon: 'cpu', description: 'Inovasi AI, LLM, Otomasi & Agentic Coding' },
-  { id: 'gadget', name: 'Gadget & Inovasi', icon: 'smartphone', description: 'Review, rumor & rilis perangkat terbaru' },
-  { id: 'cybersecurity', name: 'Keamanan Siber', icon: 'shield-alert', description: 'Perlindungan data, privasi & ancaman siber' },
-  { id: 'startup', name: 'Startup & Bisnis', icon: 'trending-up', description: 'Ekosistem pendanaan, unicorn & inovasi bisnis' },
-  { id: 'policy', name: 'Kebijakan Digital', icon: 'file-text', description: 'Regulasi pemerintah, PDP & infrastruktur nasional' },
-  { id: 'telecom', name: 'Telekomunikasi', icon: 'radio', description: 'Jaringan 5G/6G, internet satelit & konektivitas' },
-  { id: 'developer', name: 'Kolektif Developer', icon: 'code', description: 'Bahasa pemrograman, cloud & tren software engineering' }
+  { id: 'ai', name: 'Future Tech & AI', icon: 'cpu', description: 'Inovasi AI, LLM, Robotika & Komputasi Cerdas' },
+  { id: 'gadget', name: 'Gadget & Hardware', icon: 'smartphone', description: 'Review, rumor & rilis perangkat smartphone, laptop & chip' },
+  { id: 'software', name: 'Software & Apps', icon: 'layout', description: 'Aplikasi mobile, OS, cloud computing & SaaS' },
+  { id: 'startup', name: 'Bisnis Teknologi & Startup', icon: 'trending-up', description: 'Ekosistem pendanaan, unicorn & valuasi korporasi teknologi' },
+  { id: 'fintech', name: 'Fintech & Aset Digital', icon: 'coins', description: 'Perbankan digital, QRIS, blockchain & tokenisasi aset' },
+  { id: 'ev', name: 'Kendaraan Listrik & Mobilitas', icon: 'zap', description: 'Mobil/motor listrik, teknologi baterai, SPKLU & autonomous' },
+  { id: 'gaming', name: 'Gaming & Industri Kreatif', icon: 'gamepad-2', description: 'Industri game, esports, game engine & grafis 3D' },
+  { id: 'cybersecurity', name: 'Keamanan Siber & Privasi', icon: 'shield-alert', description: 'Perlindungan data pribadi, privasi siber & mitigasi ancaman' },
+  { id: 'internet', name: 'Internet & Digital', icon: 'globe', description: 'Infrastruktur 5G/6G, ISP, internet satelit & dinamika sosial digital' },
+  { id: 'space', name: 'Sains & Eksplorasi Antariksa', icon: 'orbit', description: 'Konstelasi satelit LEO, riset luar angkasa & astronomi modern' },
+  { id: 'climatetech', name: 'Teknologi Hijau & Iklim', icon: 'leaf', description: 'Transisi energi bersih, dekarbonisasi & agritech berkelanjutan' },
+  { id: 'biotech', name: 'Bioteknologi & Kesehatan', icon: 'activity', description: 'HealthTech, perangkat wearable medis & rekayasa genetika' },
+  { id: 'review', name: 'Review & Tren', icon: 'star', description: 'Uji performa mendalam, benchmark produk & tren belanja teknologi' },
+  { id: 'tips', name: 'Tips & Tutorial', icon: 'help-circle', description: 'Panduan praktis langkah demi langkah, how-to & trik digital' }
 ];
 
 export const TECH_INDEXES: TechIndexItem[] = [

@@ -1,4 +1,22 @@
-export type CategoryId = 'all' | 'ai' | 'gadget' | 'cybersecurity' | 'startup' | 'policy' | 'telecom' | 'developer';
+export type CategoryId =
+  | 'all'
+  | 'ai'
+  | 'gadget'
+  | 'software'
+  | 'startup'
+  | 'fintech'
+  | 'ev'
+  | 'gaming'
+  | 'cybersecurity'
+  | 'internet'
+  | 'space'
+  | 'climatetech'
+  | 'biotech'
+  | 'review'
+  | 'tips'
+  | 'policy'
+  | 'telecom'
+  | 'developer';
 
 export interface Category {
   id: CategoryId;
