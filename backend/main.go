@@ -36,7 +36,12 @@ func main() {
 	}
 
 	// Initialize Database Connection
-	_, _ = database.ConnectDB()
+	if _, err := database.ConnectDB(); err != nil {
+		log.Printf("⚠️ PERINGATAN KRITIS: Gagal terhubung ke basis data PostgreSQL: %v\n", err)
+		if os.Getenv("ENV") == "production" || os.Getenv("FAIL_ON_DB_ERROR") == "true" {
+			log.Fatalf("FATAL: Basis data wajib aktif di lingkungan produksi. Server dihentikan (Fail-Closed): %v", err)
+		}
+	}
 
 	// Initialize Fiber App
 	app := fiber.New(fiber.Config{
@@ -115,9 +120,21 @@ func main() {
 	api.Post("/articles/:id/like", handlers.LikeArticle)
 	api.Post("/articles/:id/view", handlers.ViewArticle)
 
+	// Reader Comments Rate Limiter (Anti-Spam: Max 5 comments / 1 min per IP)
+	commentLimiter := limiter.New(limiter.Config{
+		Max:        5,
+		Expiration: 1 * time.Minute,
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"message": "Terlalu banyak pengiriman komentar dalam waktu singkat. Mohon tunggu 1 menit sebelum mengirim lagi.",
+			})
+		},
+	})
+
 	// Reader Comments Endpoints
 	api.Get("/articles/:articleId/comments", handlers.GetArticleComments)
-	api.Post("/articles/:articleId/comments", handlers.PostArticleComment)
+	api.Post("/articles/:articleId/comments", commentLimiter, handlers.PostArticleComment)
 	api.Post("/comments/:id/like", handlers.LikeComment)
 	api.Delete("/comments/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.DeleteComment)
 

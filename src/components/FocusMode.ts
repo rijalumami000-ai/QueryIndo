@@ -1,5 +1,6 @@
 import type { Article } from '../types/news';
 import { ImageUtils } from '../utils/imageUtils';
+import { sanitizeArticleHtml, escapeHtml, getSafeImageUrl } from '../utils/helpers';
 import Lenis from 'lenis';
 
 export type FocusTheme = 'dark' | 'sepia' | 'light';
@@ -72,23 +73,23 @@ export class FocusMode {
       <!-- Focus Mode Article Body Container -->
       <div class="focus-article-scroll-area" id="focus-scroll-area" style="overflow-y: auto !important; scroll-behavior: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
         <div class="focus-article-paper">
-          <div class="focus-tag-header">${article.category.toUpperCase()} • QUERYINDO FOCUS</div>
-          <h1 class="focus-article-title">${article.title}</h1>
-          <p class="focus-article-subtitle">${article.subtitle}</p>
+          <div class="focus-tag-header">${escapeHtml(article.category.toUpperCase())} • QUERYINDO FOCUS</div>
+          <h1 class="focus-article-title">${escapeHtml(article.title)}</h1>
+          <p class="focus-article-subtitle">${escapeHtml(article.subtitle)}</p>
 
           <div class="focus-author-bar">
-            <img src="${article.author.avatar}" alt="${article.author.name}" class="focus-author-avatar" />
+            <img src="${getSafeImageUrl(article.author.avatar)}" alt="${escapeHtml(article.author.name)}" class="focus-author-avatar" />
             <div>
               <div class="focus-author-name" style="display: flex; align-items: center; gap: 0.35rem;">
-                ${article.author.name}
+                ${escapeHtml(article.author.name)}
                 ${ImageUtils.getVerifiedBadgeHTML(14, 'Jurnalis Terverifikasi')}
               </div>
-              <div class="focus-author-sub">${article.author.role} • ${new Date(article.publishedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+              <div class="focus-author-sub">${escapeHtml(article.author.role)} • ${new Date(article.publishedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
             </div>
           </div>
 
           <div class="focus-content-body">
-            ${article.content}
+            ${sanitizeArticleHtml(article.content)}
           </div>
 
           <!-- Bottom Footer In Zen Mode -->

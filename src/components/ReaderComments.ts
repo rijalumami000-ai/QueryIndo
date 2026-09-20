@@ -1,6 +1,7 @@
 import { Toast } from '../utils/toast';
 import { ReaderAuthService } from '../services/authService';
 import { ApiService } from '../services/apiService';
+import { escapeHtml, getSafeImageUrl } from '../utils/helpers';
 
 export interface CommentItem {
   id: string;
@@ -325,18 +326,19 @@ export class ReaderComments {
   private static renderCommentNodeHTML(c: CommentItem, lang: 'id' | 'en', isReply: boolean): string {
     const isLiked = this.isCommentLiked(c.id);
     const timeAgo = this.formatRelativeTime(c.createdAt, lang);
-    const avatarUrl = c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.authorName)}&background=4285F4&color=fff&bold=true`;
+    const rawAvatar = c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.authorName)}&background=4285F4&color=fff&bold=true`;
+    const avatarUrl = getSafeImageUrl(rawAvatar);
     const currentReader = ReaderAuthService.getCurrentReader();
 
     return `
       <div class="comment-item-card ${isReply ? 'comment-item-reply' : ''}" id="comment-node-${c.id}" data-comment-id="${c.id}">
         <div class="comment-card-header">
           <div class="comment-user-info">
-            <img src="${avatarUrl}" alt="${c.authorName}" class="comment-user-avatar" loading="lazy" />
+            <img src="${avatarUrl}" alt="${escapeHtml(c.authorName)}" class="comment-user-avatar" loading="lazy" />
             <div>
-              <div class="comment-author-name">${c.authorName}</div>
+              <div class="comment-author-name">${escapeHtml(c.authorName)}</div>
               <div class="comment-meta-sub">
-                <span class="comment-author-role">${c.authorRole || 'Pembaca Terverifikasi Google'}</span>
+                <span class="comment-author-role">${escapeHtml(c.authorRole || 'Pembaca Terverifikasi Google')}</span>
                 <span class="comment-dot-sep">•</span>
                 <span class="comment-time-text">${timeAgo}</span>
               </div>
@@ -345,7 +347,7 @@ export class ReaderComments {
         </div>
 
         <div class="comment-content-body">
-          ${c.content.replace(/\n/g, '<br/>')}
+          ${escapeHtml(c.content).replace(/\n/g, '<br/>')}
         </div>
 
         <div class="comment-actions-footer">
@@ -356,7 +358,7 @@ export class ReaderComments {
             <span class="comment-like-count">${c.likesCount || 0}</span>
           </button>
 
-          <button class="btn-comment-reply" data-action="reply-comment" data-id="${c.id}" data-name="${c.authorName}">
+          <button class="btn-comment-reply" data-action="reply-comment" data-id="${c.id}" data-name="${escapeHtml(c.authorName)}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
             </svg>
@@ -369,11 +371,11 @@ export class ReaderComments {
           <div class="reply-composer-inner">
             ${currentReader ? `
               <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; font-size:0.78rem; color:var(--text-muted);">
-                <img src="${currentReader.avatar}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;" />
-                <span>${lang === 'en' ? 'Replying as' : 'Membalas sebagai'} <strong style="color:var(--text-primary);">${currentReader.name}</strong></span>
+                <img src="${getSafeImageUrl(currentReader.avatar)}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;" />
+                <span>${lang === 'en' ? 'Replying as' : 'Membalas sebagai'} <strong style="color:var(--text-primary);">${escapeHtml(currentReader.name)}</strong></span>
               </div>
             ` : ''}
-            <textarea class="reply-textarea" id="reply-text-${c.id}" placeholder="${lang === 'en' ? `Replying to @${c.authorName}...` : `Membalas komentar @${c.authorName}...`}" rows="2"></textarea>
+            <textarea class="reply-textarea" id="reply-text-${c.id}" placeholder="${lang === 'en' ? `Replying to @${escapeHtml(c.authorName)}...` : `Membalas komentar @${escapeHtml(c.authorName)}...`}" rows="2"></textarea>
             <div class="reply-composer-btns">
               <button class="btn-cancel-reply" data-id="${c.id}">${lang === 'en' ? 'Cancel' : 'Batal'}</button>
               <button class="btn-submit-reply" data-id="${c.id}">${lang === 'en' ? 'Send Reply' : 'Kirim Balasan'}</button>

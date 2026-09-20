@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,6 +15,35 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
+
+var commentTagRegex = regexp.MustCompile(`<[^>]*>`)
+
+func sanitizeCommentText(s string) string {
+	clean := commentTagRegex.ReplaceAllString(s, "")
+	clean = strings.ReplaceAll(clean, "\x00", "")
+	return strings.TrimSpace(clean)
+}
+
+func sanitizeAvatarURL(raw string, defaultAvatar string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" || len(raw) > 500 {
+		return defaultAvatar
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return defaultAvatar
+	}
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return defaultAvatar
+	}
+	lowerHost := strings.ToLower(u.Hostname())
+	if lowerHost == "localhost" || strings.HasSuffix(lowerHost, ".local") || strings.HasSuffix(lowerHost, ".internal") {
+		return defaultAvatar
+	}
+	return u.String()
+}
+
 
 type CreateCommentRequest struct {
 	AuthorName string `json:"authorName"`
@@ -115,29 +146,47 @@ func PostArticleComment(c *fiber.Ctx) error {
 		}
 	}
 
-	trimmedContent := strings.TrimSpace(req.Content)
-	if trimmedContent == "" {
+	cleanContent := sanitizeCommentText(req.Content)
+	if len([]rune(cleanContent)) < 2 {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
-			"message": "Isi komentar tidak boleh kosong",
+			"message": "Isi komentar terlalu pendek (minimal 2 karakter)",
+		})
+	}
+	if len([]rune(cleanContent)) > 1000 {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "Isi komentar melebihi batas maksimum (maksimal 1000 karakter)",
 		})
 	}
 
-	authorName := strings.TrimSpace(req.AuthorName)
+	authorName := sanitizeCommentText(req.AuthorName)
 	if authorName == "" {
 		authorName = "Pembaca QUERYINDO"
 	}
-
-	avatar := strings.TrimSpace(req.Avatar)
-	if avatar == "" {
-		avatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+	if len([]rune(authorName)) > 60 {
+		authorName = string([]rune(authorName)[:60])
 	}
+
+	authorRole := sanitizeCommentText(req.AuthorRole)
+	if authorRole == "" {
+		authorRole = "Pembaca Terverifikasi"
+	}
+	if len([]rune(authorRole)) > 50 {
+		authorRole = string([]rune(authorRole)[:50])
+	}
+
+	defaultAvatar := "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+	avatar := sanitizeAvatarURL(req.Avatar, defaultAvatar)
 
 	commentID := fmt.Sprintf("cmt-%d-%04d", time.Now().Unix(), rand.Intn(10000))
 
 	var pID *string
-	cleanPID := strings.TrimSpace(req.ParentID)
+	cleanPID := sanitizeCommentText(req.ParentID)
 	if cleanPID != "" {
+		if len(cleanPID) > 64 {
+			cleanPID = cleanPID[:64]
+		}
 		pID = &cleanPID
 	}
 
@@ -145,9 +194,9 @@ func PostArticleComment(c *fiber.Ctx) error {
 		ID:         commentID,
 		ArticleID:  articleID,
 		AuthorName: authorName,
-		AuthorRole: strings.TrimSpace(req.AuthorRole),
+		AuthorRole: authorRole,
 		Avatar:     avatar,
-		Content:    trimmedContent,
+		Content:    cleanContent,
 		LikesCount: 0,
 		ParentID:   pID,
 		CreatedAt:  time.Now(),

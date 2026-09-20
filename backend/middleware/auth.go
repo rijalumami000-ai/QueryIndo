@@ -73,26 +73,25 @@ func Protected() fiber.Handler {
 
 		// Real-time Database Validation (Instant Session Revocation):
 		// Verify that the user still exists and is active in PostgreSQL.
-		if database.DB != nil {
-			var dbUser models.User
-			if err := database.DB.Where("LOWER(username) = ?", strings.ToLower(usernameStr)).First(&dbUser).Error; err != nil {
-				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"success": false,
-					"message": "Sesi tidak lagi valid: Akun pengguna telah dinonaktifkan atau dihapus dari sistem.",
-				})
-			}
-			// Update context locals to reflect live database state
-			c.Locals("user", claims)
-			c.Locals("username", dbUser.Username)
-			c.Locals("role", dbUser.Role)
-			c.Locals("user_id", dbUser.ID)
-		} else {
-			c.Locals("user", claims)
-			c.Locals("username", usernameStr)
-			if role, exists := claims["role"]; exists {
-				c.Locals("role", role)
-			}
+		if database.DB == nil {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"success": false,
+				"message": "Layanan basis data tidak tersedia. Akses rute terlindungi ditolak demi keamanan (Fail-Closed).",
+			})
 		}
+
+		var dbUser models.User
+		if err := database.DB.Where("LOWER(username) = ?", strings.ToLower(usernameStr)).First(&dbUser).Error; err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Sesi tidak lagi valid: Akun pengguna telah dinonaktifkan atau dihapus dari sistem.",
+			})
+		}
+		// Update context locals to reflect live database state
+		c.Locals("user", claims)
+		c.Locals("username", dbUser.Username)
+		c.Locals("role", dbUser.Role)
+		c.Locals("user_id", dbUser.ID)
 
 		return c.Next()
 	}

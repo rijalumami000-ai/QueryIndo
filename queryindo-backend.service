@@ -4,12 +4,19 @@ After=network.target postgresql.service
 
 [Service]
 Type=simple
-User=root
+User=Rijalumami
+Group=Rijalumami
 WorkingDirectory=/var/www/queryindo/backend
-ExecStart=/var/www/queryindo/backend/server
+ExecStart=/var/www/queryindo/backend/queryindo-backend
 Restart=always
 RestartSec=5s
 EnvironmentFile=/var/www/queryindo/backend/.env
+
+# Security Hardening & Sandboxing
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+ProtectHome=read-only
 
 # Optimization & Resource limits
 LimitNOFILE=65535
@@ -18,3 +25,4 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
+
