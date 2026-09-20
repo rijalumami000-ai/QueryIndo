@@ -1,4 +1,5 @@
 import type { Article } from '../types/news';
+import { ApiService } from '../services/apiService';
 
 // Static UI Translations Dictionary
 export const UI_TRANSLATIONS = {
@@ -171,57 +172,26 @@ export class TranslationService {
       return translated;
     }
 
-    // Attempt dynamic translation using Gemini API if key is available
-    const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-    if (apiKey) {
-      try {
-        const prompt = `Translate the following Indonesian news article metadata into English. Return ONLY a valid JSON object matching this structure:
-{
-  "title": "translated title",
-  "subtitle": "translated subtitle",
-  "aiSummary": ["bullet 1", "bullet 2", "bullet 3"]
-}
+    // Attempt dynamic translation via Go Backend Gemini Proxy
+    try {
+      const backendRes = await ApiService.translateArticle({
+        title: article.title,
+        subtitle: article.subtitle,
+        aiSummary: article.aiSummary,
+        targetLang
+      });
 
-Do NOT wrap the JSON in Markdown backticks (e.g. do not write \`\`\`json) and do not add any explaining text.
-
-Original Title: "${article.title}"
-Original Subtitle: "${article.subtitle}"
-Original Summary Takeaways:
-${article.aiSummary.map((item, idx) => `${idx + 1}. ${item}`).join('\n')}
-`;
-
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          
-          // Clean up potential markdown formatting block wrapper if AI returned it
-          rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
-          const parsed = JSON.parse(rawText);
-          if (parsed.title && parsed.subtitle && Array.isArray(parsed.aiSummary)) {
-            const result = {
-              title: parsed.title,
-              subtitle: parsed.subtitle,
-              aiSummary: parsed.aiSummary
-            };
-            translationCache[cacheKey] = result;
-            return result;
-          }
-        }
-      } catch (err) {
-        console.warn('Gemini translation API failed, utilizing default English generator fallback:', err);
+      if (backendRes && backendRes.success && backendRes.title) {
+        const result = {
+          title: backendRes.title,
+          subtitle: backendRes.subtitle,
+          aiSummary: backendRes.aiSummary
+        };
+        translationCache[cacheKey] = result;
+        return result;
       }
+    } catch (err) {
+      console.warn('Backend translation API failed, utilizing default English generator fallback:', err);
     }
 
     // Simple programmatical translation fallback for user-generated CMS articles

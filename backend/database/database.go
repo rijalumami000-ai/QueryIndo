@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"byteindonesia/backend/models"
+	"byteindonesia/backend/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -73,12 +74,54 @@ func ConnectDB() (*gorm.DB, error) {
 		log.Printf("⚠️ AutoMigrate Error: %v", err)
 	} else {
 		log.Println("✅ AutoMigrate Skema Database PostgreSQL Selesai!")
+		seedSuperuserIfEmpty(db)
 		seedDefaultCMSData(db)
 		seedSocialLinksIfEmpty(db)
 	}
 
 	DB = db
 	return db, nil
+}
+
+func seedSuperuserIfEmpty(db *gorm.DB) {
+	var userCount int64
+	db.Model(&models.User{}).Count(&userCount)
+	if userCount == 0 {
+		adminUser := os.Getenv("ADMIN_USER")
+		if adminUser == "" {
+			adminUser = "Rijalumami"
+		}
+		adminEmail := os.Getenv("ADMIN_EMAIL")
+		if adminEmail == "" {
+			adminEmail = "rijalumami000@gmail.com"
+		}
+		adminPass := os.Getenv("ADMIN_PASSWORD")
+		if adminPass == "" {
+			adminPass = "rijalumami1002"
+		}
+
+		hash, err := utils.HashPassword(adminPass)
+		if err != nil {
+			log.Printf("⚠️ Gagal membuat bcrypt hash untuk superuser: %v", err)
+			return
+		}
+
+		superuser := models.User{
+			Username:     adminUser,
+			Email:        adminEmail,
+			PasswordHash: hash,
+			FullName:     "Rijal Umami",
+			Role:         "superuser",
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}
+
+		if err := db.Create(&superuser).Error; err != nil {
+			log.Printf("⚠️ Gagal seed superuser ke PostgreSQL: %v", err)
+		} else {
+			log.Printf("🌱 Superuser [%s (%s)] berhasil di-seed ke PostgreSQL dengan bcrypt hash!", adminUser, adminEmail)
+		}
+	}
 }
 
 type SystemSeedRecord struct {

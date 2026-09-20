@@ -92,17 +92,21 @@ func main() {
 		},
 	})
 
-	// Authentication Endpoint (Protected with Brute-Force Limiter)
+	// Authentication Endpoints
 	api.Post("/auth/login", authLimiter, handlers.Login)
+	api.Post("/auth/change-password", middleware.Protected(), handlers.ChangePassword)
+	api.Get("/auth/users", middleware.Protected(), middleware.RequireRole("superuser"), handlers.GetAdminUsers)
+	api.Post("/auth/users", middleware.Protected(), middleware.RequireRole("superuser"), handlers.CreateAdminUser)
+	api.Delete("/auth/users/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteAdminUser)
 
 	// Public Article Read Endpoints
 	api.Get("/articles", handlers.GetArticles)
 	api.Get("/articles/:slug", handlers.GetArticleBySlug)
 
-	// Protected Article Mutation Endpoints (Requires Valid JWT Bearer Token)
-	api.Post("/articles", middleware.Protected(), handlers.CreateArticle)
-	api.Put("/articles/:id", middleware.Protected(), handlers.UpdateArticle)
-	api.Delete("/articles/:id", middleware.Protected(), handlers.DeleteArticle)
+	// Protected Article Mutation Endpoints (Requires Valid JWT Bearer Token & Role)
+	api.Post("/articles", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.CreateArticle)
+	api.Put("/articles/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.UpdateArticle)
+	api.Delete("/articles/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.DeleteArticle)
 
 	// Public Article Engagement Endpoints (Likes & Views)
 	api.Post("/articles/:id/like", handlers.LikeArticle)
@@ -112,12 +116,12 @@ func main() {
 	api.Get("/articles/:articleId/comments", handlers.GetArticleComments)
 	api.Post("/articles/:articleId/comments", handlers.PostArticleComment)
 	api.Post("/comments/:id/like", handlers.LikeComment)
-	api.Delete("/comments/:id", middleware.Protected(), handlers.DeleteComment)
+	api.Delete("/comments/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.DeleteComment)
 
 	// Financial Index Endpoint
 	api.Get("/tech-indexes", handlers.GetTechIndexes)
 
-	// High-Performance Safe Image Proxy Endpoint (Bypasses CORS, Google Drive, and Referrer Restrictions)
+	// High-Performance Safe Image Proxy Endpoint (Anti-SSRF Protected)
 	api.Get("/image-proxy", handlers.ImageProxy)
 
 	// AI Assistant Rate Limiter (Max 15 requests / 1 min per IP)
@@ -132,34 +136,35 @@ func main() {
 		},
 	})
 
-	// AI Assistant Endpoints
+	// AI Assistant Endpoints (Backend Gemini Proxy)
 	api.Post("/ai/summarize", aiLimiter, handlers.AISummarize)
 	api.Post("/ai/chat", aiLimiter, handlers.ChatAI)
+	api.Post("/ai/translate", aiLimiter, handlers.TranslateArticle)
 
 	// Newsletter Subscription & Redaksi Management Endpoints
 	api.Post("/newsletter/subscribe", handlers.SubscribeNewsletter)
-	api.Get("/newsletter/subscribers", middleware.Protected(), handlers.GetSubscribers)
-	api.Delete("/newsletter/subscribers/:id", middleware.Protected(), handlers.DeleteSubscriber)
-	api.Post("/newsletter/broadcast", middleware.Protected(), handlers.BroadcastNewsletter)
+	api.Get("/newsletter/subscribers", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.GetSubscribers)
+	api.Delete("/newsletter/subscribers/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteSubscriber)
+	api.Post("/newsletter/broadcast", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.BroadcastNewsletter)
 
 	// Dewan Redaksi (Authors) Endpoints
 	api.Get("/authors", handlers.GetAuthors)
-	api.Post("/authors", middleware.Protected(), handlers.CreateAuthor)
-	api.Put("/authors/:id", middleware.Protected(), handlers.UpdateAuthor)
-	api.Delete("/authors/:id", middleware.Protected(), handlers.DeleteAuthor)
+	api.Post("/authors", middleware.Protected(), middleware.RequireRole("superuser"), handlers.CreateAuthor)
+	api.Put("/authors/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.UpdateAuthor)
+	api.Delete("/authors/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteAuthor)
 
 	// Kemitraan & Iklan (Ads) Endpoints
 	api.Get("/ads", handlers.GetAds)
-	api.Post("/ads", middleware.Protected(), handlers.CreateAd)
-	api.Put("/ads/:id", middleware.Protected(), handlers.UpdateAd)
-	api.Delete("/ads/:id", middleware.Protected(), handlers.DeleteAd)
+	api.Post("/ads", middleware.Protected(), middleware.RequireRole("superuser"), handlers.CreateAd)
+	api.Put("/ads/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.UpdateAd)
+	api.Delete("/ads/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteAd)
 
 	// Rekomendasi Belanja (Shopping Carousel) Endpoints
 	api.Get("/shopping", handlers.GetShopping)
-	api.Post("/shopping/config", middleware.Protected(), handlers.SaveShoppingConfig)
-	api.Post("/shopping/products", middleware.Protected(), handlers.CreateShoppingProduct)
-	api.Put("/shopping/products/:id", middleware.Protected(), handlers.UpdateShoppingProduct)
-	api.Delete("/shopping/products/:id", middleware.Protected(), handlers.DeleteShoppingProduct)
+	api.Post("/shopping/config", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.SaveShoppingConfig)
+	api.Post("/shopping/products", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.CreateShoppingProduct)
+	api.Put("/shopping/products/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.UpdateShoppingProduct)
+	api.Delete("/shopping/products/:id", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.DeleteShoppingProduct)
 
 	// Jajak Pendapat (Reader Poll) Endpoints
 	api.Get("/poll", handlers.GetPoll)
@@ -167,12 +172,12 @@ func main() {
 
 	// Media Sosial Resmi (Social Links) Endpoints
 	api.Get("/social-links", handlers.GetSocialLinks)
-	api.Post("/social-links", middleware.Protected(), handlers.CreateSocialLink)
-	api.Put("/social-links/:id", middleware.Protected(), handlers.UpdateSocialLink)
-	api.Delete("/social-links/:id", middleware.Protected(), handlers.DeleteSocialLink)
+	api.Post("/social-links", middleware.Protected(), middleware.RequireRole("superuser"), handlers.CreateSocialLink)
+	api.Put("/social-links/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.UpdateSocialLink)
+	api.Delete("/social-links/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteSocialLink)
 
-	// SEO & Search Engine Indexing Endpoints
-	api.Post("/seo/ping", handlers.TriggerSEOPing)
+	// SEO & Search Engine Indexing Endpoints (Protected)
+	api.Post("/seo/ping", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.TriggerSEOPing)
 	app.Get("/queryindo7a9f8b1c2d3e4f5a6b7c8d9e0.txt", handlers.GetIndexNowKey)
 
 	// Syndication & Aggregator RSS/JSON Feeds & SEO Sitemap

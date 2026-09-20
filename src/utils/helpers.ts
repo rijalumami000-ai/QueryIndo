@@ -10,6 +10,72 @@ export function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * Sanitizes rich article HTML to prevent Stored XSS attacks.
+ * Strips out script tags, unauthorized iframes, inline event handlers (on*), and javascript: URIs.
+ */
+export function sanitizeArticleHtml(dirtyHtml: string): string {
+  if (!dirtyHtml) return '';
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(dirtyHtml, 'text/html');
+
+    // 1. Remove dangerous executable elements
+    const dangerousTags = ['script', 'style', 'object', 'embed', 'form', 'input', 'button', 'link', 'meta', 'base'];
+    dangerousTags.forEach(tag => {
+      doc.querySelectorAll(tag).forEach(el => el.remove());
+    });
+
+    // 2. Sanitize iframes (allow only trusted embeds like YouTube / Vimeo)
+    doc.querySelectorAll('iframe').forEach(iframe => {
+      const src = (iframe.getAttribute('src') || '').toLowerCase();
+      const isAllowedVideo = src.includes('youtube.com/embed/') || 
+                             src.includes('youtube-nocookie.com/embed/') || 
+                             src.includes('player.vimeo.com/');
+      if (!isAllowedVideo) {
+        iframe.remove();
+      } else {
+        Array.from(iframe.attributes).forEach(attr => {
+          if (!['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'].includes(attr.name.toLowerCase())) {
+            iframe.removeAttribute(attr.name);
+          }
+        });
+      }
+    });
+
+    // 3. Clean all elements of on* attributes and javascript: URIs
+    const allElements = doc.body.querySelectorAll('*');
+    allElements.forEach(el => {
+      const attrs = Array.from(el.attributes);
+      attrs.forEach(attr => {
+        const attrName = attr.name.toLowerCase();
+        const attrVal = (attr.value || '').trim().toLowerCase();
+
+        // Strip inline event handlers (onclick, onerror, onload, etc.)
+        if (attrName.startsWith('on')) {
+          el.removeAttribute(attr.name);
+        }
+
+        // Strip dangerous URI schemes
+        if (['href', 'src', 'action', 'data'].includes(attrName)) {
+          if (attrVal.startsWith('javascript:') || attrVal.startsWith('vbscript:') || (attrVal.startsWith('data:') && !attrVal.startsWith('data:image/'))) {
+            el.removeAttribute(attr.name);
+          }
+        }
+      });
+    });
+
+    return doc.body.innerHTML;
+  } catch {
+    return dirtyHtml
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/\s+on\w+\s*=\s*(['"]).*?\1/gi, '')
+      .replace(/\s+on\w+\s*=\s*[^>\s]+/gi, '')
+      .replace(/javascript:[^"']*/gi, '');
+  }
+}
+
 export function slugifyTitle(title: string): string {
   if (!title) return '';
   return title

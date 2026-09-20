@@ -22,7 +22,8 @@ import {
   IMG_ONERROR, 
   findArticleBySlugOrId, 
   addReadingHistory,
-  slugifyTitle
+  slugifyTitle,
+  sanitizeArticleHtml
 } from '../utils/helpers';
 import Lenis from 'lenis';
 
@@ -81,8 +82,8 @@ export class ArticleReaderModal {
     const catName = catObj ? catObj.name : article.category.toUpperCase();
     const subCatName = subCatObj ? subCatObj.name : (article.subCategory || '');
 
-    // Article Content Body
-    const articleBody = article.content;
+    // Article Content Body (Sanitized to prevent Stored XSS)
+    const articleBody = sanitizeArticleHtml(article.content);
 
     modalReaderContent.innerHTML = `
       <!-- Sticky Reading Progress Bar -->

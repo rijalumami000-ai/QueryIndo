@@ -126,34 +126,52 @@ export class ArticleService {
 
   public static async createArticle(article: Article): Promise<Article> {
     article.imageUrl = ImageUtils.normalizeImageUrl(article.imageUrl || '');
+
+    // 1. Persist to PostgreSQL backend first
+    const ok = await ApiService.createArticle(article);
+    if (!ok) {
+      throw new Error('Gagal menyimpan artikel ke server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    }
+
+    // 2. Update local state and cache upon successful backend confirmation
     const list = [...this.getArticles()];
     list.unshift(article);
     this.saveArticles(list);
-    await ApiService.createArticle(article).catch(() => {});
     return article;
   }
 
   public static async updateArticle(id: string, updated: Partial<Article>): Promise<boolean> {
-    const list = [...this.getArticles()];
-    const idx = list.findIndex(a => a.id === id);
-    if (idx === -1) return false;
-
     if (updated.imageUrl) {
       updated.imageUrl = ImageUtils.normalizeImageUrl(updated.imageUrl);
     }
-    list[idx] = { ...list[idx], ...updated };
-    this.saveArticles(list);
-    await ApiService.updateArticle(id, updated).catch(() => {});
+
+    // 1. Persist to PostgreSQL backend first
+    const ok = await ApiService.updateArticle(id, updated);
+    if (!ok) {
+      throw new Error('Gagal memperbarui artikel di server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    }
+
+    // 2. Update local state and cache upon successful backend confirmation
+    const list = [...this.getArticles()];
+    const idx = list.findIndex(a => a.id === id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updated };
+      this.saveArticles(list);
+    }
     return true;
   }
 
   public static async deleteArticle(id: string): Promise<boolean> {
+    // 1. Delete from PostgreSQL backend first
+    const ok = await ApiService.deleteArticle(id);
+    if (!ok) {
+      throw new Error('Gagal menghapus artikel di server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    }
+
+    // 2. Update local state and cache upon successful backend confirmation
     const list = [...this.getArticles()];
     const filtered = list.filter(a => a.id !== id);
-    if (filtered.length === list.length) return false;
-
     this.saveArticles(filtered);
-    await ApiService.deleteArticle(id).catch(() => {});
     return true;
   }
 }

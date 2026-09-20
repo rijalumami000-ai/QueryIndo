@@ -126,42 +126,15 @@ export class ByteAIChatbot {
       messagesBox.scrollTop = messagesBox.scrollHeight;
     };
 
-    // Ask Go Backend (RAG DB + Gemini Proxy)
+    // Ask Go Backend (RAG DB + Gemini Server-Side Proxy)
     ApiService.askByteAI(query).then(backendReply => {
       if (backendReply) {
         finalizeResponse(backendReply);
       } else {
-        // Fallback to client-side API call or Local Fallback
-        const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-        if (apiKey) {
-          fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `Kamu adalah QueryAI Assistant, jurnalis AI dari media teknologi QUERYINDO. Jawablah pertanyaan pembaca secara informatif, terpercaya, dan ringkas: \n\n${query}`
-                }]
-              }]
-            })
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                finalizeResponse(data.candidates[0].content.parts[0].text);
-              } else {
-                finalizeResponse(this.getLocalFallbackResponse(query));
-              }
-            })
-            .catch(() => {
-              finalizeResponse(this.getLocalFallbackResponse(query));
-            });
-        } else {
-          setTimeout(() => {
-            finalizeResponse(this.getLocalFallbackResponse(query));
-          }, 500);
-        }
+        finalizeResponse(this.getLocalFallbackResponse(query));
       }
+    }).catch(() => {
+      finalizeResponse(this.getLocalFallbackResponse(query));
     });
   }
 

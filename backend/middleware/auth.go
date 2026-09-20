@@ -31,7 +31,10 @@ func Protected() fiber.Handler {
 		tokenString := parts[1]
 		jwtSecret := os.Getenv("JWT_SECRET")
 		if jwtSecret == "" {
-			jwtSecret = "byteindonesia_secret_key_2026_production"
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Konfigurasi server bermasalah: JWT_SECRET belum disetel di server.",
+			})
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -67,5 +70,43 @@ func Protected() fiber.Handler {
 		}
 
 		return c.Next()
+	}
+}
+
+// RequireRole enforces role-based access control (RBAC) on protected endpoints
+func RequireRole(roles ...string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		roleVal := c.Locals("role")
+		if roleVal == nil {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Akses Ditolak: Peran akun tidak ditemukan dalam token.",
+			})
+		}
+
+		userRole, ok := roleVal.(string)
+		if !ok {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Akses Ditolak: Format data peran pengguna tidak valid.",
+			})
+		}
+
+		userRoleLower := strings.ToLower(userRole)
+		// Superuser / Founder & CEO / Admin always has full access
+		if userRoleLower == "superuser" || userRoleLower == "founder & ceo" || userRoleLower == "admin" {
+			return c.Next()
+		}
+
+		for _, r := range roles {
+			if strings.EqualFold(userRole, r) {
+				return c.Next()
+			}
+		}
+
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"success": false,
+			"message": "Akses Ditolak: Tingkat otorisasi Anda tidak mencukupi untuk tindakan ini.",
+		})
 	}
 }

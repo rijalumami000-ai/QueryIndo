@@ -226,12 +226,12 @@ export class SettingsManager {
 
     // Delete Editor Account (Superuser only)
     modalElem.querySelectorAll('.btn-delete-admin-account').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name') || 'Akun';
         if (!id) return;
         if (confirm(`Apakah Anda yakin ingin menghapus akun Editor "${name}"? Akun ini tidak akan bisa login lagi.`)) {
-          const res = AuthService.deleteAdminAccount(id);
+          const res = await AuthService.deleteAdminAccount(id);
           Toast.show(res.message);
           onRefresh();
         }
@@ -241,7 +241,7 @@ export class SettingsManager {
     // Change Password Form Handler
     const formPass = modalElem.querySelector('#form-change-password') as HTMLFormElement;
     if (formPass) {
-      formPass.addEventListener('submit', (e) => {
+      formPass.addEventListener('submit', async (e) => {
         e.preventDefault();
         const oldPass = (modalElem.querySelector('#change-old-password') as HTMLInputElement).value;
         const newPass = (modalElem.querySelector('#change-new-password') as HTMLInputElement).value;
@@ -262,7 +262,7 @@ export class SettingsManager {
           return;
         }
 
-        const res = AuthService.changePassword(user?.email || 'rijalumami000@gmail.com', oldPass, newPass);
+        const res = await AuthService.changePassword(user?.email || 'rijalumami000@gmail.com', oldPass, newPass);
         if (res.success) {
           Toast.show(res.message);
           formPass.reset();
@@ -334,13 +334,13 @@ export class SettingsManager {
     overlay.querySelector('#btn-cancel-add-editor')?.addEventListener('click', closeForm);
 
     const form = overlay.querySelector('#form-create-editor') as HTMLFormElement;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fullName = (overlay.querySelector('#add-editor-name') as HTMLInputElement).value.trim();
       const email = (overlay.querySelector('#add-editor-email') as HTMLInputElement).value.trim();
       const password = (overlay.querySelector('#add-editor-password') as HTMLInputElement).value.trim();
 
-      const res = AuthService.createEditorAccount({ fullName, email, password });
+      const res = await AuthService.createEditorAccount({ fullName, email, password });
       if (res.success) {
         Toast.show(res.message);
         closeForm();

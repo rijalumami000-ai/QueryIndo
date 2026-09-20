@@ -675,60 +675,64 @@ export class ArticleEditor {
       const content = ArticleEditor.getCleanArticleHtml(wysiwygCanvas);
       const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
 
-      if (isEdit && article) {
-        await ArticleService.updateArticle(article.id, {
-          title,
-          subtitle,
-          category,
-          subCategory,
-          tags,
-          imageUrl,
-          author: {
-            name: authorName,
-            role: authorRole,
-            avatar: authorAvatar
-          },
-          aiSummary: article.aiSummary || [],
-          content,
-          isFactChecked: false,
-          isPremium: false,
-          isSponsored: false
-        });
-        Toast.show('Perubahan naskah berita berhasil disimpan.');
-      } else {
-        const newArt: Article = {
-          id: `art-${Date.now().toString().slice(-4)}`,
-          title,
-          slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          subtitle,
-          category,
-          subCategory,
-          tags,
-          author: {
-            name: authorName,
-            role: authorRole,
-            avatar: authorAvatar
-          },
-          publishedAt: new Date().toISOString(),
-          readTimeMinutes: Math.max(3, Math.ceil(content.length / 500)),
-          imageUrl,
-          isFeatured: false,
-          isTrending: false,
-          isBreaking: false,
-          isFactChecked: false,
-          isPremium: false,
-          isSponsored: false,
-          viewsCount: 0,
-          likesCount: 0,
-          aiSummary: [],
-          content
-        };
-        await ArticleService.createArticle(newArt);
-        Toast.show('Berita baru berhasil diterbitkan di QUERYINDO!');
-      }
+      try {
+        if (isEdit && article) {
+          await ArticleService.updateArticle(article.id, {
+            title,
+            subtitle,
+            category,
+            subCategory,
+            tags,
+            imageUrl,
+            author: {
+              name: authorName,
+              role: authorRole,
+              avatar: authorAvatar
+            },
+            aiSummary: article.aiSummary || [],
+            content,
+            isFactChecked: false,
+            isPremium: false,
+            isSponsored: false
+          });
+          Toast.show('Perubahan naskah berita berhasil disimpan ke server PostgreSQL!');
+        } else {
+          const newArt: Article = {
+            id: `art-${Date.now().toString().slice(-4)}`,
+            title,
+            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+            subtitle,
+            category,
+            subCategory,
+            tags,
+            author: {
+              name: authorName,
+              role: authorRole,
+              avatar: authorAvatar
+            },
+            publishedAt: new Date().toISOString(),
+            readTimeMinutes: Math.max(3, Math.ceil(content.length / 500)),
+            imageUrl,
+            isFeatured: false,
+            isTrending: false,
+            isBreaking: false,
+            isFactChecked: false,
+            isPremium: false,
+            isSponsored: false,
+            viewsCount: 0,
+            likesCount: 0,
+            aiSummary: [],
+            content
+          };
+          await ArticleService.createArticle(newArt);
+          Toast.show('Berita baru berhasil diterbitkan dan disimpan ke database PostgreSQL!');
+        }
 
-      onSave();
-      closeEditor();
+        onSave();
+        closeEditor();
+      } catch (err: any) {
+        Toast.show(err?.message || 'Gagal menyimpan naskah berita ke server.');
+      }
     });
   }
 

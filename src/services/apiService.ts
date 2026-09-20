@@ -739,6 +739,98 @@ export class ApiService {
     }
     return false;
   }
+
+  // Translate Article via Backend Gemini Proxy
+  public static async translateArticle(payload: {
+    title: string;
+    subtitle: string;
+    aiSummary: string[];
+    targetLang: string;
+  }): Promise<{ success: boolean; title: string; subtitle: string; aiSummary: string[] } | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/ai/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          return json;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend translation API failed:', err);
+    }
+    return null;
+  }
+
+  // Change Password via Go Backend
+  public static async changePassword(oldPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+      });
+      const data = await res.json();
+      return { success: res.ok && data.success, message: data.message || (res.ok ? 'Kata sandi berhasil diperbarui!' : 'Gagal memperbarui sandi.') };
+    } catch (err: any) {
+      return { success: false, message: 'Tidak dapat menghubungi server: ' + (err?.message || 'Koneksi gagal') };
+    }
+  }
+
+  // Get Admin Users from Database
+  public static async getAdminUsers(): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/users`, {
+        headers: this.getAuthHeaders()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.users)) {
+          return data.users;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal memuat pengguna admin dari backend:', err);
+    }
+    return [];
+  }
+
+  // Create Admin User in Database
+  public static async createAdminUser(data: { email: string; fullName: string; password: string; role?: string }): Promise<{ success: boolean; message: string; user?: any }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/users`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          email: data.email,
+          full_name: data.fullName,
+          password: data.password,
+          role: data.role || 'editor'
+        })
+      });
+      const json = await res.json();
+      return { success: res.ok && json.success, message: json.message || '', user: json.user };
+    } catch (err: any) {
+      return { success: false, message: 'Gagal menghubungi server: ' + (err?.message || '') };
+    }
+  }
+
+  // Delete Admin User in Database
+  public static async deleteAdminUser(id: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/users/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+      const json = await res.json();
+      return { success: res.ok && json.success, message: json.message || '' };
+    } catch (err: any) {
+      return { success: false, message: 'Gagal menghapus pengguna di server: ' + (err?.message || '') };
+    }
+  }
 }
 
 

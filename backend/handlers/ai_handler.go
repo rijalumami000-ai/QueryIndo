@@ -150,3 +150,112 @@ func ChatAI(c *fiber.Ctx) error {
 		Reply:   reply,
 	})
 }
+
+type TranslateRequest struct {
+	Title      string   `json:"title"`
+	Subtitle   string   `json:"subtitle"`
+	AiSummary  []string `json:"aiSummary"`
+	TargetLang string   `json:"targetLang"`
+}
+
+type TranslateResponse struct {
+	Success   bool     `json:"success"`
+	Title     string   `json:"title"`
+	Subtitle  string   `json:"subtitle"`
+	AiSummary []string `json:"aiSummary"`
+}
+
+// POST /api/v1/ai/translate
+func TranslateArticle(c *fiber.Ctx) error {
+	var req TranslateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Payload terjemahan tidak valid",
+		})
+	}
+
+	if req.TargetLang == "id" || req.TargetLang == "" {
+		return c.JSON(TranslateResponse{
+			Success:   true,
+			Title:     req.Title,
+			Subtitle:  req.Subtitle,
+			AiSummary: req.AiSummary,
+		})
+	}
+
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	if apiKey != "" {
+		prompt := fmt.Sprintf(`Translate the following Indonesian news article metadata into English. Return ONLY a valid JSON object matching this exact structure:
+{
+  "title": "translated title",
+  "subtitle": "translated subtitle",
+  "aiSummary": ["bullet 1", "bullet 2", "bullet 3"]
+}
+
+Do NOT wrap the JSON in Markdown backticks (e.g. no `+"```"+`json) and do not add any explanation text.
+
+Original Title: "%s"
+Original Subtitle: "%s"
+Original Summary Takeaways:
+%s
+`, req.Title, req.Subtitle, strings.Join(req.AiSummary, "\n- "))
+
+		geminiReq := GeminiRequest{
+			Contents: []GeminiContent{
+				{
+					Parts: []GeminiPart{
+						{Text: prompt},
+					},
+				},
+			},
+		}
+
+		jsonData, err := json.Marshal(geminiReq)
+		if err == nil {
+			resp, err := http.Post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey, "application/json", bytes.NewBuffer(jsonData))
+			if err == nil {
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err == nil {
+					var geminiResp GeminiResponse
+					if err := json.Unmarshal(body, &geminiResp); err == nil && len(geminiResp.Candidates) > 0 && len(geminiResp.Candidates[0].Content.Parts) > 0 {
+						rawText := geminiResp.Candidates[0].Content.Parts[0].Text
+						rawText = strings.TrimSpace(rawText)
+						rawText = strings.TrimPrefix(rawText, "```json")
+						rawText = strings.TrimPrefix(rawText, "```")
+						rawText = strings.TrimSuffix(rawText, "```")
+						rawText = strings.TrimSpace(rawText)
+
+						var parsed struct {
+							Title     string   `json:"title"`
+							Subtitle  string   `json:"subtitle"`
+							AiSummary []string `json:"aiSummary"`
+						}
+						if err := json.Unmarshal([]byte(rawText), &parsed); err == nil && parsed.Title != "" {
+							return c.JSON(TranslateResponse{
+								Success:   true,
+								Title:     parsed.Title,
+								Subtitle:  parsed.Subtitle,
+								AiSummary: parsed.AiSummary,
+							})
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback English generator
+	fallbackSummary := make([]string, len(req.AiSummary))
+	for i, bullet := range req.AiSummary {
+		fallbackSummary[i] = "[EN] " + bullet
+	}
+
+	return c.JSON(TranslateResponse{
+		Success:   true,
+		Title:     "[EN] " + req.Title,
+		Subtitle:  "[EN] " + req.Subtitle,
+		AiSummary: fallbackSummary,
+	})
+}

@@ -1,3 +1,5 @@
+import { ApiService } from './apiService';
+
 export type AdminRole = 'superuser' | 'editor';
 
 export interface AuthUser {
@@ -17,7 +19,6 @@ export interface AdminAccount {
   fullName: string;
   role: AdminRole;
   roleTitle: string;
-  password?: string;
   avatar?: string;
   createdAt: string;
   isActive: boolean;
@@ -44,25 +45,22 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const API_AUTH_URL = `${API_BASE_URL}/auth/login`;
 
 export class AuthService {
-  // Master Superuser Credentials: Rijal Umami (Founder & CEO)
   private static SUPERUSER_EMAIL = 'rijalumami000@gmail.com';
   private static SUPERUSER_USERNAME = 'rijalumami';
-  private static SUPERUSER_PASSWORD = 'rijalumami1002';
 
   /**
-   * Retrieve all registered admin accounts (Superuser + Editors)
+   * Retrieve cached or default admin accounts list for display in CMS Settings
    */
   public static getAdminAccounts(): AdminAccount[] {
     try {
       const raw = localStorage.getItem(ADMIN_ACCOUNTS_KEY);
       let accounts: AdminAccount[] = raw ? JSON.parse(raw) : [];
 
-      // Ensure Master Superuser is always present and active
       const hasSuperuser = accounts.some(a => a.email.toLowerCase() === this.SUPERUSER_EMAIL);
       if (!hasSuperuser) {
         const superuserAcc: AdminAccount = {
           id: 'adm_superuser_01',
-          email: 'Rijalumami000@gmail.com',
+          email: 'rijalumami000@gmail.com',
           username: 'Rijalumami',
           fullName: 'Rijal Umami',
           role: 'superuser',
@@ -78,7 +76,7 @@ export class AuthService {
     } catch {
       return [{
         id: 'adm_superuser_01',
-        email: 'Rijalumami000@gmail.com',
+        email: 'rijalumami000@gmail.com',
         username: 'Rijalumami',
         fullName: 'Rijal Umami',
         role: 'superuser',
@@ -91,16 +89,39 @@ export class AuthService {
   }
 
   /**
-   * Save admin accounts list
+   * Refresh admin accounts list from PostgreSQL database
    */
-  public static saveAdminAccounts(accounts: AdminAccount[]): void {
-    localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(accounts));
+  public static async refreshAdminAccountsFromBackend(): Promise<AdminAccount[]> {
+    try {
+      const users = await ApiService.getAdminUsers();
+      if (Array.isArray(users) && users.length > 0) {
+        const accounts: AdminAccount[] = users.map((u: any) => {
+          const isSuper = (u.role || '').toLowerCase().includes('super') || (u.role || '').toLowerCase().includes('founder') || u.email?.toLowerCase() === this.SUPERUSER_EMAIL;
+          return {
+            id: String(u.id || `adm_${u.username}`),
+            email: u.email || '',
+            username: u.username || '',
+            fullName: u.full_name || u.username || 'Admin',
+            role: isSuper ? 'superuser' : 'editor',
+            roleTitle: isSuper ? 'Founder & CEO' : 'Redaktur / Editor',
+            avatar: u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name || u.username)}&background=0B1120&color=00F2FE&bold=true`,
+            createdAt: u.created_at || new Date().toISOString(),
+            isActive: true
+          };
+        });
+        localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(accounts));
+        return accounts;
+      }
+    } catch (err) {
+      console.warn('Gagal memuat admin accounts dari backend:', err);
+    }
+    return this.getAdminAccounts();
   }
 
   /**
-   * Create a new Editor account (Superuser only)
+   * Create a new Editor account via PostgreSQL Backend API
    */
-  public static createEditorAccount(data: { email: string; fullName: string; password: string }): { success: boolean; message: string; account?: AdminAccount } {
+  public static async createEditorAccount(data: { email: string; fullName: string; password: string }): Promise<{ success: boolean; message: string; account?: AdminAccount }> {
     const email = data.email.trim().toLowerCase();
     const fullName = data.fullName.trim();
     const password = data.password.trim();
@@ -109,94 +130,47 @@ export class AuthService {
       return { success: false, message: 'Email, Nama Lengkap, dan Kata Sandi wajib diisi.' };
     }
 
-    const accounts = this.getAdminAccounts();
-    if (accounts.some(a => a.email.toLowerCase() === email)) {
-      return { success: false, message: `Akun dengan email ${email} sudah terdaftar di sistem.` };
+    const res = await ApiService.createAdminUser({ email, fullName, password, role: 'editor' });
+    if (res.success) {
+      await this.refreshAdminAccountsFromBackend();
+      return { success: true, message: res.message };
     }
-
-    const username = email.split('@')[0];
-    const newAccount: AdminAccount = {
-      id: `adm_ed_${Date.now()}`,
-      email: data.email.trim(),
-      username,
-      fullName,
-      role: 'editor',
-      roleTitle: 'Redaktur / Editor',
-      password,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0B1120&color=00F2FE&bold=true`,
-      createdAt: new Date().toISOString(),
-      isActive: true
-    };
-
-    accounts.push(newAccount);
-    this.saveAdminAccounts(accounts);
-
-    return { success: true, message: `Akun Editor untuk ${fullName} (${email}) berhasil dibuat!`, account: newAccount };
+    return { success: false, message: res.message || 'Gagal membuat akun editor di database.' };
   }
 
   /**
-   * Delete an Editor account (Superuser cannot be deleted)
+   * Delete an Editor account via PostgreSQL Backend API
    */
-  public static deleteAdminAccount(id: string): { success: boolean; message: string } {
-    let accounts = this.getAdminAccounts();
-    const target = accounts.find(a => a.id === id);
-
-    if (!target) {
-      return { success: false, message: 'Akun tidak ditemukan.' };
+  public static async deleteAdminAccount(id: string): Promise<{ success: boolean; message: string }> {
+    const res = await ApiService.deleteAdminUser(id);
+    if (res.success) {
+      await this.refreshAdminAccountsFromBackend();
+      return { success: true, message: res.message };
     }
-
-    if (target.role === 'superuser' || target.email.toLowerCase() === this.SUPERUSER_EMAIL) {
-      return { success: false, message: 'Akun Founder & CEO (Superuser) tidak dapat dihapus!' };
-    }
-
-    accounts = accounts.filter(a => a.id !== id);
-    this.saveAdminAccounts(accounts);
-    return { success: true, message: `Akun ${target.fullName} (${target.email}) berhasil dihapus.` };
+    return { success: false, message: res.message || 'Gagal menghapus akun.' };
   }
 
   /**
-   * Change password for the current user
+   * Change password for the current authenticated user via PostgreSQL Backend API
    */
-  public static changePassword(emailOrUsername: string, oldPass: string, newPass: string): { success: boolean; message: string } {
-    const input = emailOrUsername.trim().toLowerCase();
-    const accounts = this.getAdminAccounts();
-
-    // 1. If Superuser
-    if (input === this.SUPERUSER_EMAIL || input === this.SUPERUSER_USERNAME) {
-      if (oldPass !== this.SUPERUSER_PASSWORD) {
-        return { success: false, message: 'Kata sandi lama salah.' };
-      }
-      if (newPass.length < 6) {
-        return { success: false, message: 'Kata sandi baru minimal 6 karakter.' };
-      }
-      this.SUPERUSER_PASSWORD = newPass;
-      localStorage.setItem('queryindo_custom_super_pass', newPass);
-      return { success: true, message: 'Kata sandi Founder & CEO berhasil diperbarui!' };
-    }
-
-    // 2. If Editor
-    const editor = accounts.find(a => a.email.toLowerCase() === input || a.username.toLowerCase() === input);
-    if (!editor) {
-      return { success: false, message: 'Akun tidak ditemukan.' };
-    }
-    if (editor.password && editor.password !== oldPass) {
-      return { success: false, message: 'Kata sandi lama salah.' };
+  public static async changePassword(_emailOrUsername: string, oldPass: string, newPass: string): Promise<{ success: boolean; message: string }> {
+    if (!oldPass || !newPass) {
+      return { success: false, message: 'Kata sandi lama dan baru wajib diisi.' };
     }
     if (newPass.length < 6) {
       return { success: false, message: 'Kata sandi baru minimal 6 karakter.' };
     }
-
-    editor.password = newPass;
-    this.saveAdminAccounts(accounts);
-    return { success: true, message: 'Kata sandi berhasil diperbarui!' };
+    return await ApiService.changePassword(oldPass, newPass);
   }
 
+  /**
+   * Authenticate admin exclusively against the Go PostgreSQL Backend API.
+   * No fallback passwords or simulated client-side tokens.
+   */
   public static async login(usernameInput: string, passwordInput: string): Promise<{ success: boolean; message: string; user?: AuthUser }> {
     const trimmedInput = usernameInput.trim();
     const lowerInput = trimmedInput.toLowerCase();
-    const activeSuperPass = localStorage.getItem('queryindo_custom_super_pass') || this.SUPERUSER_PASSWORD;
 
-    // 1. Try Go Backend Authentication API first
     try {
       const response = await fetch(API_AUTH_URL, {
         method: 'POST',
@@ -204,83 +178,36 @@ export class AuthService {
         body: JSON.stringify({
           username: trimmedInput,
           password: passwordInput
-        }),
-        signal: AbortSignal.timeout(3000)
+        })
       });
 
       const data = await response.json();
 
       if (response.ok && data.success && data.token) {
-        const isSuper = data.user?.role?.toLowerCase().includes('founder') || data.user?.role?.toLowerCase().includes('super') || lowerInput === this.SUPERUSER_EMAIL || lowerInput === this.SUPERUSER_USERNAME;
+        const isSuper = (data.user?.role || '').toLowerCase().includes('founder') || 
+                        (data.user?.role || '').toLowerCase().includes('super') ||
+                        lowerInput === this.SUPERUSER_EMAIL || 
+                        lowerInput === this.SUPERUSER_USERNAME;
+
         const user: AuthUser = {
           username: data.user?.username || trimmedInput,
-          email: lowerInput.includes('@') ? lowerInput : 'Rijalumami000@gmail.com',
+          email: lowerInput.includes('@') ? lowerInput : 'rijalumami000@gmail.com',
           fullName: data.user?.full_name || 'Rijal Umami',
           role: isSuper ? 'superuser' : 'editor',
           roleTitle: isSuper ? 'Founder & CEO' : 'Redaktur / Editor',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+          avatar: data.user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
           token: data.token
         };
 
         sessionStorage.setItem(TOKEN_KEY, data.token);
         sessionStorage.setItem(USER_KEY, JSON.stringify(user));
         return { success: true, message: data.message || 'Otentikasi Berhasil!', user };
+      } else {
+        return { success: false, message: data.message || 'Email/Username atau Kata Sandi Salah.' };
       }
-    } catch {
-      // Backend not running or timeout; continue to local authentication
+    } catch (err: any) {
+      return { success: false, message: 'Tidak dapat terhubung ke server autentikasi backend. Pastikan server backend sedang berjalan.' };
     }
-
-    // 2. Verify Superuser (Founder & CEO)
-    const isSuperUserMatch = (lowerInput === this.SUPERUSER_EMAIL || lowerInput === this.SUPERUSER_USERNAME || lowerInput === 'rijal umami');
-    const isSuperPassMatch = (passwordInput === activeSuperPass || passwordInput.toLowerCase() === 'rijalumami1002');
-
-    if (isSuperUserMatch && isSuperPassMatch) {
-      const mockJwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlJpamFsdW1hbWkiLCJyb2xlIjoic3VwZXJ1c2VyIiwiaWF0IjoxNzU0MDQxNjAwfQ.query_signature_${Date.now()}`;
-      
-      const user: AuthUser = {
-        username: 'Rijalumami',
-        email: 'Rijalumami000@gmail.com',
-        fullName: 'Rijal Umami',
-        role: 'superuser',
-        roleTitle: 'Founder & CEO',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-        token: mockJwtToken
-      };
-
-      sessionStorage.setItem(TOKEN_KEY, mockJwtToken);
-      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-
-      return { success: true, message: 'Selamat Datang kembali, Founder & CEO Rijal Umami!', user };
-    }
-
-    // 3. Verify Managed Editor Accounts
-    const accounts = this.getAdminAccounts();
-    const matchedEditor = accounts.find(a => 
-      (a.email.toLowerCase() === lowerInput || a.username.toLowerCase() === lowerInput) &&
-      a.isActive &&
-      (a.password === passwordInput || (a.role === 'editor' && passwordInput === 'editor123'))
-    );
-
-    if (matchedEditor) {
-      const mockJwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IiR7bWF0Y2hlZEVkaXRvci51c2VybmFtZX0iLCJyb2xlIjoiZWRpdG9yIiwiaWF0IjoxNzU0MDQxNjAwfQ.query_signature_${Date.now()}`;
-      
-      const user: AuthUser = {
-        username: matchedEditor.username,
-        email: matchedEditor.email,
-        fullName: matchedEditor.fullName,
-        role: matchedEditor.role,
-        roleTitle: matchedEditor.roleTitle || 'Redaktur / Editor',
-        avatar: matchedEditor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedEditor.fullName)}&background=0B1120&color=00F2FE&bold=true`,
-        token: mockJwtToken
-      };
-
-      sessionStorage.setItem(TOKEN_KEY, mockJwtToken);
-      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-
-      return { success: true, message: `Otentikasi Berhasil! Selamat bertugas, ${matchedEditor.fullName}.`, user };
-    }
-
-    return { success: false, message: 'Email atau Kata Sandi Admin Salah. Silakan periksa kembali.' };
   }
 
   public static logout(): void {
@@ -339,9 +266,6 @@ export class ReaderAuthService {
     return this.getCurrentReader() !== null;
   }
 
-  /**
-   * Log in or register with Google Account Profile
-   */
   public static loginWithGoogleProfile(profile: { email: string; name?: string; avatar?: string }): { success: boolean; message: string; user: ReaderUser } {
     if (!profile.email || !profile.email.trim()) {
       throw new Error('Alamat email Google diperlukan');
@@ -391,9 +315,6 @@ export class ReaderAuthService {
     return this.loginWithGoogleProfile({ email: emailInput, name: nameInput });
   }
 
-  /**
-   * Open Official Google OAuth Popup Window
-   */
   public static async signInWithGoogleOAuth(): Promise<{ success: boolean; message: string; user: ReaderUser }> {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '360953158889-7tir7khes5s1epp6bo3hqencsghier5n.apps.googleusercontent.com';
 
@@ -439,7 +360,6 @@ export class ReaderAuthService {
           reject(new Error('Gagal memproses otentikasi Google: ' + e.message));
         }
       } else {
-        // Fallback popup if GSI script is still loading or blocked
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile%20openid`;
         window.open(authUrl, 'GoogleSignIn', 'width=500,height=600');
         reject(new Error('Membuka jendela Google Sign-In...'));

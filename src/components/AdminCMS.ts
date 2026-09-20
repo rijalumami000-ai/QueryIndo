@@ -901,12 +901,16 @@ export class AdminCMS {
         const id = btn.getAttribute('data-id');
         if (!id) return;
         if (confirm('Apakah Anda yakin ingin menghapus artikel berita ini secara permanen dari portal QUERYINDO?')) {
-          const success = await ArticleService.deleteArticle(id);
-          if (success) {
-            this.articles = ArticleService.getArticles();
-            this.onArticlesChange();
-            this.refreshTable(modalElem);
-            Toast.show('Artikel berita berhasil dihapus secara permanen.');
+          try {
+            const success = await ArticleService.deleteArticle(id);
+            if (success) {
+              this.articles = ArticleService.getArticles();
+              this.onArticlesChange();
+              this.refreshTable(modalElem);
+              Toast.show('Artikel berita berhasil dihapus secara permanen dari server.');
+            }
+          } catch (err: any) {
+            Toast.show(err?.message || 'Gagal menghapus artikel dari server.');
           }
         }
       });
