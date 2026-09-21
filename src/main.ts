@@ -788,14 +788,58 @@ function setupEventListeners() {
     });
   });
 
-  // Footer Category Links
-  document.querySelectorAll('.footer-category-link[data-footer-category]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const cat = link.getAttribute('data-footer-category');
-      if (cat) handleCategoryNavClick(cat);
+  // --------------------------------------------------------------------------
+  // Footer Comprehensive Directory Matrix (14 Categories x 10 Subcategories)
+  // --------------------------------------------------------------------------
+  const footerDirectoryGrid = document.getElementById('footer-directory-grid');
+  if (footerDirectoryGrid) {
+    const categories14 = CATEGORIES.filter(c => c.id !== 'all');
+    footerDirectoryGrid.innerHTML = categories14.map(cat => {
+      const subCats = MASTER_TAXONOMY[cat.id] || [];
+      return `
+        <div class="footer-dir-col-group">
+          <a href="#" class="footer-dir-cat-title" data-cat="${cat.id}">
+            ${cat.name}
+          </a>
+          <div class="footer-dir-subcats-stack">
+            ${subCats.map(sub => `
+              <a href="#" class="footer-dir-subcat-link" data-cat="${cat.id}" data-subcat="${sub.slug}">
+                ${sub.name}
+              </a>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    footerDirectoryGrid.querySelectorAll('.footer-dir-cat-title').forEach(hdr => {
+      hdr.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = hdr.getAttribute('data-cat');
+        if (cat) {
+          handleCategoryNavClick(cat);
+          document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     });
-  });
+
+    footerDirectoryGrid.querySelectorAll('.footer-dir-subcat-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = link.getAttribute('data-cat');
+        const sub = link.getAttribute('data-subcat');
+        if (cat && sub) {
+          store.currentCategory = cat as any;
+          store.currentSubCategory = sub;
+          Router.navigateToSubCategory(cat as any, sub);
+          FeedSection.renderCategories();
+          FeedSection.renderSubCategories();
+          FeedSection.render();
+          document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
 
   // --------------------------------------------------------------------------
   // Hamburger Menu & Structured Directory Controller (Ala CNN/Reuters Directory)

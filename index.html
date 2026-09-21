@@ -500,31 +500,45 @@
         <div id="feed-load-more-container" style="text-align: center; margin-top: 2rem;"></div>
       </section>
 
-      <!-- Newsletter Subscription Section -->
-      <section class="newsletter-box" id="newsletter-section">
-        <div class="newsletter-content">
-          <h3 class="newsletter-title">Langganan Wawasan Tekno Harian</h3>
-          <p class="newsletter-desc">Dapatkan rangkuman berita teknologi paling krusial, analisis mendalam, dan ringkasan AI langsung ke kotak masuk email Anda setiap pagi.</p>
-          <form class="newsletter-form" id="newsletter-form">
-            <input type="email" class="newsletter-input" placeholder="Masukkan alamat email Anda..." required />
-            <button type="submit" class="btn-subscribe">Berlangganan Gratis</button>
-          </form>
-        </div>
-      </section>
     </main>
 
     <!-- Institutional Full-Page Container (hidden by default) -->
     <div id="institutional-page-container" style="display:none;"></div>
 
-    <!-- Footer (TechCrunch-style Deep Obsidian 4-Column Luxury Layout) -->
-    <footer class="footer">
+    <!-- Footer (The Verge / Reuters / NYTimes Level Comprehensive Editorial Footer) -->
+    <footer class="footer" id="main-footer">
       <div class="container" style="position: relative; z-index: 5;">
-        <div class="footer-grid">
-          <!-- Column 1: Brand & Identity -->
-          <div class="footer-col-brand">
+        
+        <!-- [FOOTER BLOCK 1] Minimalist & High-Conversion Newsletter Subscription Strip -->
+        <div class="footer-newsletter-banner" id="footer-newsletter-section">
+          <div class="footer-newsletter-info">
+            <div class="footer-newsletter-tag">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>INTELIJEN TEKNOLOGI HARIAN</span>
+            </div>
+            <h3 class="footer-newsletter-title">Langganan Wawasan Tekno QueryIndo</h3>
+            <p class="footer-newsletter-desc">
+              Kurasi riset AI terdepan, dinamika semikonduktor, keamanan siber, dan ekonomi digital nusantara langsung ke kotak masuk Anda. Tanpa spam, gratis selamanya.
+            </p>
+          </div>
+          <form class="footer-newsletter-form" id="footer-newsletter-form">
+            <div class="footer-newsletter-input-wrap">
+              <svg class="footer-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" class="footer-newsletter-input" placeholder="Masukkan alamat email Anda..." required />
+            </div>
+            <button type="submit" class="footer-btn-subscribe" id="btn-footer-subscribe">
+              <span>Berlangganan</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- [FOOTER BLOCK 2] Brand Identity & Dewan Pers Verification Header -->
+        <div class="footer-brand-compliance-row">
+          <div class="footer-brand-summary">
             <a href="#" class="brand-logo footer-brand-logo" aria-label="QueryIndo Home">
               <div class="brand-emblem-wrap">
-                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
                   <rect x="2" y="2" width="60" height="60" rx="16" fill="#0B1120" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.2"/>
                   <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
                   <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
@@ -540,73 +554,92 @@
                 </div>
               </div>
             </a>
-            <p class="footer-desc">
-              Portal jurnalisme teknologi independen nasional. Menyajikan investigasi mendalam kecerdasan buatan, infrastruktur komputasi awan, keamanan siber, dan kedaulatan digital nusantara.
+            <p class="footer-editorial-mission">
+              QueryIndo adalah media siber jurnalisme teknologi independen nasional yang didedikasikan untuk menyajikan liputan investigatif, riset ilmiah, dan analisis kritis seputar kecerdasan buatan, infrastruktur digital, perangkat keras, dan kedaulatan sains nusantara.
             </p>
-            <div class="footer-compliance-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>Verifikasi Pedoman Media Siber Dewan Pers</span>
+            <div class="footer-social-wrapper">
+              <span class="footer-social-label">Saluran Resmi:</span>
+              <ul class="footer-social-list" id="footer-social-list">
+                <!-- Dynamic Official Social Channels from SocialMediaService -->
+              </ul>
             </div>
-            <ul class="footer-social-list" id="footer-social-list">
-              <!-- Dynamic Official Social Channels from SocialMediaService -->
-            </ul>
-          </div>
-          
-          <!-- Column 2: Redaksi & Kelembagaan -->
-          <div class="footer-col-links">
-            <h4 class="footer-links-title" id="footer-company-title">Redaksi & Lembaga</h4>
-            <ul class="footer-links-list">
-              <li><a href="/page/tentang-kami" id="link-about">Tentang Kami</a></li>
-              <li><a href="/page/redaksi" id="link-redaksi">Susunan Redaksi</a></li>
-              <li><a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Pedoman Media Siber</a></li>
-              <li><a href="/page/kode-etik" id="link-ethics">Kode Etik Jurnalistik</a></li>
-              <li><a href="/page/hubungi-kami" id="link-contact">Kontak & Ruang Berita</a></li>
-              <li><a href="/page/kode-etik#hak-jawab" id="link-disclaimer">Hak Jawab & Koreksi</a></li>
-            </ul>
           </div>
 
-          <!-- Column 3: Liputan Khusus -->
-          <div class="footer-col-links">
-            <h4 class="footer-links-title">Liputan Khusus</h4>
-            <ul class="footer-links-list">
-              <li><a href="#" class="footer-category-link" data-footer-category="ai">Kecerdasan Buatan & AI</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="gadget">Gadget & Perangkat Pintar</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="startup">Startup & Modal Ventura</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="ev">Kendaraan Listrik & Baterai</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="fintech">Fintech & Aset Digital</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="cybersecurity">Keamanan Siber & Privasi</a></li>
-              <li><a href="#" class="footer-category-link" data-footer-category="space">Sains & Antariksa</a></li>
-            </ul>
-          </div>
-
-          <!-- Column 4: Layanan & Bisnis -->
-          <div class="footer-col-links">
-            <h4 class="footer-links-title">Layanan & Bisnis</h4>
-            <ul class="footer-links-list">
-              <li><a href="/page/info-iklan" id="link-ads">Informasi Iklan & Kemitraan</a></li>
-              <li><a href="#newsletter-section" id="link-footer-newsletter">Newsletter Harian</a></li>
-              <li><a href="/rss.xml" target="_blank" rel="alternate" id="link-rss-bottom">RSS Feed Global</a></li>
-              <li><a href="/page/disclaimer">Cek Fakta Tekno</a></li>
-              <li><a href="/page/peta-situs" id="link-sitemap">Peta Situs (Sitemap)</a></li>
-              <li><a href="/admin" id="link-admin-footer">Portal Redaksi CMS</a></li>
-            </ul>
-            <div class="footer-address-snippet">
-              <span class="footer-address-label">Kantor Redaksi:</span>
-              <p>Jl. S. Parman No 07 Cintamulya Candipuro Lampung Selatan</p>
-              <p class="footer-contact-row">redaksi@queryindo.com • +62 895-3238-61966</p>
+          <div class="footer-press-compliance-card">
+            <div class="press-seal-header">
+              <div class="press-seal-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </div>
+              <div class="press-seal-text">
+                <span class="press-seal-kicker">STANDAR JURNALISME NASIONAL</span>
+                <h4 class="press-seal-title">Verifikasi Pedoman Pemberitaan Media Siber</h4>
+              </div>
+            </div>
+            <p class="press-compliance-desc">
+              Seluruh produk jurnalistik QueryIndo tunduk dan terikat penuh pada <strong>Peraturan Dewan Pers No. 1/Peraturan-DP/III/2012</strong> tentang Pedoman Pemberitaan Media Siber serta Kode Etik Jurnalistik (UU No. 40 Tahun 1999). Kami menjunjung tinggi independensi ruang redaksi, keberimbangan informasi, hak jawab, dan verifikasi fakta tanpa kompromi.
+            </p>
+            <div class="press-compliance-links">
+              <a href="/page/pedoman-media-siber" class="press-guideline-link">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Baca Pedoman Media Siber</span>
+              </a>
+              <span class="press-link-sep">•</span>
+              <a href="/page/kode-etik#hak-jawab" class="press-guideline-link">
+                <span>Panduan Hak Jawab & Koreksi</span>
+              </a>
             </div>
           </div>
         </div>
 
-        <!-- Footer Bottom Legal Strip -->
+        <!-- [FOOTER BLOCK 3] 14 Categories & 140 Subcategories Comprehensive Directory Grid -->
+        <div class="footer-directory-section">
+          <div class="footer-directory-header">
+            <h4 class="footer-directory-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>DIREKTORI LENGKAP KANAL & SUB-KANAL TEKNOLOGI</span>
+            </h4>
+            <span class="footer-directory-badge">14 Kanal Utama • 140 Sub-Kategori Terkurasi</span>
+          </div>
+
+          <div class="footer-directory-grid" id="footer-directory-grid">
+            <!-- Rendered dynamically by JS from MASTER_TAXONOMY -->
+          </div>
+        </div>
+
+        <!-- [FOOTER BLOCK 4] Horizontal Institutional & Redaksi Navigation Bar -->
+        <div class="footer-institutional-strip">
+          <nav class="footer-institutional-nav" aria-label="Navigasi Lembaga & Redaksi">
+            <a href="/page/tentang-kami" id="link-about">Tentang Kami</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/redaksi" id="link-redaksi">Susunan Redaksi</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Pedoman Media Siber</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/kode-etik" id="link-ethics">Kode Etik Jurnalistik</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/kode-etik#hak-jawab" id="link-disclaimer">Hak Jawab & Koreksi</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/info-iklan" id="link-ads">Informasi Iklan & Kemitraan</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/hubungi-kami" id="link-contact">Kontak & Ruang Berita</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/disclaimer">Cek Fakta Tekno</a>
+            <span class="nav-sep" aria-hidden="true">•</span>
+            <a href="/page/peta-situs" id="link-sitemap">Peta Situs</a>
+          </nav>
+        </div>
+
+        <!-- [FOOTER BLOCK 5] Footer Bottom Legal Strip -->
         <div class="footer-bottom">
-          <p>© 2026 QUERYINDO (PT Inovasi Media Nusantara). Hak Cipta Dilindungi Undang-Undang.</p>
+          <div class="footer-legal-copy">
+            <p>© 2026 <strong>QUERYINDO</strong> (PT Inovasi Media Nusantara). Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+            <p class="footer-legal-sub">Dilarang mengutip, memperbanyak, atau mendistribusikan sebagian atau seluruh isi tanpa izin tertulis dari Redaksi QueryIndo.</p>
+          </div>
           <div class="footer-bottom-links">
-            <a href="/page/privasi" id="link-privacy">Privasi</a>
+            <a href="/page/privasi" id="link-privacy">Kebijakan Privasi</a>
             <a href="/page/syarat-ketentuan" id="link-terms">Syarat & Ketentuan</a>
-            <a href="/page/peta-situs">Peta Situs</a>
-            <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed</a>
-            <a href="/admin">Portal Redaksi</a>
+            <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed Global</a>
+            <a href="/admin" class="footer-admin-link">Portal Redaksi CMS</a>
           </div>
         </div>
       </div>
