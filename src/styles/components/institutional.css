@@ -104,10 +104,14 @@
   max-width: 760px;
 }
 
-/* ── Corporate Hub Navigation Tabs ── */
+/* ── Corporate Hub Navigation Tabs with Smooth Horizontal Controls ── */
 .inst-nav-tabs-wrapper {
+  position: relative;
   margin-bottom: 3rem;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .inst-nav-tabs {
@@ -115,13 +119,78 @@
   align-items: center;
   gap: 0.25rem;
   overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding-bottom: -1px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+  padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+  scroll-behavior: smooth;
+  cursor: grab;
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.inst-nav-tabs.dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
 }
 
 .inst-nav-tabs::-webkit-scrollbar {
-  display: none;
+  height: 4px;
+}
+
+.inst-nav-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.inst-nav-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.inst-nav-tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
+
+.inst-nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 5;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.inst-nav-arrow:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  transform: scale(1.08);
+}
+
+[data-theme="light"] .inst-nav-arrow {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .inst-nav-arrow:hover {
+  background: #f8fafc;
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+@media (max-width: 768px) {
+  .inst-nav-arrow {
+    display: none;
+  }
 }
 
 .inst-nav-tab {
@@ -138,6 +207,7 @@
   transition: all var(--transition-fast);
   background: transparent;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .inst-nav-tab svg {

@@ -368,4 +368,28 @@ export class SocialMediaService {
       `;
     }).join('');
   }
+
+  // Render Drawer Social Channels HTML
+  public static renderDrawerSocialHTML(): string {
+    const active = this.getActiveLinks();
+    if (active.length === 0) {
+      return '';
+    }
+
+    return active.map(item => {
+      const meta = PLATFORM_METAS[item.platform] || PLATFORM_METAS.custom;
+      return `
+        <a 
+          href="${item.url}" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="drawer-social-badge ${item.platform}" 
+          title="${item.name} Official"
+        >
+          <span class="drawer-social-icon">${meta.svgIcon}</span>
+          <span class="drawer-social-name">${item.name}</span>
+        </a>
+      `;
+    }).join('');
+  }
 }

@@ -982,43 +982,115 @@ body.is-scrolled .brand-word-indo {
 .drawer-footer-institutional {
   border-top: 1px solid var(--border-color);
   padding-top: 2.5rem;
+  margin-top: 2.5rem;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .drawer-footer-institutional {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
   .drawer-footer-institutional {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 }
 
 .drawer-footer-col {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .drawer-footer-heading {
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
   text-transform: uppercase;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.45rem;
+  position: relative;
+  display: inline-block;
 }
 
 .drawer-footer-col a {
   font-size: 0.85rem;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: all 0.15s ease;
+  line-height: 1.4;
 }
 
 .drawer-footer-col a:hover {
   color: var(--accent-cyan);
-  text-decoration: underline;
+  transform: translateX(2px);
+}
+
+[data-theme="light"] .drawer-footer-col a:hover {
+  color: #0284c7;
+}
+
+/* Drawer Social Media Channels Grid & Badges */
+.drawer-social-channels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.drawer-social-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.drawer-social-badge:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 242, 254, 0.15);
+}
+
+[data-theme="light"] .drawer-social-badge {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .drawer-social-badge:hover {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+
+.drawer-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.drawer-social-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Expandable Search Overlay Bar */

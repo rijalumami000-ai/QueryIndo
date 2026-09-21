@@ -1065,7 +1065,10 @@ export class InstitutionalPages {
 
     const tabsHTML = `
       <div class="inst-nav-tabs-wrapper">
-        <nav class="inst-nav-tabs" aria-label="Navigasi Informasi Perusahaan">
+        <button class="inst-nav-arrow prev" id="inst-nav-arrow-prev" aria-label="Geser tab ke kiri" title="Geser ke kiri">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <nav class="inst-nav-tabs" id="inst-nav-tabs" aria-label="Navigasi Informasi Perusahaan">
           ${NAVIGATION_TABS.map(tab => {
             const isActive = tab.id === pageId;
             return `
@@ -1076,6 +1079,9 @@ export class InstitutionalPages {
             `;
           }).join('')}
         </nav>
+        <button class="inst-nav-arrow next" id="inst-nav-arrow-next" aria-label="Geser tab ke kanan" title="Geser ke kanan">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     `;
 
@@ -1139,8 +1145,91 @@ export class InstitutionalPages {
       });
     });
 
+    const navTabs = container.querySelector('#inst-nav-tabs') as HTMLElement | null;
+    const prevBtn = container.querySelector('#inst-nav-arrow-prev') as HTMLButtonElement | null;
+    const nextBtn = container.querySelector('#inst-nav-arrow-next') as HTMLButtonElement | null;
+
+    let hasDragged = false;
+
+    if (navTabs) {
+      // 1. Wheel conversion for mouse scroll
+      navTabs.addEventListener('wheel', (e: WheelEvent) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          navTabs.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+
+      // 2. Mouse Drag Panning
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+
+      navTabs.addEventListener('mousedown', (e: MouseEvent) => {
+        isDown = true;
+        hasDragged = false;
+        navTabs.classList.add('dragging');
+        startX = e.pageX - navTabs.offsetLeft;
+        scrollLeft = navTabs.scrollLeft;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDown) {
+          isDown = false;
+          navTabs.classList.remove('dragging');
+        }
+      });
+
+      navTabs.addEventListener('mousemove', (e: MouseEvent) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - navTabs.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        if (Math.abs(walk) > 5) {
+          hasDragged = true;
+        }
+        navTabs.scrollLeft = scrollLeft - walk;
+      });
+
+      // 3. Arrow buttons
+      const updateArrowState = () => {
+        if (prevBtn) {
+          prevBtn.style.opacity = navTabs.scrollLeft <= 5 ? '0.35' : '1';
+          prevBtn.style.pointerEvents = navTabs.scrollLeft <= 5 ? 'none' : 'auto';
+        }
+        if (nextBtn) {
+          const isEnd = navTabs.scrollLeft + navTabs.clientWidth >= navTabs.scrollWidth - 5;
+          nextBtn.style.opacity = isEnd ? '0.35' : '1';
+          nextBtn.style.pointerEvents = isEnd ? 'none' : 'auto';
+        }
+      };
+
+      navTabs.addEventListener('scroll', updateArrowState);
+      setTimeout(updateArrowState, 100);
+
+      prevBtn?.addEventListener('click', () => {
+        navTabs.scrollBy({ left: -260, behavior: 'smooth' });
+      });
+      nextBtn?.addEventListener('click', () => {
+        navTabs.scrollBy({ left: 260, behavior: 'smooth' });
+      });
+
+      // 4. Auto Center Active Tab
+      const activeTab = navTabs.querySelector('.inst-nav-tab.active') as HTMLElement | null;
+      if (activeTab) {
+        setTimeout(() => {
+          activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          updateArrowState();
+        }, 80);
+      }
+    }
+
     container.querySelectorAll('.inst-nav-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
+        if (hasDragged) {
+          e.preventDefault();
+          return;
+        }
         e.preventDefault();
         const targetPage = (tab as HTMLElement).getAttribute('data-page') as InstitutionalPageId;
         if (targetPage && targetPage !== pageId) {

@@ -164,10 +164,13 @@ async function init() {
   }
 
   const socialContainer = document.getElementById('footer-social-list');
-  if (socialContainer) socialContainer.innerHTML = SocialMediaService.renderFooterSocialListHTML();
-  SocialMediaService.subscribe(() => {
+  const drawerSocialContainer = document.getElementById('drawer-social-channels');
+  const updateSocials = () => {
     if (socialContainer) socialContainer.innerHTML = SocialMediaService.renderFooterSocialListHTML();
-  });
+    if (drawerSocialContainer) drawerSocialContainer.innerHTML = SocialMediaService.renderDrawerSocialHTML();
+  };
+  updateSocials();
+  SocialMediaService.subscribe(updateSocials);
 
   // 6. Setup Listeners, Utilities & Routing
   setupEventListeners();
@@ -295,7 +298,11 @@ function updateFooterLabels() {
     'link-redaksi': 'redaksiText',
     'link-ethics': 'ethicsCode',
     'link-cyber-guidelines': 'cyberGuidelines',
+    'link-ai-guidelines': 'aiGuidelines',
+    'link-fact-check': 'factCheck',
     'link-disclaimer': 'disclaimerText',
+    'link-hak-jawab': 'rightOfReply',
+    'link-community': 'communityGuidelines',
     'link-ads': 'adsText',
     'link-privacy': 'privacyText',
     'link-terms': 'termsText',
@@ -921,6 +928,13 @@ function setupEventListeners() {
       });
     });
   }
+
+  // Close drawer when clicking any link in drawer institutional footer
+  document.querySelectorAll('.drawer-footer-institutional a').forEach(link => {
+    link.addEventListener('click', () => {
+      closeCategoryDrawer();
+    });
+  });
 
   // Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
