@@ -2,8 +2,8 @@ import type { Article, Category, SubCategory, TechIndexItem } from '../types/new
 
 export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
   ai: [
-    { id: 'gen-ai', name: 'Generatif AI & LLM', slug: 'gen-ai', description: 'Model penalaran, GPT, Claude, Gemini, Llama, DeepSeek' },
-    { id: 'agentic-coding', name: 'Agentic AI & Koding Otonom', slug: 'agentic-coding', description: 'Autonomous agents, workflow automations, tool use' },
+    { id: 'gen-ai', name: 'AI Generatif & Model LLM', slug: 'gen-ai', description: 'Model penalaran, GPT, Claude, Gemini, Llama, DeepSeek' },
+    { id: 'agentic-coding', name: 'Agentic AI & Coding Otonom', slug: 'agentic-coding', description: 'Autonomous agents, workflow automations, tool use, dev agent' },
     { id: 'robotics-humanoid', name: 'Robotika & Humanoid Cerdas', slug: 'robotics-humanoid', description: 'Robot industri, bipedal humanoid, Tesla Optimus, Boston Dynamics' },
     { id: 'ai-chips-infra', name: 'Chipset AI & Superkomputer', slug: 'ai-chips-infra', description: 'NVIDIA GPU, TPU, NPU on-device, server rack, klaster komputasi' },
     { id: 'quantum-computing', name: 'Komputasi Kuantum & Fisika Komputasi', slug: 'quantum-computing', description: 'Qubit, error correction, simulasi kuantum' },
@@ -23,18 +23,18 @@ export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
     { id: 'monitors-display', name: 'Monitor & Teknologi Display', slug: 'monitors-display', description: 'OLED 240Hz/360Hz, Mini-LED, color grading studio, ultra-wide' },
     { id: 'pc-components', name: 'Komponen PC, CPU & GPU Konsumen', slug: 'pc-components', description: 'Prosesor Intel/AMD/ARM, GPU konsumen, motherboard, RAM, SSD' },
     { id: 'charging-power', name: 'Pengisian Daya, GaN & Baterai Portabel', slug: 'charging-power', description: 'GaN charger 100W+, Qi2 wireless, power station outdoor' },
-    { id: 'retro-niche-tech', name: 'Gadget Unik, Retro & Niche Gear', slug: 'retro-niche-tech', description: 'Kamera saku vintage, keyboard kustom mechanical, handheld retro' }
+    { id: 'smart-glasses-wearables', name: 'Kacamata Pintar & Wearable AI', slug: 'smart-glasses-wearables', description: 'Smart glasses Ray-Ban Meta, cincin pintar AI, spatial computing gear' }
   ],
   software: [
     { id: 'mobile-apps', name: 'Aplikasi Mobile Android & iOS', slug: 'mobile-apps', description: 'Inovasi apps baru, navigasi, media sosial, kurasi mingguan' },
     { id: 'operating-systems', name: 'Sistem Operasi Desktop & Mobile', slug: 'operating-systems', description: 'Android, iOS, Windows 11, macOS, Linux desktop' },
-    { id: 'productivity-saas', name: 'Produktivitas & Tools Kolaborasi', slug: 'productivity-saas', description: 'Notion, Obsidian, Slack, Google Workspace, project management' },
+    { id: 'productivity-saas', name: 'Software Produktivitas & Tools Kolaborasi', slug: 'productivity-saas', description: 'Notion, Obsidian, Slack, Google Workspace, project management' },
     { id: 'cloud-infrastructure', name: 'Komputasi Awan & DevOps', slug: 'cloud-infrastructure', description: 'AWS, GCP, Azure, Kubernetes, CI/CD, arsitektur serverless' },
     { id: 'dev-tools-frameworks', name: 'Bahasa Pemrograman & Framework', slug: 'dev-tools-frameworks', description: 'Rust, Go, TypeScript, React, Next.js, Python' },
     { id: 'browsers-search', name: 'Browser & Mesin Pencari Modern', slug: 'browsers-search', description: 'Chromium, Firefox, Arc, search engine berbasis AI' },
     { id: 'system-utility', name: 'Utilitas Sistem, Benchmark & Virtualisasi', slug: 'system-utility', description: 'Docker desktop, virtual machines, disk utility, terminal' },
     { id: 'api-backends', name: 'API, Basis Data & Backend Engineering', slug: 'api-backends', description: 'PostgreSQL, Supabase, Redis, GraphQL, ORM' },
-    { id: 'open-source-software', name: 'Software FOSS & Ekosistem Bebas', slug: 'open-source-software', description: 'Lisensi open-source, proyek komunitas GitHub, alternatif mandiri' },
+    { id: 'open-source-software', name: 'Software Open Source & Ekosistem FOSS', slug: 'open-source-software', description: 'Lisensi open-source, proyek komunitas GitHub, alternatif mandiri' },
     { id: 'creative-software', name: 'Software Desain Grafis, Video & 3D', slug: 'creative-software', description: 'Figma, Adobe Creative Cloud, DaVinci Resolve, Blender' }
   ],
   startup: [
@@ -81,7 +81,7 @@ export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
     { id: 'esports-pro-scene', name: 'Skena Esports & Turnamen Internasional', slug: 'esports-pro-scene', description: 'MPL, VCT, The International, analitik pro scene' },
     { id: 'game-engines-graphics', name: 'Game Engine, Grafis 3D & Audio Spasial', slug: 'game-engines-graphics', description: 'Unreal Engine 5, Unity, Ray tracing, DLSS/FSR gaming' },
     { id: 'vr-ar-immersive', name: 'Game Realitas Virtual & Spasial', slug: 'vr-ar-immersive', description: 'VR Headset, mixed reality, spatial games interaktif' },
-    { id: 'game-narrative-design', name: 'Desain Narasi, Game Mechanics & Desain Level', slug: 'game-narrative-design', description: 'Studi kasus cerita game, ekonomi in-game, game design' },
+    { id: 'game-narrative-design', name: 'Desain Narasi, Mekanik Game & Level Design', slug: 'game-narrative-design', description: 'Studi kasus cerita game, ekonomi in-game, game design' },
     { id: 'game-audio-music', name: 'Musik Game & Desain Efek Suara', slug: 'game-audio-music', description: 'Soundtrack orkestra, adaptive music, sound engineering' },
     { id: 'streamers-content-creators', name: 'Industri Streaming & Kreator Konten Game', slug: 'streamers-content-creators', description: 'Setup broadcast OBS, ekosistem streaming video game' }
   ],
@@ -117,7 +117,7 @@ export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
     { id: 'space-industry-commercial', name: 'Ekonomi Antariksa Komersial & Space-Tech', slug: 'space-industry-commercial', description: 'Stasiun luar angkasa swasta, pariwisata orbit, kargo luar angkasa' },
     { id: 'planetary-defense', name: 'Pertahanan Planet & Sampah Antariksa', slug: 'planetary-defense', description: 'Penghindaran tabrakan debris orbit, pelacakan asteroid dekat bumi' },
     { id: 'space-telescopes-observatories', name: 'Teleskop Antariksa & Observatorium Astronomi', slug: 'space-telescopes-observatories', description: 'Teleskop James Webb, Roman Telescope, spektroskopi kosmik' },
-    { id: 'space-propulsion-nuclear', name: 'Propulsi Nuklir Antariksa & Tenaga Wahana', slug: 'space-propulsion-nuclear', description: 'Nuclear thermal propulsion, ion drive, pendorong fusi antariksa' },
+    { id: 'space-propulsion-nuclear', name: 'Propulsi Nuklir & Teknologi Wahana Antariksa', slug: 'space-propulsion-nuclear', description: 'Nuclear thermal propulsion, ion drive, pendorong fusi antariksa' },
     { id: 'lunar-mars-habitats', name: 'Kolonisasi, Pangkalan Bulan & Habitat Mars', slug: 'lunar-mars-habitats', description: 'Pemanfaatan sumber daya in-situ/ISRU, pangkalan Bulan Artemis Base Camp' },
     { id: 'indonesian-space-research', name: 'Riset Antariksa & Observatorium Nasional', slug: 'indonesian-space-research', description: 'Aktivitas BRIN antariksa, observatorium Timau' }
   ],
@@ -163,7 +163,7 @@ export const MASTER_TAXONOMY: Record<string, SubCategory[]> = {
     { id: 'ai-prompting-workflows', name: 'Panduan Prompt Engineering & Alur Kerja AI', slug: 'ai-prompting-workflows', description: 'Template prompt efektif, otomasi dokumen AI, panduan Claude/GPT' },
     { id: 'cyber-hygiene-safety', name: 'Panduan Keamanan Siber Personal & Privasi Akun', slug: 'cyber-hygiene-safety', description: 'Cara pasang Passkey, pemulihan akun 2FA, hapus jejak digital' },
     { id: 'home-wifi-networking', name: 'Trik Jaringan Internet Rumah & Wi-Fi Router', slug: 'home-wifi-networking', description: 'Mengatasi Wi-Fi lemot, setting DNS cepat, router mesh' },
-    { id: 'developer-how-to', name: 'Tutorial Pemrograman Praktis & Tools Dev', slug: 'developer-how-to', description: 'Setup terminal Linux, integrasi Git/GitHub, deploy website mandiri' },
+    { id: 'developer-how-to', name: 'Tutorial Coding & Panduan Developer', slug: 'developer-how-to', description: 'Setup terminal Linux, integrasi Git/GitHub, deploy website mandiri' },
     { id: 'creative-design-video-editing', name: 'Panduan Software Kreatif & Editing Konten', slug: 'creative-design-video-editing', description: 'Trik color grading video kilat, template Figma' },
     { id: 'data-backup-recovery', name: 'Panduan Backup Data & Pemulihan File', slug: 'data-backup-recovery', description: 'Aturan backup 3-2-1, pemulihan harddisk, transfer antar HP' },
     { id: 'gadget-maintenance-diy', name: 'Perawatan & Perbaikan Mandiri (DIY Gadget Care)', slug: 'gadget-maintenance-diy', description: 'Pembersihan port charging, penggantian pasta pendingin laptop' },
