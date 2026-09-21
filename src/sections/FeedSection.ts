@@ -218,6 +218,7 @@ export class FeedSection {
 
     // 1. Case A: HOME VIEW -> 14 Channel Editorial Matrix (Max 10 articles per category)
     if (isHome) {
+      articlesGrid.classList.add('matrix-mode');
       if (feedTitle) {
         feedTitle.innerHTML = store.preferences.language === 'en'
           ? `Editorial Channel Matrix <span style="opacity:0.4; font-weight:400;">/</span> <span style="color:var(--accent-cyan); font-size:1rem; font-weight:700;">14 Tech Channels</span>`
@@ -238,6 +239,7 @@ export class FeedSection {
 
     // 2. Case B: CATEGORY HUB VIEW -> Sub-Category Matrix Blocks
     if (isCategoryHub) {
+      articlesGrid.classList.add('matrix-mode');
       const catObj = getCategoryById(store.currentCategory);
       const catName = catObj ? (store.preferences.language === 'en' ? (CATEGORIES_EN[catObj.id] || catObj.name) : catObj.name) : 'Kanal Teknologi';
       if (feedTitle) {
@@ -257,6 +259,7 @@ export class FeedSection {
     }
 
     // 3. Case C: SUBCATEGORY ARCHIVE OR SEARCH RESULTS -> Standard Single Grid Feed
+    articlesGrid.classList.remove('matrix-mode');
     this.renderSingleGridFeed(articlesGrid, feedTitle, resultsCount, loadMoreContainer);
     this.bindStandardGridEvents(articlesGrid);
   }
@@ -272,14 +275,20 @@ export class FeedSection {
     let html = `<div class="category-matrix-container">`;
 
     categories14.forEach((cat, index) => {
-      // Get up to 10 articles for this category
+      const subCats = MASTER_TAXONOMY[cat.id] || [];
+      const subCatSet = new Set(subCats.flatMap(s => [s.id.toLowerCase(), s.slug.toLowerCase(), s.name.toLowerCase()]));
+
+      // Get up to 10 articles strictly belonging to this category or its subcategories
       const catArticles = allArticles
-        .filter(a => a.category.toLowerCase() === cat.id.toLowerCase())
+        .filter(a => {
+          const aCat = (a.category || '').toLowerCase();
+          const aSub = (a.subCategory || '').toLowerCase();
+          return aCat === cat.id.toLowerCase() || (aSub && subCatSet.has(aSub));
+        })
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
         .slice(0, 10);
 
       const catName = lang === 'en' ? (CATEGORIES_EN[cat.id] || cat.name) : cat.name;
-      const subCats = MASTER_TAXONOMY[cat.id] || [];
       const topSubCats = subCats.slice(0, 4);
 
       html += `

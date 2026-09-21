@@ -643,10 +643,14 @@ function setupEventListeners() {
     const catObj = CATEGORIES.find(c => c.id === catId);
     const catName = catObj?.name || catId.toUpperCase();
     const subCats = MASTER_TAXONOMY[catId] || [];
-    let catArticles = ArticleService.getArticles().filter(a => a.category === catId).slice(0, 3);
-    if (catArticles.length === 0) {
-      catArticles = ArticleService.getArticles().slice(0, 3);
-    }
+    const subCatSet = new Set(subCats.flatMap(s => [s.id.toLowerCase(), s.slug.toLowerCase(), s.name.toLowerCase()]));
+
+    // Strictly match articles belonging to this category or its subcategories
+    const catArticles = ArticleService.getArticles().filter(a => {
+      const aCat = (a.category || '').toLowerCase();
+      const aSub = (a.subCategory || '').toLowerCase();
+      return aCat === catId.toLowerCase() || (aSub && subCatSet.has(aSub));
+    }).slice(0, 3);
 
     headerMegaMenu.innerHTML = `
       <div class="mega-menu-inner container">
@@ -665,25 +669,32 @@ function setupEventListeners() {
           </div>
         </div>
 
-        <!-- Right: Latest Articles (Horizontal Rows ala Reuters) -->
+        <!-- Right: Latest Articles in this Specific Category -->
         <div class="mega-latest-col">
           <div class="mega-col-heading">
             <span>Liputan Terkini: ${catName}</span>
           </div>
-          <div class="mega-articles-stack">
-            ${catArticles.map(art => `
-              <div class="mega-article-row" data-slug="${art.slug || art.id}" data-title="${escapeHtml(art.title)}">
-                <div class="mega-article-row-content">
-                  <span class="mega-article-row-tag">${art.subCategory || art.category}</span>
-                  <h4 class="mega-article-row-title">${art.title}</h4>
-                  <div class="mega-article-row-meta">
-                    <span>${formatDate(art.publishedAt, store.preferences.language)}</span>
+          ${catArticles.length > 0 ? `
+            <div class="mega-articles-stack">
+              ${catArticles.map(art => `
+                <div class="mega-article-row" data-slug="${art.slug || art.id}" data-title="${escapeHtml(art.title)}">
+                  <div class="mega-article-row-content">
+                    <span class="mega-article-row-tag">${art.subCategory || art.category}</span>
+                    <h4 class="mega-article-row-title">${art.title}</h4>
+                    <div class="mega-article-row-meta">
+                      <span>${formatDate(art.publishedAt, store.preferences.language)}</span>
+                    </div>
                   </div>
+                  <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="mega-article-row-thumb" loading="lazy" ${IMG_ONERROR} />
                 </div>
-                <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="mega-article-row-thumb" loading="lazy" ${IMG_ONERROR} />
-              </div>
-            `).join('')}
-          </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="mega-empty-articles">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span style="font-size:0.85rem; color:var(--text-muted);">Belum ada berita terbaru di kanal ${catName}. Liputan khusus sedang disiapkan oleh redaksi.</span>
+            </div>
+          `}
         </div>
       </div>
     `;
