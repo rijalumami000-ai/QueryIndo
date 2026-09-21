@@ -10,6 +10,7 @@ import (
 	"byteindonesia/backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -51,6 +52,9 @@ func main() {
 	})
 
 	// Global Middlewares
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
 	app.Use(logger.New())
 
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")

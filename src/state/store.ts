@@ -120,6 +120,10 @@ class Store {
     if (bookmarkCountBadge) {
       bookmarkCountBadge.textContent = this.preferences.savedArticleIds.length.toString();
     }
+    const dropdownBookmarkCount = document.getElementById('dropdown-bookmark-count');
+    if (dropdownBookmarkCount) {
+      dropdownBookmarkCount.textContent = this.preferences.savedArticleIds.length.toString();
+    }
   }
 
   public isBookmarked(articleId: string): boolean {

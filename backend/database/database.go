@@ -48,6 +48,15 @@ func ConnectDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
+	// Configure High-Performance PostgreSQL Connection Pooling
+	if sqlDB, errDB := db.DB(); errDB == nil {
+		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetMaxOpenConns(25)
+		sqlDB.SetConnMaxLifetime(5 * time.Minute)
+		sqlDB.SetConnMaxIdleTime(2 * time.Minute)
+		log.Println("⚡ PostgreSQL Connection Pool terkonfigurasi: max_open=25, max_idle=10, max_lifetime=5m")
+	}
+
 	log.Println("✅ Terhubung ke Database PostgreSQL QUERYINDO!")
 
 	// Auto Migrate Schemas
@@ -159,9 +168,9 @@ func seedDefaultCMSData(db *gorm.DB) {
 			BadgeText:   "⚡ QUERY PICKS",
 			PartnerText: "Kurasi Lab Redaksi",
 			MainTitle:   "RADAR GADGET & HARDWARE PILIHAN",
-			Enabled:     true,
+			Enabled:     false,
 		})
-		log.Println("🌱 Seed ShoppingConfig berhasil!")
+		log.Println("🌱 Seed ShoppingConfig berhasil (Default: Nonaktif/Sembunyi)!")
 	}
 
 	// 2. Seed Shopping Products

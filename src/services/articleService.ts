@@ -77,9 +77,9 @@ export class ArticleService {
     }
   }
 
-  public static async syncWithBackend(): Promise<Article[]> {
+  public static async syncWithBackend(includeContent: boolean = false): Promise<Article[]> {
     try {
-      const serverArticles = await ApiService.getArticles();
+      const serverArticles = await ApiService.getArticles(undefined, undefined, includeContent);
       if (Array.isArray(serverArticles) && serverArticles.length > 0) {
         this.saveArticles(serverArticles);
         return this.cachedArticles || [];
@@ -92,6 +92,29 @@ export class ArticleService {
 
   public static getArticleById(id: string): Article | undefined {
     return this.getArticles().find(a => a.id === id);
+  }
+
+  // Fetch full article detail on demand if content is not loaded yet
+  public static async fetchArticleDetail(idOrSlug: string): Promise<Article | undefined> {
+    const existing = this.getArticleBySlugOrId(idOrSlug);
+    if (existing && existing.content && existing.content.trim().length > 0) {
+      return existing;
+    }
+
+    const fresh = await ApiService.getArticleBySlug(idOrSlug);
+    if (fresh) {
+      fresh.imageUrl = ImageUtils.normalizeImageUrl(fresh.imageUrl || '');
+      const list = this.getArticles();
+      const idx = list.findIndex(a => a.id === fresh.id || (fresh.slug && a.slug === fresh.slug));
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...fresh };
+      } else {
+        list.push(fresh);
+      }
+      this.cachedArticles = list;
+      return fresh;
+    }
+    return existing;
   }
 
   public static getArticleBySlugOrId(idOrSlug: string): Article | undefined {

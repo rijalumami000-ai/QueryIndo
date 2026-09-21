@@ -86,7 +86,8 @@ export function slugifyTitle(title: string): string {
 }
 
 export function calculateReadTime(content?: string, fallback: number = 4): number {
-  if (!content) return fallback;
+  if (typeof fallback === 'number' && fallback > 0) return fallback;
+  if (!content) return 4;
   const clean = content.replace(/<[^>]*>/g, ' ').trim();
   const words = clean.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));

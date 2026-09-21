@@ -9,16 +9,23 @@ export class UserAuthModal {
     const mUserAuthBtn = document.getElementById('m-user-auth-btn');
     const currentReader = ReaderAuthService.getCurrentReader();
 
+    const dropdownUserName = document.getElementById('dropdown-user-name');
+    const dropdownUserStatus = document.getElementById('dropdown-user-status');
+    const dropdownAuthActionBtn = document.getElementById('dropdown-auth-action-btn');
+    const dropdownLogoutWrap = document.getElementById('dropdown-logout-wrapper');
+
     if (currentReader) {
       const firstName = currentReader.name.split(' ')[0];
       if (userAuthBtn) {
         userAuthBtn.innerHTML = `
           <img src="${currentReader.avatar}" alt="${currentReader.name}" class="user-avatar-badge" />
-          <span id="user-auth-btn-text" style="font-weight:700;">${firstName}</span>
         `;
-        userAuthBtn.title = `Akun: ${currentReader.name} (Klik untuk Buka Profil)`;
-        userAuthBtn.style.background = 'rgba(0, 242, 254, 0.12)';
+        userAuthBtn.title = `Akun: ${currentReader.name} (Preferensi & Profil)`;
       }
+      if (dropdownUserName) dropdownUserName.textContent = currentReader.name;
+      if (dropdownUserStatus) dropdownUserStatus.textContent = 'Terhubung Google';
+      if (dropdownAuthActionBtn) dropdownAuthActionBtn.textContent = 'Lihat Profil';
+      if (dropdownLogoutWrap) dropdownLogoutWrap.style.display = 'block';
       if (mUserAuthBtn) {
         mUserAuthBtn.innerHTML = `
           <img src="${currentReader.avatar}" alt="${currentReader.name}" class="user-avatar-badge" />
@@ -28,12 +35,14 @@ export class UserAuthModal {
     } else {
       if (userAuthBtn) {
         userAuthBtn.innerHTML = `
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span id="user-auth-btn-text">Masuk</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         `;
-        userAuthBtn.title = 'Masuk / Daftar Akun Pembaca QUERYINDO';
-        userAuthBtn.style.background = 'rgba(0, 242, 254, 0.08)';
+        userAuthBtn.title = 'Akun & Preferensi';
       }
+      if (dropdownUserName) dropdownUserName.textContent = 'Pengunjung Tamu';
+      if (dropdownUserStatus) dropdownUserStatus.textContent = 'Belum Masuk';
+      if (dropdownAuthActionBtn) dropdownAuthActionBtn.textContent = 'Masuk Akun';
+      if (dropdownLogoutWrap) dropdownLogoutWrap.style.display = 'none';
       if (mUserAuthBtn) {
         mUserAuthBtn.innerHTML = `
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

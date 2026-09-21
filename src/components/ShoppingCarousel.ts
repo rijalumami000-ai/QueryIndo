@@ -23,10 +23,10 @@ export interface ShoppingWidgetConfig {
 
 export class ShoppingCarousel {
   private static STORAGE_KEY_PRODUCTS = 'queryindo_shopping_products_v2';
-  private static STORAGE_KEY_CONFIG = 'queryindo_shopping_config_v2';
+  private static STORAGE_KEY_CONFIG = 'queryindo_shopping_config_v3';
 
   private static DEFAULT_CONFIG: ShoppingWidgetConfig = {
-    enabled: true,
+    enabled: false,
     badgeText: '⚡ QUERY PICKS',
     partnerText: 'Kurasi Lab Redaksi',
     mainTitle: 'RADAR GADGET & HARDWARE PILIHAN'

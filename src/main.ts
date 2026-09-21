@@ -4,7 +4,6 @@ import { ArticleService } from './services/articleService';
 import { AuthorService } from './services/authorService';
 import { ShoppingCarousel } from './components/ShoppingCarousel';
 import { AdBanner } from './components/AdBanner';
-import { AdminCMS } from './components/AdminCMS';
 import { ApiService } from './services/apiService';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
 import { ByteShorts } from './components/ByteShorts';
@@ -24,17 +23,28 @@ import { SearchPreview } from './sections/SearchPreview';
 import { UserAuthModal } from './components/UserAuthModal';
 import { CookieConsent } from './components/CookieConsent';
 import { GoogleTranslateService } from './utils/googleTranslateService';
+import { CATEGORIES, MASTER_TAXONOMY } from './data/mockNews';
+import { escapeHtml, formatDate, getSafeImageUrl, IMG_ONERROR } from './utils/helpers';
+import { ReaderAuthService } from './services/authService';
 
-// Admin CMS & Modal
+// Admin CMS & Modal (Code-split: Loaded dynamically on-demand)
 const adminCmsModal = document.getElementById('admin-cms-modal');
 const adminCmsContainer = document.getElementById('admin-cms-container');
-const adminCMS = new AdminCMS(() => {
-  HeroSection.renderBreakingBanner();
-  HeroSection.render();
-  BentoSection.render();
-  DeepTechSection.render();
-  FeedSection.render();
-});
+let adminCMSInstance: any = null;
+
+async function getAdminCMS() {
+  if (!adminCMSInstance) {
+    const { AdminCMS } = await import('./components/AdminCMS');
+    adminCMSInstance = new AdminCMS(() => {
+      HeroSection.renderBreakingBanner();
+      HeroSection.render();
+      BentoSection.render();
+      DeepTechSection.render();
+      FeedSection.render();
+    });
+  }
+  return adminCMSInstance;
+}
 
 // Modal Scroll Lock Handling (Native 120fps)
 window.addEventListener('modal-opened', () => document.body.classList.add('modal-open'));
@@ -76,8 +86,8 @@ function handleGlobalScroll() {
     }
 
     if (cachedScrollProgress) {
-      const progress = (scrollY / cachedDocHeight) * 100;
-      cachedScrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+      const ratio = Math.min(1, Math.max(0, scrollY / cachedDocHeight));
+      cachedScrollProgress.style.transform = `scaleX(${ratio})`;
     }
 
     if (cachedBackToTopBtn) {
@@ -234,15 +244,18 @@ async function openAdminCMSModal() {
   if (!adminCmsModal || !adminCmsContainer) return;
   window.dispatchEvent(new CustomEvent('modal-opened'));
 
-  // If local cache has no articles, fetch from backend first
+  // Load Admin CMS bundle dynamically on demand
+  const cms = await getAdminCMS();
+
+  // If local cache has no articles, fetch from backend with full content
   if (ArticleService.getArticles().length === 0) {
-    await ArticleService.syncWithBackend();
+    await ArticleService.syncWithBackend(true);
   }
 
-  adminCmsContainer.innerHTML = adminCMS.renderAdminModalHTML();
+  adminCmsContainer.innerHTML = cms.renderAdminModalHTML();
   adminCmsModal.classList.add('open');
   document.body.style.overflow = 'hidden';
-  adminCMS.bindAdminEvents(adminCmsContainer);
+  cms.bindAdminEvents(adminCmsContainer);
 
   adminCmsContainer.querySelector('#admin-modal-close-btn')?.addEventListener('click', () => {
     closeAdminCMSModal();
@@ -250,10 +263,11 @@ async function openAdminCMSModal() {
   });
 
   // Always keep admin articles synchronized with backend
-  ArticleService.syncWithBackend().then(() => {
+  ArticleService.syncWithBackend(true).then(async () => {
     if (adminCmsModal?.classList.contains('open')) {
-      adminCmsContainer.innerHTML = adminCMS.renderAdminModalHTML();
-      adminCMS.bindAdminEvents(adminCmsContainer);
+      const activeCms = await getAdminCMS();
+      adminCmsContainer.innerHTML = activeCms.renderAdminModalHTML();
+      activeCms.bindAdminEvents(adminCmsContainer);
       adminCmsContainer.querySelector('#admin-modal-close-btn')?.addEventListener('click', () => {
         closeAdminCMSModal();
         Router.navigateHome();
@@ -336,8 +350,113 @@ function setupEventListeners() {
     store.updateBookmarkBadge();
   });
 
-  document.getElementById('user-auth-btn')?.addEventListener('click', () => UserAuthModal.open());
+  // --------------------------------------------------------------------------
+  // User Avatar & Integrated Profile Dropdown
+  // --------------------------------------------------------------------------
+  const userAuthBtn = document.getElementById('user-auth-btn');
+  const userAvatarDropdown = document.getElementById('user-avatar-dropdown');
+  const userAvatarMenuWrap = document.getElementById('user-avatar-menu-wrap');
+
+  const openUserAvatarDropdown = () => {
+    if (userAvatarDropdown) {
+      userAvatarDropdown.style.display = 'block';
+      userAuthBtn?.setAttribute('aria-expanded', 'true');
+    }
+  };
+
+  const closeUserAvatarDropdown = () => {
+    if (userAvatarDropdown) {
+      userAvatarDropdown.style.display = 'none';
+      userAuthBtn?.setAttribute('aria-expanded', 'false');
+    }
+  };
+
+  userAuthBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (userAvatarDropdown && userAvatarDropdown.style.display !== 'none') {
+      closeUserAvatarDropdown();
+    } else {
+      openUserAvatarDropdown();
+    }
+  });
+
   document.getElementById('m-user-auth-btn')?.addEventListener('click', () => UserAuthModal.open());
+
+  // Dropdown Items Event Wiring
+  document.getElementById('dropdown-auth-action-btn')?.addEventListener('click', () => {
+    closeUserAvatarDropdown();
+    UserAuthModal.open();
+  });
+
+  document.getElementById('dropdown-bookmarks-btn')?.addEventListener('click', () => {
+    closeUserAvatarDropdown();
+    BookmarksModal.open();
+  });
+
+  // Dropdown Theme Toggle Switch
+  const updateDropdownThemeUI = () => {
+    const isDark = store.preferences.theme === 'dark';
+    const themeText = document.getElementById('dropdown-theme-text');
+    const themeIcon = document.getElementById('dropdown-theme-icon');
+    if (themeText) themeText.textContent = isDark ? 'Mode Gelap' : 'Mode Terang';
+    if (themeIcon) {
+      themeIcon.innerHTML = isDark
+        ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+        : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    }
+  };
+  updateDropdownThemeUI();
+
+  document.getElementById('dropdown-theme-toggle-btn')?.addEventListener('click', () => {
+    store.toggleTheme();
+    updateDropdownThemeUI();
+  });
+
+  // Dropdown Language Switcher Pills
+  const syncDropdownLangUI = (lang: 'id' | 'en') => {
+    document.querySelectorAll('#dropdown-lang-switcher .btn-lang-pill').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+    });
+  };
+  syncDropdownLangUI(store.preferences.language);
+
+  document.getElementById('dropdown-lang-switcher')?.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest('.btn-lang-pill') as HTMLElement | null;
+    if (!target) return;
+    const lang = target.getAttribute('data-lang') as 'id' | 'en';
+    if (lang && lang !== store.preferences.language) {
+      GoogleTranslateService.setLanguage(lang);
+      syncDropdownLangUI(lang);
+      if (searchInput) searchInput.placeholder = store.t('searchPlaceholder');
+      FeedSection.renderCategories();
+      HeroSection.render();
+      BentoSection.render();
+      DeepTechSection.render();
+      FeedSection.renderFilterTags();
+      FeedSection.render();
+      updateFooterLabels();
+      updateFilterLabels();
+      CookieConsent.updateLabels();
+      Toast.show(lang === 'en' ? 'Website diterjemahkan ke Bahasa Inggris' : 'Bahasa dikembalikan ke Indonesia');
+    }
+  });
+
+  // Dropdown Logout Button
+  document.getElementById('dropdown-logout-btn')?.addEventListener('click', () => {
+    ReaderAuthService.logout();
+    Toast.show('Anda telah keluar dari akun Google.');
+    UserAuthModal.updateUserNavbarState();
+    closeUserAvatarDropdown();
+  });
+
+  // Close Dropdown on Click Outside
+  document.addEventListener('click', (e) => {
+    if (userAvatarDropdown && userAvatarDropdown.style.display !== 'none') {
+      if (userAvatarMenuWrap && !userAvatarMenuWrap.contains(e.target as Node)) {
+        closeUserAvatarDropdown();
+      }
+    }
+  });
 
   // Search Live Preview
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
@@ -404,17 +523,215 @@ function setupEventListeners() {
 
   btnSearchClose?.addEventListener('click', closeSearchOverlay);
 
-  // Subscribe Header CTA Button
-  document.getElementById('btn-subscribe-header')?.addEventListener('click', () => {
-    const newsletterSec = document.getElementById('newsletter-section');
-    if (newsletterSec) {
-      newsletterSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const emailInp = newsletterSec.querySelector('.newsletter-input') as HTMLInputElement | null;
-      setTimeout(() => emailInp?.focus(), 600);
-    }
-  });
+  // --------------------------------------------------------------------------
+  // Unified Category Navigation & Full-Width Mega Menu Controller (Ala Reuters)
+  // --------------------------------------------------------------------------
+  const headerMegaMenu = document.getElementById('header-mega-menu');
+  let megaMenuTimer: any = null;
 
-  // Editorial Masthead Navigation Links
+  const hideMegaMenu = () => {
+    if (headerMegaMenu) headerMegaMenu.style.display = 'none';
+    document.querySelectorAll('#header-categories-nav .cat-nav-item').forEach(item => {
+      item.classList.remove('dropdown-open');
+    });
+  };
+
+  const scheduleHideMegaMenu = () => {
+    clearTimeout(megaMenuTimer);
+    megaMenuTimer = setTimeout(hideMegaMenu, 260);
+  };
+
+  const cancelHideMegaMenu = () => {
+    clearTimeout(megaMenuTimer);
+  };
+
+  const renderMegaMenu = (catId: string) => {
+    cancelHideMegaMenu();
+    if (!headerMegaMenu || catId === 'all') {
+      hideMegaMenu();
+      return;
+    }
+
+    // Set active dropdown-open state on the corresponding nav item for indicator & chevron animation
+    document.querySelectorAll('#header-categories-nav .cat-nav-item').forEach(item => {
+      const itemCat = item.getAttribute('data-nav-category');
+      item.classList.toggle('dropdown-open', itemCat === catId);
+    });
+
+    if (catId === 'more') {
+      const moreCatIds = ['internet', 'space', 'climatetech', 'biotech', 'review', 'tips'];
+      const moreCats = CATEGORIES.filter(c => moreCatIds.includes(c.id));
+      let recentArticles = ArticleService.getArticles().filter(a => moreCatIds.includes(a.category)).slice(0, 3);
+      if (recentArticles.length === 0) {
+        recentArticles = ArticleService.getArticles().slice(0, 3);
+      }
+
+      headerMegaMenu.innerHTML = `
+        <div class="mega-menu-inner container">
+          <!-- Left: Browse Other Channels -->
+          <div class="mega-browse-col">
+            <div class="mega-col-heading">
+              <span>Kanal Berita Lainnya</span>
+              <a href="#" class="mega-view-all-link" id="mega-view-all-directory">Buka Direktori Lengkap →</a>
+            </div>
+            <div class="mega-subcategories-2col">
+              ${moreCats.map(cat => `
+                <a href="#" class="mega-subcat-link more-cat-link" data-cat="${cat.id}">
+                  ${cat.name}
+                </a>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Right: Latest in Other Channels -->
+          <div class="mega-latest-col">
+            <div class="mega-col-heading">
+              <span>Liputan Terkini & Pilihan Redaksi</span>
+            </div>
+            <div class="mega-articles-stack">
+              ${recentArticles.map(art => `
+                <div class="mega-article-row" data-slug="${art.slug || art.id}" data-title="${escapeHtml(art.title)}">
+                  <div class="mega-article-row-content">
+                    <span class="mega-article-row-tag">${art.subCategory || art.category}</span>
+                    <h4 class="mega-article-row-title">${art.title}</h4>
+                    <div class="mega-article-row-meta">
+                      <span>${formatDate(art.publishedAt, store.preferences.language)}</span>
+                    </div>
+                  </div>
+                  <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="mega-article-row-thumb" loading="lazy" ${IMG_ONERROR} />
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      headerMegaMenu.style.display = 'block';
+
+      headerMegaMenu.querySelector('#mega-view-all-directory')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideMegaMenu();
+        openCategoryDrawer();
+      });
+
+      headerMegaMenu.querySelectorAll('.more-cat-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const c = link.getAttribute('data-cat');
+          if (c) {
+            hideMegaMenu();
+            handleCategoryNavClick(c);
+          }
+        });
+      });
+
+      headerMegaMenu.querySelectorAll('.mega-article-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const slug = row.getAttribute('data-slug');
+          const title = row.getAttribute('data-title');
+          if (slug) {
+            hideMegaMenu();
+            Router.navigateToArticle(slug, title || '');
+          }
+        });
+      });
+
+      return;
+    }
+
+    // Standard Category
+    const catObj = CATEGORIES.find(c => c.id === catId);
+    const catName = catObj?.name || catId.toUpperCase();
+    const subCats = MASTER_TAXONOMY[catId] || [];
+    let catArticles = ArticleService.getArticles().filter(a => a.category === catId).slice(0, 3);
+    if (catArticles.length === 0) {
+      catArticles = ArticleService.getArticles().slice(0, 3);
+    }
+
+    headerMegaMenu.innerHTML = `
+      <div class="mega-menu-inner container">
+        <!-- Left: Browse Category (2 Parallel Columns of 10 Subcategories) -->
+        <div class="mega-browse-col">
+          <div class="mega-col-heading">
+            <span>Kanal ${catName}</span>
+            <a href="#" class="mega-view-all-link" data-cat="${catId}">Lihat Semua Berita ${catName} →</a>
+          </div>
+          <div class="mega-subcategories-2col">
+            ${subCats.map(sub => `
+              <a href="#" class="mega-subcat-link" data-cat="${catId}" data-subcat="${sub.slug}">
+                ${sub.name}
+              </a>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Right: Latest Articles (Horizontal Rows ala Reuters) -->
+        <div class="mega-latest-col">
+          <div class="mega-col-heading">
+            <span>Liputan Terkini: ${catName}</span>
+          </div>
+          <div class="mega-articles-stack">
+            ${catArticles.map(art => `
+              <div class="mega-article-row" data-slug="${art.slug || art.id}" data-title="${escapeHtml(art.title)}">
+                <div class="mega-article-row-content">
+                  <span class="mega-article-row-tag">${art.subCategory || art.category}</span>
+                  <h4 class="mega-article-row-title">${art.title}</h4>
+                  <div class="mega-article-row-meta">
+                    <span>${formatDate(art.publishedAt, store.preferences.language)}</span>
+                  </div>
+                </div>
+                <img src="${getSafeImageUrl(art.imageUrl)}" alt="${escapeHtml(art.title)}" class="mega-article-row-thumb" loading="lazy" ${IMG_ONERROR} />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    headerMegaMenu.style.display = 'block';
+
+    // Subcategory links click handlers
+    headerMegaMenu.querySelectorAll('.mega-subcat-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const c = link.getAttribute('data-cat');
+        const s = link.getAttribute('data-subcat');
+        if (c && s) {
+          hideMegaMenu();
+          store.currentCategory = c as any;
+          store.currentSubCategory = s;
+          Router.navigateToSubCategory(c as any, s);
+          FeedSection.renderCategories();
+          FeedSection.renderSubCategories();
+          FeedSection.render();
+          document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // "Lihat Semua Berita..." link
+    headerMegaMenu.querySelector('.mega-view-all-link')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      hideMegaMenu();
+      handleCategoryNavClick(catId);
+    });
+
+    // Article rows click handlers
+    headerMegaMenu.querySelectorAll('.mega-article-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const slug = row.getAttribute('data-slug');
+        const title = row.getAttribute('data-title');
+        if (slug) {
+          hideMegaMenu();
+          Router.navigateToArticle(slug, title || '');
+        }
+      });
+    });
+  };
+
+  headerMegaMenu?.addEventListener('mouseenter', cancelHideMegaMenu);
+  headerMegaMenu?.addEventListener('mouseleave', scheduleHideMegaMenu);
+
   const handleCategoryNavClick = (catId: string) => {
     if (!catId) return;
     store.currentCategory = catId as any;
@@ -427,38 +744,37 @@ function setupEventListeners() {
     FeedSection.renderCategories();
     FeedSection.renderSubCategories();
     FeedSection.render();
-    
-    // Update active state in masthead nav
-    document.querySelectorAll('.masthead-nav-link').forEach(link => {
+
+    // Update active state in unified header nav
+    document.querySelectorAll('#header-categories-nav a[data-nav-category]').forEach(link => {
       const linkCat = link.getAttribute('data-nav-category');
-      link.classList.toggle('active', linkCat === catId || (catId === 'all' && link.getAttribute('href') === '#hero-section'));
+      link.classList.toggle('active', linkCat === catId);
     });
 
-    const feedEl = document.getElementById('hero-section') || document.getElementById('category-container');
+    const feedEl = document.getElementById('hero-section') || document.getElementById('featured-article-container');
     feedEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  document.querySelectorAll('.masthead-nav a[data-nav-category], .masthead-more-dropdown a[data-nav-category]').forEach(link => {
+  // Bind Header Categories Nav links (hover triggers mega menu, click navigates)
+  document.querySelectorAll('#header-categories-nav a[data-nav-category]').forEach(link => {
+    const cat = link.getAttribute('data-nav-category');
+    link.addEventListener('mouseenter', () => {
+      if (cat && cat !== 'all') {
+        renderMegaMenu(cat);
+      } else {
+        hideMegaMenu();
+      }
+    });
+    link.addEventListener('mouseleave', scheduleHideMegaMenu);
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const cat = link.getAttribute('data-nav-category');
+      hideMegaMenu();
+      if (cat === 'more') {
+        openCategoryDrawer();
+        return;
+      }
       if (cat) handleCategoryNavClick(cat);
-      document.getElementById('masthead-more-dropdown')?.classList.remove('show');
     });
-  });
-
-  // More Navigation Dropdown
-  const btnMoreNav = document.getElementById('btn-more-nav');
-  const mastheadMoreDropdown = document.getElementById('masthead-more-dropdown');
-  btnMoreNav?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    mastheadMoreDropdown?.classList.toggle('show');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (mastheadMoreDropdown && !mastheadMoreDropdown.contains(e.target as Node) && e.target !== btnMoreNav) {
-      mastheadMoreDropdown.classList.remove('show');
-    }
   });
 
   // Footer Category Links
@@ -470,40 +786,86 @@ function setupEventListeners() {
     });
   });
 
-  // Mobile Drawer Toggle
-  const mobileDrawer = document.getElementById('mobile-drawer');
-  const btnMobileMenu = document.getElementById('btn-mobile-menu');
-  const btnMobileDrawerClose = document.getElementById('btn-mobile-drawer-close');
+  // --------------------------------------------------------------------------
+  // Hamburger Menu & Structured Directory Controller (Ala CNN/Reuters Directory)
+  // --------------------------------------------------------------------------
+  const btnHamburgerMenu = document.getElementById('btn-hamburger-menu');
+  const categoryDrawerOverlay = document.getElementById('category-drawer-overlay');
+  const btnDrawerClose = document.getElementById('btn-drawer-close');
+  const drawerCategoriesTree = document.getElementById('drawer-categories-tree');
 
-  const openMobileDrawer = () => {
-    if (mobileDrawer) {
-      mobileDrawer.style.display = 'block';
-      mobileDrawer.classList.add('show');
-    }
-  };
-  const closeMobileDrawer = () => {
-    if (mobileDrawer) {
-      mobileDrawer.classList.remove('show');
-      mobileDrawer.style.display = 'none';
+  const openCategoryDrawer = () => {
+    if (categoryDrawerOverlay) {
+      categoryDrawerOverlay.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      window.dispatchEvent(new CustomEvent('modal-opened'));
     }
   };
 
-  btnMobileMenu?.addEventListener('click', openMobileDrawer);
-  btnMobileDrawerClose?.addEventListener('click', closeMobileDrawer);
-  mobileDrawer?.addEventListener('click', (e) => {
-    if (e.target === mobileDrawer) closeMobileDrawer();
+  const closeCategoryDrawer = () => {
+    if (categoryDrawerOverlay) {
+      categoryDrawerOverlay.style.display = 'none';
+      document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-closed'));
+    }
+  };
+
+  btnHamburgerMenu?.addEventListener('click', openCategoryDrawer);
+  btnDrawerClose?.addEventListener('click', closeCategoryDrawer);
+  categoryDrawerOverlay?.addEventListener('click', (e) => {
+    if (e.target === categoryDrawerOverlay) closeCategoryDrawer();
   });
 
-  document.querySelectorAll('.mobile-drawer-link[data-nav-category]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const cat = link.getAttribute('data-nav-category');
-      if (cat) {
-        handleCategoryNavClick(cat);
-        closeMobileDrawer();
-      }
+  // Populate Structured Directory Overlay with 14 Categories and their Subcategories (CNN Style)
+  if (drawerCategoriesTree) {
+    const categories14 = CATEGORIES.filter(c => c.id !== 'all');
+    drawerCategoriesTree.innerHTML = categories14.map(cat => {
+      const subCats = MASTER_TAXONOMY[cat.id] || [];
+      return `
+        <div class="directory-col-group">
+          <a href="#" class="directory-cat-title" data-cat="${cat.id}">
+            ${cat.name}
+          </a>
+          <div class="directory-subcats-stack">
+            ${subCats.map(sub => `
+              <a href="#" class="directory-subcat-link" data-cat="${cat.id}" data-subcat="${sub.slug}">
+                ${sub.name}
+              </a>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    drawerCategoriesTree.querySelectorAll('.directory-cat-title').forEach(hdr => {
+      hdr.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = hdr.getAttribute('data-cat');
+        if (cat) {
+          closeCategoryDrawer();
+          handleCategoryNavClick(cat);
+        }
+      });
     });
-  });
+
+    drawerCategoriesTree.querySelectorAll('.directory-subcat-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = link.getAttribute('data-cat');
+        const sub = link.getAttribute('data-subcat');
+        if (cat && sub) {
+          closeCategoryDrawer();
+          store.currentCategory = cat as any;
+          store.currentSubCategory = sub;
+          Router.navigateToSubCategory(cat as any, sub);
+          FeedSection.renderCategories();
+          FeedSection.renderSubCategories();
+          FeedSection.render();
+          document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
 
   // Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
@@ -514,7 +876,9 @@ function setupEventListeners() {
     }
     if (e.key === 'Escape') {
       closeSearchOverlay();
-      closeMobileDrawer();
+      closeCategoryDrawer();
+      closeUserAvatarDropdown();
+      hideMegaMenu();
       SearchPreview.close();
       ArticleReaderModal.close(true);
       UserAuthModal.close();

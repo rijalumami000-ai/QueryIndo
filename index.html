@@ -99,8 +99,7 @@
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
   <!-- Preconnect & Asynchronous Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Public+Sans:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <!-- Google Identity Services SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -130,146 +129,203 @@
 </head>
 <body>
   <div id="app">
-    <!-- Top Utility Bar (Reuters-style authoritative strip) -->
-    <div class="top-bar">
-      <div class="container top-bar-content">
-        <div class="top-bar-left">
-          <span class="top-bar-tagline">
-            <span class="top-bar-pulse" aria-hidden="true"></span>
-            Jurnalisme Teknologi Independen Indonesia
-          </span>
-          <span class="top-bar-divider" aria-hidden="true">•</span>
-          <span class="top-bar-edition">Edisi: <strong>Indonesia</strong> / Global</span>
-        </div>
-        <div class="top-bar-right">
-          <span class="date-badge" id="current-date-text">Sabtu, 20 September 2026</span>
-          <div class="top-bar-actions">
-            <button id="theme-toggle" class="btn-top-util" title="Ubah Mode Gelap/Terang" aria-label="Toggle Theme">
-              <svg id="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            </button>
-            <button id="bookmarks-btn" class="btn-top-util" title="Artikel Tersimpan" aria-label="Bookmarks">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span class="badge-count" id="bookmark-count">0</span>
-            </button>
-            <div class="lang-switcher" id="lang-toggle-switcher">
-              <button class="btn-lang active" data-lang="id">ID</button>
-              <button class="btn-lang" data-lang="en">EN</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Navigation Header (Reuters/TechCrunch Editorial Masthead) -->
+    <!-- Main Navigation Header (QUERYINDO Unified Navigation System) -->
     <header class="navbar" id="site-header">
-      <div class="container navbar-content">
-        <!-- Brand Logo -->
-        <a href="#" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
-          <div class="brand-emblem-wrap">
-            <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="38" height="38" aria-hidden="true">
-              <defs>
-                <linearGradient id="navBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#0B1120"/>
-                  <stop offset="100%" stop-color="#020408"/>
-                </linearGradient>
-                <linearGradient id="navQGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#00F2FE"/>
-                  <stop offset="45%" stop-color="#38BDF8"/>
-                  <stop offset="100%" stop-color="#2563EB"/>
-                </linearGradient>
-                <linearGradient id="navRed" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#FF2E54"/>
-                  <stop offset="100%" stop-color="#E11D48"/>
-                </linearGradient>
-                <linearGradient id="navRim" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45"/>
-                  <stop offset="100%" stop-color="#1E293B" stop-opacity="0.2"/>
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navBg)" stroke="url(#navRim)" stroke-width="1.2"/>
-              <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
-              <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
-              <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
-              <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
-            </svg>
-          </div>
-          <div class="brand-text-lockup">
-            <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
-            <div class="brand-wordmark-row">
-              <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
-              <span class="brand-domain-tag">.COM</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Center Editorial Navigation Links (Reuters / FT / TechCrunch Style) -->
-        <nav class="masthead-nav" aria-label="Navigasi Editorial Utama">
-          <a href="#hero-section" class="masthead-nav-link active" data-nav-category="all">Terkini</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="ai">AI & Deep Tech</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="gadget">Gadget</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="startup">Bisnis & Startup</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="ev">Kendaraan Listrik</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="fintech">Fintech</a>
-          <a href="#" class="masthead-nav-link" data-nav-category="cybersecurity">Keamanan Siber</a>
-          <div class="masthead-nav-more" id="masthead-nav-more">
-            <button class="masthead-nav-link more-btn" id="btn-more-nav" aria-haspopup="true" aria-expanded="false">
-              <span>Lainnya</span>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="navbar-inner-wrapper">
+        <div class="navbar-content">
+          <!-- 1. Leftmost Edge: Hamburger Menu Button ONLY (Mentok Paling Kiri) -->
+          <div class="navbar-left-edge">
+            <button id="btn-hamburger-menu" class="btn-hamburger-menu" title="Buka Direktori Seluruh Kanal Berita (14 Kanal)" aria-label="Menu Direktori">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
             </button>
-            <div class="masthead-more-dropdown" id="masthead-more-dropdown">
-              <a href="#" class="more-dropdown-item" data-nav-category="software">Software & Apps</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="space">Sains & Antariksa</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="gaming">Gaming & Industri Kreatif</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="internet">Internet & Digital</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="climatetech">Teknologi Hijau & Iklim</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="biotech">Bioteknologi & Kesehatan</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="review">Review & Tren</a>
-              <a href="#" class="more-dropdown-item" data-nav-category="tips">Tips & Tutorial</a>
-              <div class="more-dropdown-divider"></div>
-              <a href="/page/redaksi" class="more-dropdown-item">Susunan Dewan Redaksi</a>
-              <a href="/page/pedoman-media-siber" class="more-dropdown-item">Pedoman Media Siber</a>
+          </div>
+
+          <!-- 2. Center Editorial Spine: Brand Logo + All 14 Categories in 1 Prominent Unified Nav -->
+          <div class="navbar-center-spine">
+            <a href="#" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
+              <div class="brand-emblem-wrap">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="navBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0B1120"/>
+                      <stop offset="100%" stop-color="#020408"/>
+                    </linearGradient>
+                    <linearGradient id="navQGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00F2FE"/>
+                      <stop offset="45%" stop-color="#38BDF8"/>
+                      <stop offset="100%" stop-color="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="navRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FF2E54"/>
+                      <stop offset="100%" stop-color="#E11D48"/>
+                    </linearGradient>
+                    <linearGradient id="navRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45"/>
+                      <stop offset="100%" stop-color="#1E293B" stop-opacity="0.2"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navBg)" stroke="url(#navRim)" stroke-width="1.2"/>
+                  <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
+                  <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+              </div>
+              <div class="brand-text-lockup">
+                <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+                <div class="brand-wordmark-row">
+                  <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+                  <span class="brand-domain-tag">.COM</span>
+                </div>
+              </div>
+            </a>
+
+            <nav class="header-categories-nav" id="header-categories-nav" aria-label="Kategori Berita Utama">
+              <a href="#" class="cat-nav-item active" data-nav-category="all">
+                <span class="cat-nav-title">Beranda</span>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="ai">
+                <span class="cat-nav-title">AI</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="gadget">
+                <span class="cat-nav-title">Gadget</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="software">
+                <span class="cat-nav-title">Software</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="startup">
+                <span class="cat-nav-title">Startup</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="fintech">
+                <span class="cat-nav-title">Fintech</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="ev">
+                <span class="cat-nav-title">Mobil Listrik</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="cybersecurity">
+                <span class="cat-nav-title">Siber</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="gaming">
+                <span class="cat-nav-title">Gaming</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="internet">
+                <span class="cat-nav-title">Internet</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="space">
+                <span class="cat-nav-title">Antariksa</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="climatetech">
+                <span class="cat-nav-title">Tekno Hijau</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="biotech">
+                <span class="cat-nav-title">Bioteknologi</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="review">
+                <span class="cat-nav-title">Review</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="tips">
+                <span class="cat-nav-title">Tips</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+            </nav>
+          </div>
+
+          <!-- 3. Rightmost Edge: Search & User Login Icon Buttons ONLY (Mentok Paling Kanan) -->
+          <div class="navbar-right-edge">
+            <button id="btn-search-toggle" class="btn-search-toggle" title="Cari Berita (Tekan /)" aria-label="Buka Pencarian">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+
+            <div class="user-avatar-menu-wrap" id="user-avatar-menu-wrap">
+              <button id="user-auth-btn" class="btn-user-avatar" title="Akun & Preferensi Pengguna" aria-label="Akun & Preferensi" aria-expanded="false" aria-haspopup="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </button>
+
+              <div class="user-avatar-dropdown" id="user-avatar-dropdown" style="display: none;">
+                <!-- Profile / Auth Section -->
+                <div class="dropdown-header-section" id="dropdown-user-header">
+                  <div class="dropdown-user-info">
+                    <span class="dropdown-user-name" id="dropdown-user-name">Pengunjung Tamu</span>
+                    <span class="dropdown-user-role" id="dropdown-user-status">Belum Masuk</span>
+                  </div>
+                  <button id="dropdown-auth-action-btn" class="dropdown-auth-btn">Masuk / Profil</button>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Bookmarks Item -->
+                <button id="dropdown-bookmarks-btn" class="dropdown-item">
+                  <div class="dropdown-item-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                    <span>Artikel Tersimpan</span>
+                  </div>
+                  <span class="dropdown-count-badge" id="dropdown-bookmark-count">0</span>
+                </button>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Theme Toggle Item -->
+                <div class="dropdown-item dropdown-theme-row" id="dropdown-theme-row">
+                  <div class="dropdown-item-left">
+                    <svg id="dropdown-theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <span id="dropdown-theme-text">Mode Gelap</span>
+                  </div>
+                  <button id="dropdown-theme-toggle-btn" class="dropdown-toggle-pill" aria-label="Ubah Tema Mode Gelap/Terang">
+                    <span class="toggle-pill-knob"></span>
+                  </button>
+                </div>
+
+                <!-- Language Switcher Item -->
+                <div class="dropdown-item dropdown-lang-row">
+                  <div class="dropdown-item-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Bahasa</span>
+                  </div>
+                  <div class="dropdown-lang-pills" id="dropdown-lang-switcher">
+                    <button class="btn-lang-pill active" data-lang="id">ID</button>
+                    <button class="btn-lang-pill" data-lang="en">EN</button>
+                  </div>
+                </div>
+
+                <!-- Logged in Logout item (shown only when logged in) -->
+                <div id="dropdown-logout-wrapper" style="display: none;">
+                  <div class="dropdown-divider"></div>
+                  <button id="dropdown-logout-btn" class="dropdown-item dropdown-logout-btn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Keluar Akun</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </nav>
-
-        <!-- Right Header Action Items (Search Trigger, Auth, Subscribe CTA) -->
-        <div class="nav-actions">
-          <!-- Search Trigger Button -->
-          <button id="btn-search-toggle" class="btn-search-toggle" title="Cari Berita (Tekan /)" aria-label="Buka Pencarian">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <span class="search-toggle-label">Cari</span>
-            <span class="search-toggle-kbd">/</span>
-          </button>
-
-          <!-- PWA Install Button -->
-          <button id="pwa-install-btn" class="btn-action nav-feature-btn" title="Pasang Aplikasi QUERYINDO di Perangkat Anda">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Pasang App</span>
-          </button>
-
-          <!-- Reader Auth & User Profile Button -->
-          <button id="user-auth-btn" class="btn-action nav-auth-btn" title="Akun Pembaca QUERYINDO">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span id="user-auth-btn-text">Masuk</span>
-          </button>
-
-          <!-- High-End Subscribe CTA Button (TechCrunch/Reuters style) -->
-          <button id="btn-subscribe-header" class="btn-subscribe-header" title="Berlangganan Newsletter & Akses Eksklusif">
-            <span>Berlangganan</span>
-          </button>
-
-          <!-- Mobile Hamburger Toggle -->
-          <button id="btn-mobile-menu" class="btn-mobile-menu" aria-label="Menu Navigasi Mobile">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
         </div>
       </div>
 
-      <!-- Expandable Search Overlay Bar (Integrated with existing SearchPreview & Filter) -->
+      <!-- Full-Width Mega Menu Container (Height: ~12 cm, approx 440px) -->
+      <div id="header-mega-menu" class="header-mega-menu" style="display: none;">
+        <div class="mega-menu-inner container">
+          <!-- Rendered dynamically on category hover by TypeScript -->
+        </div>
+      </div>
+
+      <!-- Expandable Search Overlay Bar -->
       <div class="search-overlay-bar" id="search-overlay-bar" style="display: none;">
         <div class="container search-overlay-content">
           <div class="search-box" id="navbar-search-box">
@@ -281,43 +337,12 @@
               </button>
               <button id="btn-search-close" class="btn-search-close" title="Tutup Pencarian (Esc)">✕</button>
             </div>
-            <!-- Instant Live Search Preview Dropdown Container -->
             <div id="search-preview-dropdown" class="search-preview-dropdown" style="display: none;"></div>
           </div>
         </div>
       </div>
 
-      <!-- Mobile Navigation Drawer / Slideout -->
-      <div class="mobile-drawer" id="mobile-drawer" style="display: none;">
-        <div class="mobile-drawer-content">
-          <div class="mobile-drawer-header">
-            <span class="mobile-drawer-title">Kanal Berita</span>
-            <button id="btn-mobile-drawer-close" class="btn-close" aria-label="Tutup Menu">✕</button>
-          </div>
-          <div class="mobile-drawer-links">
-            <a href="#hero-section" class="mobile-drawer-link active" data-nav-category="all">Terkini</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="ai">Future Tech & AI</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="gadget">Gadget & Hardware</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="startup">Bisnis & Startup</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="ev">Kendaraan Listrik</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="fintech">Fintech & Aset Digital</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="cybersecurity">Keamanan Siber</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="software">Software & Apps</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="space">Sains & Antariksa</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="gaming">Gaming & Industri Kreatif</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="climatetech">Teknologi Hijau & Iklim</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="biotech">Bioteknologi & Kesehatan</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="review">Review & Tren</a>
-            <a href="#" class="mobile-drawer-link" data-nav-category="tips">Tips & Tutorial</a>
-          </div>
-          <div class="mobile-drawer-footer">
-            <a href="/page/tentang-kami">Tentang Kami</a>
-            <a href="/page/redaksi">Susunan Redaksi</a>
-            <a href="/page/pedoman-media-siber">Pedoman Media Siber</a>
-            <a href="/page/kode-etik">Kode Etik</a>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Subtle Ambient Page Scroll Progress Indicator -->
       <div id="navbar-scroll-progress" class="navbar-scroll-progress"></div>
@@ -359,40 +384,10 @@
       </div>
     </div>
 
-    <!-- Breaking News Ticker Banner -->
-    <div class="breaking-banner">
-      <div class="container breaking-content">
-        <span class="breaking-badge">TERKINI</span>
-        <div class="breaking-title" id="breaking-news-title">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-    </div>
-
     <!-- Main Content Layout -->
     <main class="container">
       <!-- ByteShorts Visual Stories Carousel Bar -->
       <div id="byteshorts-bar-container"></div>
-
-      <!-- Category Filter Bar -->
-      <nav class="category-bar" aria-label="Filter Kategori Berita">
-        <button class="cat-nav-arrow cat-nav-left" id="cat-scroll-left" title="Geser Kategori Kiri" aria-label="Geser Kategori Kiri">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="category-scroll" id="category-container">
-          <!-- Rendered dynamically -->
-        </div>
-        <button class="cat-nav-arrow cat-nav-right" id="cat-scroll-right" title="Geser Kategori Kanan" aria-label="Geser Kategori Kanan">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </nav>
-
-      <!-- Sub-Channel Secondary Ribbon (10 Sub-Channels per Category) -->
-      <nav class="subcategory-bar" id="subcategory-bar" style="display: none;" aria-label="Sub-Kanal Spesifik">
-        <div class="subcategory-scroll" id="subcategory-container">
-          <!-- Rendered dynamically when a specific category is active -->
-        </div>
-      </nav>
 
       <!-- [AD SPACE 1] Top Billboard Banner -->
       <div id="top-billboard-ad-container"></div>
@@ -502,6 +497,7 @@
         <div class="articles-grid" id="articles-grid">
           <!-- Article Cards Rendered by JS -->
         </div>
+        <div id="feed-load-more-container" style="text-align: center; margin-top: 2rem;"></div>
       </section>
 
       <!-- Newsletter Subscription Section -->
@@ -624,6 +620,51 @@
     </footer>
 
 
+
+    <!-- Structured Directory Overlay (CNN/Reuters Full-Width Mega Directory - Top Level Modal) -->
+    <div class="category-drawer-overlay" id="category-drawer-overlay" style="display: none;">
+      <div class="category-drawer-panel" id="category-drawer-panel">
+        <div class="drawer-header-bar">
+          <div class="container drawer-header-inner">
+            <div class="drawer-brand-lockup">
+              <span class="drawer-main-title">DIREKTORI SELURUH KANAL BERITA</span>
+              <span class="drawer-subtitle">14 Kanal Berita Teknologi & 140 Sub-Kanal Komprehensif Nusantara</span>
+            </div>
+            <button id="btn-drawer-close" class="btn-drawer-close" aria-label="Tutup Menu Direktori">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="container drawer-body-container">
+          <div class="drawer-categories-tree" id="drawer-categories-tree">
+            <!-- 14 Categories with their 10 Subcategories rendered dynamically into multi-column grid -->
+          </div>
+          <div class="drawer-footer-institutional">
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">STANDAR EDITORIAL</span>
+              <a href="/page/pedoman-media-siber">Pedoman Media Siber</a>
+              <a href="/page/kode-etik">Kode Etik Jurnalistik</a>
+              <a href="/page/redaksi">Susunan Dewan Redaksi</a>
+              <a href="/page/tentang-kami">Tentang Kami</a>
+            </div>
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">LAYANAN REDAKSI</span>
+              <a href="mailto:redaksi@queryindo.com">Kirim Siaran Pers (Press Release)</a>
+              <a href="mailto:kerjasama@queryindo.com">Kerjasama & Beriklan (Media Kit)</a>
+              <a href="/rss.xml" target="_blank">RSS Feed Sindikasi</a>
+              <a href="/sitemap.xml" target="_blank">Peta Situs (Sitemap XML)</a>
+            </div>
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">KEBIJAKAN & PRIVASI</span>
+              <a href="/page/disclaimer">Disclaimer & Batasan Tanggung Jawab</a>
+              <a href="/page/privacy">Kebijakan Privasi</a>
+              <a href="/page/terms">Ketentuan Layanan</a>
+              <a href="/page/kontak">Hubungi Newsroom</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Article Reader Modal Overlay -->
     <div class="modal-overlay" id="reader-modal">

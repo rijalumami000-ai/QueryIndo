@@ -25,10 +25,8 @@ import {
   slugifyTitle,
   sanitizeArticleHtml
 } from '../utils/helpers';
-import Lenis from 'lenis';
 
 export class ArticleReaderModal {
-  private static readerLenis: Lenis | null = null;
   private static currentScrollHandler: (() => void) | null = null;
 
   public static async open(articleIdOrSlug: string, updateUrl: boolean = true): Promise<void> {
@@ -37,10 +35,10 @@ export class ArticleReaderModal {
     const modalReaderContent = document.getElementById('modal-reader-content');
     if (!readerModal || !modalReaderContent) return;
 
-    if (!article) {
+    // On-demand fetch if article not found or full HTML content is not loaded yet
+    if (!article || !article.content) {
       try {
-        await ArticleService.syncWithBackend();
-        article = findArticleBySlugOrId(articleIdOrSlug);
+        article = await ArticleService.fetchArticleDetail(articleIdOrSlug);
       } catch (err) {
         console.warn('Gagal sinkronisasi data artikel:', err);
       }
@@ -86,9 +84,9 @@ export class ArticleReaderModal {
     const articleBody = sanitizeArticleHtml(article.content);
 
     modalReaderContent.innerHTML = `
-      <!-- Sticky Reading Progress Bar -->
+      <!-- Sticky Reading Progress Bar (Zero-Layout-Thrashing GPU ScaleX) -->
       <div style="position:sticky; top:-2.5rem; left:0; right:0; height:4px; background:var(--bg-secondary); z-index:90; margin:-2.5rem -2.5rem 1.5rem -2.5rem; overflow:hidden;">
-        <div id="reader-progress-bar" style="height:100%; width:0%; background:var(--gradient-brand); transition:width 0.1s linear;"></div>
+        <div id="reader-progress-bar" style="height:100%; width:100%; transform:scaleX(0); transform-origin:left; will-change:transform; background:var(--gradient-brand);"></div>
       </div>
 
       <div class="reader-header">
@@ -215,31 +213,7 @@ export class ArticleReaderModal {
     readerModal.scrollTop = 0;
     document.body.style.overflow = 'hidden';
 
-    // Instantiate Lenis smooth scroll on Reader Modal for silky smooth reading experience
-    if (window.innerWidth > 768) {
-      if (this.readerLenis) {
-        this.readerLenis.destroy();
-        this.readerLenis = null;
-      }
-      const modalContainer = readerModal.querySelector('.modal-container') as HTMLElement;
-      if (modalContainer) {
-        this.readerLenis = new Lenis({
-          wrapper: readerModal,
-          content: modalContainer,
-          lerp: 0.1,
-          smoothWheel: true
-        });
-        const raf = (time: number) => {
-          if (this.readerLenis && readerModal.classList.contains('open')) {
-            this.readerLenis.raf(time);
-            requestAnimationFrame(raf);
-          }
-        };
-        requestAnimationFrame(raf);
-      }
-    }
-
-    // Reading Progress Bar Scroll Handler (Cleaned up, Throttled via rAF)
+    // Reading Progress Bar Scroll Handler (Hardware-Accelerated via GPU scaleX)
     const progressBar = document.getElementById('reader-progress-bar');
     if (this.currentScrollHandler) {
       readerModal.removeEventListener('scroll', this.currentScrollHandler);
@@ -255,8 +229,8 @@ export class ArticleReaderModal {
           const scrollTop = readerModal.scrollTop;
           const scrollHeight = readerModal.scrollHeight - readerModal.clientHeight;
           if (scrollHeight > 0) {
-            const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-            progressBar.style.width = `${pct}%`;
+            const ratio = Math.min(1, Math.max(0, scrollTop / scrollHeight));
+            progressBar.style.transform = `scaleX(${ratio})`;
           }
         });
       };
@@ -437,10 +411,6 @@ export class ArticleReaderModal {
     const readerModal = document.getElementById('reader-modal');
     if (!readerModal || !readerModal.classList.contains('open')) return;
 
-    if (this.readerLenis) {
-      this.readerLenis.destroy();
-      this.readerLenis = null;
-    }
     if (this.currentScrollHandler) {
       readerModal.removeEventListener('scroll', this.currentScrollHandler);
       this.currentScrollHandler = null;

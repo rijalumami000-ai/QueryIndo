@@ -1,4 +1,5 @@
 import { ShoppingCarousel, type ShoppingProduct } from '../ShoppingCarousel';
+import { BentoSection } from '../../sections/BentoSection';
 import { Toast } from '../../utils/toast';
 import { ImageUtils } from '../../utils/imageUtils';
 
@@ -37,7 +38,7 @@ export class ShoppingManager {
             </div>
             <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer;">
               <span style="font-size: 0.8rem; font-weight: 700; color: ${config.enabled ? 'var(--accent-emerald)' : 'var(--text-muted)'};">
-                ${config.enabled ? '● Banner Aktif Tayang' : '○ Banner Dinonaktifkan'}
+                ${config.enabled ? '● Banner Aktif Tayang' : '○ Banner Dinonaktifkan (Tersembunyi)'}
               </span>
               <input type="checkbox" id="toggle-shopping-banner" ${config.enabled ? 'checked' : ''} style="width: 1.2rem; height: 1.2rem; cursor: pointer;" />
             </label>
@@ -174,7 +175,8 @@ export class ShoppingManager {
         const config = ShoppingCarousel.getConfig();
         config.enabled = toggleBanner.checked;
         ShoppingCarousel.saveConfig(config);
-        Toast.show(`Banner Rekomendasi Belanja sekarang ${config.enabled ? 'Diaktifkan' : 'Dinonaktifkan'}.`);
+        Toast.show(`Banner Rekomendasi Belanja sekarang ${config.enabled ? 'Diaktifkan (Tayang)' : 'Dinonaktifkan (Tersembunyi)'}.`);
+        BentoSection.renderShoppingCarousel();
         refreshCallback();
       });
     }
@@ -195,6 +197,7 @@ export class ShoppingManager {
         ShoppingCarousel.saveConfig(config);
 
         Toast.show('Pengaturan teks banner belanja berhasil disimpan.');
+        BentoSection.renderShoppingCarousel();
         refreshCallback();
       });
     }

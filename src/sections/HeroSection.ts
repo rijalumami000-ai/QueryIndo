@@ -6,21 +6,7 @@ import { escapeHtml, formatDate, calculateReadTime, getSafeImageUrl, IMG_ONERROR
 
 export class HeroSection {
   public static renderBreakingBanner(): void {
-    const breakingNewsTitle = document.getElementById('breaking-news-title');
-    const bannerWrapper = document.querySelector('.breaking-bar') as HTMLElement;
-    if (!breakingNewsTitle) return;
-
-    const articles = ArticleService.getArticles();
-    const breakingArticle = articles.find(a => a.isBreaking) || articles[0];
-    if (!breakingArticle) {
-      if (bannerWrapper) bannerWrapper.style.display = 'none';
-      return;
-    }
-    if (bannerWrapper) bannerWrapper.style.display = '';
-    breakingNewsTitle.textContent = breakingArticle.title;
-    breakingNewsTitle.onclick = () => {
-      Router.navigateToArticle(breakingArticle.slug || breakingArticle.id, breakingArticle.title);
-    };
+    // Breaking banner removed in unified header design
   }
 
   public static render(): void {

@@ -191,7 +191,7 @@ func GetShopping(c *fiber.Ctx) error {
 			BadgeText:   "⚡ QUERY PICKS",
 			PartnerText: "Kurasi Lab Redaksi",
 			MainTitle:   "RADAR GADGET & HARDWARE PILIHAN",
-			Enabled:     true,
+			Enabled:     false,
 		}
 	}
 

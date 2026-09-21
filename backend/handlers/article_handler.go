@@ -38,6 +38,7 @@ func GetArticles(c *fiber.Ctx) error {
 	subCategory := c.Query("subcategory")
 	search := c.Query("search")
 	status := c.Query("status", "published")
+	includeContent := c.Query("include_content") == "true"
 
 	if database.DB == nil {
 		return c.JSON(fiber.Map{
@@ -49,6 +50,12 @@ func GetArticles(c *fiber.Ctx) error {
 
 	var articles []models.Article
 	query := database.DB.Model(&models.Article{})
+
+	// Performance Turbo: Exclude massive HTML content from feed listings
+	// Only fetch full content body if explicitly requested (e.g., Admin CMS)
+	if !includeContent {
+		query = query.Select("id, title, slug, subtitle, category_id, sub_category, author_json, tags_json, published_at, read_time_minutes, image_url, image_caption, is_featured, is_trending, is_breaking, is_fact_checked, is_sponsored, sponsor_name, is_premium, views_count, likes_count, status, created_at, updated_at")
+	}
 
 	if category != "" && category != "all" {
 		query = query.Where("category_id = ?", category)
@@ -68,6 +75,8 @@ func GetArticles(c *fiber.Ctx) error {
 	}
 
 	query.Order("published_at desc").Find(&articles)
+
+	c.Set("Cache-Control", "public, max-age=30, stale-while-revalidate=60")
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -97,6 +106,8 @@ func GetArticleBySlug(c *fiber.Ctx) error {
 
 	// Increment Views Count
 	database.DB.Model(&article).UpdateColumn("views_count", article.ViewsCount+1)
+
+	c.Set("Cache-Control", "public, max-age=60, stale-while-revalidate=180")
 
 	return c.JSON(fiber.Map{
 		"success": true,

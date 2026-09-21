@@ -1,7 +1,6 @@
 import type { Article } from '../types/news';
 import { ImageUtils } from '../utils/imageUtils';
 import { sanitizeArticleHtml, escapeHtml, getSafeImageUrl } from '../utils/helpers';
-import Lenis from 'lenis';
 
 export type FocusTheme = 'dark' | 'sepia' | 'light';
 
@@ -10,7 +9,6 @@ export class FocusMode {
   private static currentTheme: FocusTheme = 'dark';
   private static overlayElement: HTMLElement | null = null;
   private static scrollListener: (() => void) | null = null;
-  private static focusLenis: Lenis | null = null;
 
   public static isFocusActive(): boolean {
     return this.isActive;
@@ -65,9 +63,9 @@ export class FocusMode {
         </div>
       </div>
 
-      <!-- Top Reading Progress Indicator -->
+      <!-- Top Reading Progress Indicator (GPU-Accelerated) -->
       <div class="focus-progress-track">
-        <div class="focus-progress-fill" id="focus-progress-fill"></div>
+        <div class="focus-progress-fill" id="focus-progress-fill" style="width: 100%; transform: scaleX(0); transform-origin: left; will-change: transform;"></div>
       </div>
 
       <!-- Focus Mode Article Body Container -->
@@ -108,33 +106,8 @@ export class FocusMode {
     this.overlayElement = overlay;
     document.body.style.overflow = 'hidden';
 
-    // Dispatch modal opened to pause external Lenis smoothly
+    // Dispatch modal opened
     window.dispatchEvent(new CustomEvent('modal-opened'));
-
-    // Initialize dedicated Lenis instance for silky smooth focus reading
-    if (window.innerWidth > 768) {
-      if (this.focusLenis) {
-        this.focusLenis.destroy();
-        this.focusLenis = null;
-      }
-      const scrollArea = overlay.querySelector('#focus-scroll-area') as HTMLElement;
-      const contentPaper = overlay.querySelector('.focus-article-paper') as HTMLElement;
-      if (scrollArea && contentPaper) {
-        this.focusLenis = new Lenis({
-          wrapper: scrollArea,
-          content: contentPaper,
-          lerp: 0.1,
-          smoothWheel: true
-        });
-        const raf = (time: number) => {
-          if (this.focusLenis && this.isActive) {
-            this.focusLenis.raf(time);
-            requestAnimationFrame(raf);
-          }
-        };
-        requestAnimationFrame(raf);
-      }
-    }
 
     // Bind Event Listeners
     this.bindEvents(overlay, estMinutes, lang);
@@ -142,10 +115,6 @@ export class FocusMode {
 
   public static close() {
     this.isActive = false;
-    if (this.focusLenis) {
-      this.focusLenis.destroy();
-      this.focusLenis = null;
-    }
     if (this.overlayElement) {
       this.overlayElement.remove();
       this.overlayElement = null;
@@ -201,8 +170,7 @@ export class FocusMode {
         const scrollHeight = scrollArea.scrollHeight - scrollArea.clientHeight;
         if (scrollHeight > 0) {
           const ratio = Math.min(1, Math.max(0, scrollTop / scrollHeight));
-          const pct = ratio * 100;
-          progressFill.style.width = `${pct}%`;
+          progressFill.style.transform = `scaleX(${ratio})`;
 
           const remainingMinutes = Math.max(0, Math.ceil(totalEstMinutes * (1 - ratio)));
           if (timeRemainingSpan) {
@@ -211,7 +179,7 @@ export class FocusMode {
               : (lang === 'en' ? 'Finished' : 'Selesai');
           }
         }
-      });
+      }, { passive: true });
     }
   }
 }

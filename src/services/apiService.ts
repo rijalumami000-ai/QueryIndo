@@ -27,12 +27,13 @@ export class ApiService {
     return false;
   }
 
-  // Fetch Articles from Go Backend
-  public static async getArticles(category?: string, search?: string): Promise<Article[]> {
+  // Fetch Articles from Go Backend (Optionally includes full content, defaults to lightweight metadata)
+  public static async getArticles(category?: string, search?: string, includeContent: boolean = false): Promise<Article[]> {
     try {
       const url = new URL(`${API_BASE_URL}/articles`, window.location.origin);
       if (category && category !== 'all') url.searchParams.append('category', category);
       if (search) url.searchParams.append('search', search);
+      if (includeContent) url.searchParams.append('include_content', 'true');
 
       const res = await fetch(url.toString());
       if (res.ok) {
@@ -47,6 +48,24 @@ export class ApiService {
       this.isBackendAvailable = false;
     }
     return [];
+  }
+
+  // Fetch Full Article Details On-Demand by Slug or ID
+  public static async getArticleBySlug(slugOrId: string): Promise<Article | null> {
+    try {
+      const cleanSlug = encodeURIComponent(slugOrId.trim());
+      const res = await fetch(`${API_BASE_URL}/articles/${cleanSlug}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          this.isBackendAvailable = true;
+          return json.data;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch article detail by slug:', err);
+    }
+    return null;
   }
 
   // Fetch Tech Indexes from Go Backend or Fallback Dataset
