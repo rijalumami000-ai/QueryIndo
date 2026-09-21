@@ -47,7 +47,16 @@ export class Router {
       if (!href) return;
 
       // Handle data-route or internal paths
-      if (href.startsWith('/') && !href.startsWith('/api') && !href.startsWith('/health')) {
+      if (
+        href.startsWith('/') && 
+        !href.startsWith('/api') && 
+        !href.startsWith('/health') &&
+        !href.endsWith('.xml') &&
+        !href.endsWith('.json') &&
+        !href.endsWith('.txt') &&
+        !href.endsWith('.pdf') &&
+        target.getAttribute('target') !== '_blank'
+      ) {
         e.preventDefault();
         this.navigateTo(href);
       } else if (href.startsWith('#') && href.length > 1) {

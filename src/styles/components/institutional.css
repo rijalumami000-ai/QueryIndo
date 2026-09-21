@@ -734,6 +734,93 @@
 }
 
 /* ── Peta Situs & Direktori Konten ── */
+.inst-sitemap-taxonomy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.inst-sitemap-cat-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inst-sitemap-cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.25);
+  padding-bottom: 0.5rem;
+}
+
+.inst-sitemap-cat-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.inst-sitemap-cat-header:hover .inst-sitemap-cat-name {
+  color: var(--accent-cyan);
+}
+
+.inst-sitemap-cat-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  background: rgba(0, 242, 254, 0.08);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+}
+
+.inst-sitemap-cat-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.inst-sitemap-sub-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inst-sitemap-sub-link {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-xs);
+  display: inline-block;
+  transition: all var(--transition-fast);
+}
+
+.inst-sitemap-sub-link:hover {
+  background: var(--bg-secondary);
+  color: var(--accent-cyan);
+  transform: translateX(3px);
+}
+
+.inst-sitemap-institutions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
 .inst-sitemap-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
