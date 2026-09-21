@@ -11,7 +11,7 @@
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 9999;
+  z-index: 1000;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -594,7 +594,7 @@ body.is-scrolled .brand-word-indo {
   border-top: 1px solid var(--border-color);
   border-bottom: 3px solid var(--accent-cyan);
   box-shadow: 0 35px 80px rgba(0, 0, 0, 0.85);
-  z-index: 10000;
+  z-index: 1100;
   animation: megaMenuFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -817,7 +817,7 @@ body.is-scrolled .brand-word-indo {
   width: 100vw;
   height: 100vh;
   background: var(--bg-primary);
-  z-index: 1000000;
+  z-index: 15000;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   animation: directoryFadeIn 0.22s ease-out;
@@ -1239,7 +1239,7 @@ body.is-scrolled .brand-word-indo {
   border-radius: var(--radius-lg);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  z-index: 200;
+  z-index: 1100;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   animation: dropdownSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);

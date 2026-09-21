@@ -194,7 +194,7 @@ export class AdsManager {
     const isEdit = !!ad;
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay open';
-    overlay.style.zIndex = '2500';
+    overlay.style.zIndex = '35000';
     overlay.style.background = 'rgba(7, 9, 14, 0.85)';
     overlay.style.backdropFilter = 'blur(10px)';
 

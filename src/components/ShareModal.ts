@@ -47,7 +47,7 @@ export class ShareModal {
     const overlay = document.createElement('div');
     overlay.id = 'byte-share-modal-overlay';
     overlay.className = 'modal-overlay open';
-    overlay.style.zIndex = '5500';
+    overlay.style.zIndex = '25000';
 
     overlay.innerHTML = `
       <div class="modal-container" style="max-width: 480px; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); background: var(--bg-secondary);">

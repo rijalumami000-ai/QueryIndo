@@ -29,7 +29,7 @@ export class ArticleEditor {
     editorPage.setAttribute('data-lenis-prevent', 'true');
     editorPage.style.position = 'fixed';
     editorPage.style.inset = '0';
-    editorPage.style.zIndex = '3000';
+    editorPage.style.zIndex = '30000';
     editorPage.style.background = 'var(--bg-primary)';
     editorPage.style.color = 'var(--text-primary)';
     editorPage.style.display = 'flex';

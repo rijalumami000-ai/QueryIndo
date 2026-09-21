@@ -27,6 +27,7 @@
 
 /* Fullscreen Overlay for CMS Modal */
 #admin-cms-modal {
+  z-index: 20000 !important;
   padding: 0 !important;
   align-items: stretch !important;
   overflow: hidden !important;
@@ -43,6 +44,18 @@
   flex-direction: column !important;
   overflow: hidden !important;
   transform: none !important;
+}
+
+/* Fullscreen Manuscript Editor Studio */
+#manuscript-editor-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 30000 !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .cms-scroll-view::-webkit-scrollbar {

@@ -9,7 +9,7 @@ export class Toast {
       toastContainer.style.bottom = '2rem';
       toastContainer.style.left = '50%';
       toastContainer.style.transform = 'translateX(-50%)';
-      toastContainer.style.zIndex = '9999';
+      toastContainer.style.zIndex = '50000';
       toastContainer.style.display = 'flex';
       toastContainer.style.flexDirection = 'column';
       toastContainer.style.gap = '0.5rem';
@@ -54,7 +54,7 @@ export class Toast {
     const overlay = document.createElement('div');
     overlay.id = 'glossary-card-overlay';
     overlay.className = 'modal-overlay open';
-    overlay.style.zIndex = '4000';
+    overlay.style.zIndex = '40000';
 
     overlay.innerHTML = `
       <div class="modal-container" style="max-width: 480px; padding: 2rem; border: 1px solid var(--accent-cyan); box-shadow: var(--shadow-lg), var(--shadow-glow);">
