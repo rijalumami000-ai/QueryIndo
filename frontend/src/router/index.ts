@@ -132,7 +132,7 @@ export class Router {
   }
 
   public static navigateToAdmin(): void {
-    this.navigateTo('/admin');
+    window.location.href = 'https://studio.queryindo.com';
   }
 
   public static handleRouting(): void {
@@ -143,8 +143,8 @@ export class Router {
     // 1. Backwards compatibility migration for Hash-based links
     if (hash) {
       if (hash.startsWith('#admin')) {
-        window.history.replaceState(null, '', '/admin');
-        path = 'admin';
+        window.location.href = 'https://studio.queryindo.com';
+        return;
       } else if (hash.startsWith('#article/')) {
         const artParam = hash.replace('#article/', '');
         window.history.replaceState(null, '', `/berita/${artParam}`);
@@ -172,7 +172,8 @@ export class Router {
     if (!path || path === 'index.html') {
       routeMatch = { type: 'home', rawPath: '/' };
     } else if (path === 'admin') {
-      routeMatch = { type: 'admin', rawPath: '/admin' };
+      window.location.href = 'https://studio.queryindo.com';
+      return;
     } else if (path.startsWith('berita/') || path.startsWith('article/')) {
       const slugOrId = path.replace(/^(berita|article)\//, '');
       routeMatch = { type: 'article', param: slugOrId, articleSlug: slugOrId, rawPath: `/${path}` };
