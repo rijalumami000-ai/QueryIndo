@@ -14,8 +14,10 @@ git fetch --all
 git reset --hard origin/main
 
 # Use isolated Node 22 if present (preserves Node 20 for other apps)
-if [ -d "$HOME/node22/bin" ]; then
-  export PATH="$HOME/node22/bin:$PATH"
+if [ -d "/opt/node22/bin" ]; then
+  export PATH="/opt/node22/bin:$PATH"
+elif [ -d "/home/Rijalumami/node22/bin" ]; then
+  export PATH="/home/Rijalumami/node22/bin:$PATH"
 fi
 
 echo "=========================================================="
@@ -30,8 +32,10 @@ echo "=========================================================="
 echo "⚡ [3/5] Mengelola Proses PM2 Frontend (Astro Server)..."
 echo "=========================================================="
 NODE_BIN="$(which node)"
-if [ -f "$HOME/node22/bin/node" ]; then
-  NODE_BIN="$HOME/node22/bin/node"
+if [ -f "/opt/node22/bin/node" ]; then
+  NODE_BIN="/opt/node22/bin/node"
+elif [ -f "/home/Rijalumami/node22/bin/node" ]; then
+  NODE_BIN="/home/Rijalumami/node22/bin/node"
 fi
 
 if pm2 list | grep -q "queryindo-frontend"; then
