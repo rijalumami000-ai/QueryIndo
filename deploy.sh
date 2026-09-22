@@ -13,6 +13,11 @@ echo "=========================================================="
 git fetch --all
 git reset --hard origin/main
 
+# Use isolated Node 22 if present (preserves Node 20 for other apps)
+if [ -d "$HOME/node22/bin" ]; then
+  export PATH="$HOME/node22/bin:$PATH"
+fi
+
 echo "=========================================================="
 echo "📦 [2/5] Menginstal Dependensi & Build Frontend (Astro SSR)..."
 echo "=========================================================="
@@ -24,10 +29,15 @@ cd "$APP_DIR"
 echo "=========================================================="
 echo "⚡ [3/5] Mengelola Proses PM2 Frontend (Astro Server)..."
 echo "=========================================================="
+NODE_BIN="$(which node)"
+if [ -f "$HOME/node22/bin/node" ]; then
+  NODE_BIN="$HOME/node22/bin/node"
+fi
+
 if pm2 list | grep -q "queryindo-frontend"; then
   PORT=4321 HOST=127.0.0.1 pm2 restart queryindo-frontend --update-env
 else
-  PORT=4321 HOST=127.0.0.1 pm2 start "$APP_DIR/frontend/dist/server/entry.mjs" --name queryindo-frontend
+  PORT=4321 HOST=127.0.0.1 pm2 start "$APP_DIR/frontend/dist/server/entry.mjs" --name queryindo-frontend --interpreter "$NODE_BIN"
 fi
 
 echo "=========================================================="
