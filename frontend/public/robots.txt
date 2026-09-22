@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Allow: /berita/
+Allow: /kategori/
+Allow: /page/
+Allow: /api/v1/articles
+Allow: /rss.xml
+Allow: /feed.json
+Allow: /sitemap.xml
+Allow: /sitemap-news.xml
+Allow: /queryindo7a9f8b1c2d3e4f5a6b7c8d9e0.txt
+Disallow: /api/v1/auth/
+
+User-agent: Googlebot
+Allow: /
+Allow: /berita/
+
+User-agent: Googlebot-News
+Allow: /
+Allow: /berita/
+
+Sitemap: https://queryindo.com/sitemap.xml
+Sitemap: https://queryindo.com/sitemap-news.xml

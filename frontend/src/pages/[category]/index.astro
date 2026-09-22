@@ -1,0 +1,479 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { ApiService } from '../../services/api';
+import { CATEGORIES, MASTER_TAXONOMY } from '../../data/mockNews';
+import CategoryDrawer from '../../components/islands/CategoryDrawer';
+import BookmarksDrawer from '../../components/islands/BookmarksDrawer';
+import UserAuthModal from '../../components/islands/UserAuthModal';
+import ArticleReaderModal from '../../components/islands/ArticleReaderModal';
+
+const { category } = Astro.params;
+
+if (!category) {
+  return Astro.redirect('/');
+}
+
+const currentCategory = CATEGORIES.find(c => c.id === category || c.slug === category);
+const categoryId = currentCategory ? currentCategory.id : category;
+const categoryName = currentCategory ? currentCategory.name : category.toUpperCase();
+const categoryDesc = currentCategory ? currentCategory.description : `Liputan investigatif, riset, dan analisis komprehensif seputar kanal ${category}`;
+const subCategories = MASTER_TAXONOMY[categoryId] || [];
+
+const articles = await ApiService.getArticles(categoryId);
+---
+
+<BaseLayout 
+  title={`${categoryName} — Berita Terupdate & Analisis Khusus | QUERYINDO`}
+  description={categoryDesc}
+  canonicalUrl={`https://queryindo.com/${categoryId}`}
+>
+  <div id="app">
+    <!-- Main Navigation Header (QUERYINDO Unified Navigation System) -->
+    <header class="navbar" id="site-header">
+      <div class="navbar-inner-wrapper">
+        <div class="navbar-content">
+          <!-- 1. Leftmost Edge: Hamburger Menu Button -->
+          <div class="navbar-left-edge">
+            <button id="btn-hamburger-menu" class="btn-hamburger-menu" title="Buka Direktori Seluruh Kanal Berita (14 Kanal)" aria-label="Menu Direktori">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 2. Center Editorial Spine: Brand Logo + 14 Categories Nav -->
+          <div class="navbar-center-spine">
+            <a href="/" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
+              <div class="brand-emblem-wrap">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="navBgCat" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0B1120"/>
+                      <stop offset="100%" stop-color="#020408"/>
+                    </linearGradient>
+                    <linearGradient id="navQGradCat" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00F2FE"/>
+                      <stop offset="45%" stop-color="#38BDF8"/>
+                      <stop offset="100%" stop-color="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="navRedCat" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FF2E54"/>
+                      <stop offset="100%" stop-color="#E11D48"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navBgCat)" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.2"/>
+                  <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGradCat)" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRedCat)"/>
+                  <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+              </div>
+              <div class="brand-text-lockup">
+                <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+                <div class="brand-wordmark-row">
+                  <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+                  <span class="brand-domain-tag">.COM</span>
+                </div>
+              </div>
+            </a>
+
+            <nav class="header-categories-nav" id="header-categories-nav" aria-label="Kategori Berita Utama">
+              <a href="/" class="cat-nav-item">
+                <span class="cat-nav-title">Beranda</span>
+              </a>
+              {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
+                <a 
+                  href={`/${cat.id}`} 
+                  class={`cat-nav-item ${cat.id === categoryId ? 'active' : ''}`} 
+                  data-nav-category={cat.id}
+                >
+                  <span class="cat-nav-title">{cat.name.split('&')[0].trim()}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <!-- 3. Rightmost Edge: Utility Actions -->
+          <div class="navbar-right-edge">
+            <button id="btn-search-trigger" class="btn-search-trigger btn-search-toggle" onclick="toggleSearchOverlay()" data-search-trigger title="Cari Berita & Riset (Tekan / atau Ctrl+K)" aria-label="Pencarian Berita" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+
+            <div class="user-avatar-menu-wrap" id="user-avatar-menu-wrap">
+              <button id="user-auth-btn" class="btn-user-avatar" title="Akun & Preferensi Pengguna" aria-label="Akun & Preferensi">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable Search Overlay Bar -->
+      <div class="search-overlay-bar" id="search-overlay-bar" style="display: none;">
+        <div class="container search-overlay-content">
+          <div class="search-box" id="navbar-search-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Cari liputan AI, gadget, semikonduktor, startup..." autocomplete="off" />
+            <div class="search-actions">
+              <button id="btn-filter-toggle" class="btn-filter-icon" title="Filter Lanjutan (Advanced Filter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </button>
+              <button id="btn-search-close" class="btn-search-close" title="Tutup Pencarian (Esc)">✕</button>
+            </div>
+            <div id="search-preview-dropdown" class="search-preview-dropdown" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="container" style="max-width: 1360px; margin: 28px auto 60px; padding: 0 20px;">
+      <!-- Category Breadcrumb & Banner Header -->
+      <div style="background: var(--bg-surface, #0f172a); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 16px; padding: 32px 36px; margin-bottom: 32px; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(0, 242, 254, 0.12) 0%, rgba(0, 242, 254, 0) 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <nav style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <a href="/" style="color: inherit; text-decoration: none;">Beranda</a>
+          <span>/</span>
+          <span style="color: var(--brand-cyan, #00f2fe); font-weight: 700; text-transform: uppercase;">Kanal Berita</span>
+          <span>/</span>
+          <span style="color: var(--text-primary, #ffffff); font-weight: 600;">{categoryName}</span>
+        </nav>
+
+        <h1 style="font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif); font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; color: var(--text-primary, #ffffff); margin: 0 0 10px; letter-spacing: -0.5px;">
+          {categoryName}
+        </h1>
+        <p style="color: var(--text-secondary, #94a3b8); margin: 0 0 24px; max-width: 780px; font-size: 1.05rem; line-height: 1.6;">
+          {categoryDesc}
+        </p>
+
+        <!-- Subcategories Scrollable Strip -->
+        {subCategories.length > 0 && (
+          <div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+              Subkategori & Fokus Liputan:
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              {subCategories.map((sub) => (
+                <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-secondary, #cbd5e1); font-weight: 500;">
+                  {sub.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Articles Grid -->
+      <div class="section-header-bar" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 4px; height: 18px; background: var(--brand-cyan, #00f2fe); border-radius: 2px;"></span>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary, #ffffff); margin: 0;">
+            Liputan Terkini ({articles.length} Naskah)
+          </h2>
+        </div>
+      </div>
+
+      {articles.length > 0 ? (
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;">
+          {articles.map((article) => (
+            <article 
+              class="article-card"
+              style="background: var(--bg-surface, #0f172a); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease, border-color 0.2s ease; cursor: pointer;"
+              data-slug={article.slug || article.id}
+            >
+              <div style="position: relative; width: 100%; height: 200px; overflow: hidden;">
+                <img 
+                  src={article.imageUrl} 
+                  alt={article.title} 
+                  style="width: 100%; height: 100%; object-fit: cover; display: block;" 
+                  loading="lazy"
+                />
+                {article.subCategory && (
+                  <span style="position: absolute; bottom: 12px; left: 12px; background: rgba(5, 10, 20, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); color: var(--brand-cyan, #00f2fe); font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase;">
+                    {article.subCategory}
+                  </span>
+                )}
+              </div>
+
+              <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.76rem; color: var(--text-muted, #64748b);">
+                  <span>{new Date(article.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  <span>{article.readTimeMinutes} menit baca</span>
+                </div>
+
+                <h3 style="font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif); font-size: 1.15rem; font-weight: 700; line-height: 1.4; margin: 0 0 10px; color: var(--text-primary, #ffffff); flex: 1;">
+                  {article.title}
+                </h3>
+
+                {article.subtitle && (
+                  <p style="font-size: 0.88rem; line-height: 1.55; color: var(--text-secondary, #94a3b8); margin: 0 0 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    {article.subtitle}
+                  </p>
+                )}
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.06)); font-size: 0.8rem;">
+                  <span style="color: var(--text-secondary, #cbd5e1); font-weight: 600;">{article.author?.name || 'Redaksi'}</span>
+                  <span style="color: var(--brand-cyan, #00f2fe); font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                    Baca Naskah &rarr;
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div style="text-align: center; padding: 80px 20px; background: var(--bg-surface, #0f172a); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px;">
+          <p style="font-size: 1.1rem; color: var(--text-secondary, #94a3b8); margin-bottom: 16px;">
+            Belum ada naskah laporan yang diterbitkan untuk kanal ini.
+          </p>
+          <a href="/" style="display: inline-block; background: var(--brand-cyan, #00f2fe); color: #000000; padding: 10px 24px; border-radius: 8px; font-weight: 700; text-decoration: none;">
+            &larr; Kembali ke Beranda
+          </a>
+        </div>
+      )}
+    </main>
+
+    <!-- Comprehensive Editorial Footer -->
+    <footer class="footer site-footer" id="main-footer">
+      <div class="container footer-container" style="position: relative; z-index: 5;">
+        <!-- 14 Categories & 140 Subcategories Comprehensive Directory Grid -->
+        <div class="footer-directory-section">
+          <div class="footer-directory-grid" id="footer-directory-grid">
+            {CATEGORIES.filter(c => c.id !== 'all').map(cat => {
+              const subCats = MASTER_TAXONOMY[cat.id] || [];
+              return (
+                <div class="footer-dir-col-group">
+                  <a href={`/${cat.id}`} class="footer-dir-cat-title" data-cat={cat.id}>
+                    {cat.name}
+                  </a>
+                  <div class="footer-dir-subcats-stack">
+                    {subCats.map(sub => (
+                      <a href={`/${cat.id}?sub=${sub.slug}`} class="footer-dir-subcat-link" data-cat={cat.id} data-subcat={sub.slug}>
+                        {sub.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <!-- Institutional Links Strip -->
+        <div class="footer-institutional-strip">
+          <nav class="footer-institutional-nav" aria-label="Navigasi Lembaga & Redaksi">
+            <div class="footer-nav-row">
+              <a href="/page/tentang-kami">Tentang Kami</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/redaksi">Susunan Redaksi</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/pedoman-media-siber">Pedoman Media Siber</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/kode-etik">Kode Etik Jurnalistik</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/pedoman-ai">Transparansi AI</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/cek-fakta">Cek Fakta</a>
+            </div>
+            <div class="footer-nav-row">
+              <a href="/page/disclaimer">Disclaimer</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/panduan-komunitas">Panduan Komunitas</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/info-iklan">Info Iklan</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/hubungi-kami">Kontak Redaksi</a>
+              <span class="nav-sep">•</span>
+              <a href="/page/peta-situs">Peta Situs</a>
+            </div>
+          </nav>
+        </div>
+
+        <!-- Footer Bottom Legal Strip -->
+        <div class="footer-bottom">
+          <div class="footer-legal-copy">
+            <p>© 2026 <strong>QUERYINDO</strong> (PT Inovasi Media Nusantara). Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+            <p class="footer-legal-sub">Dilarang mengutip atau memperbanyak sebagian atau seluruh isi tanpa izin tertulis dari Redaksi QueryIndo.</p>
+          </div>
+          <div class="footer-bottom-links">
+            <a href="/page/privasi">Kebijakan Privasi</a>
+            <a href="/page/syarat-ketentuan">Syarat &amp; Ketentuan</a>
+            <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed</a>
+            <a href="/admin">Dasbor Redaksi (CMS)</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- React Islands -->
+    <CategoryDrawer client:load />
+    <ArticleReaderModal client:load />
+    <BookmarksDrawer client:load />
+    <UserAuthModal client:load />
+  </div>
+
+  <script is:inline>
+    function toggleSearchOverlay() {
+      const bar = document.getElementById('search-overlay-bar');
+      const input = document.getElementById('search-input');
+      if (bar) {
+        const isHidden = bar.style.display === 'none' || !bar.style.display;
+        bar.style.display = isHidden ? 'block' : 'none';
+        if (isHidden && input) {
+          setTimeout(() => input.focus(), 60);
+          if (input.value.trim()) {
+            const preview = document.getElementById('search-preview-dropdown');
+            if (preview) preview.style.display = 'block';
+          }
+        } else {
+          const preview = document.getElementById('search-preview-dropdown');
+          if (preview) preview.style.display = 'none';
+        }
+      }
+    }
+
+    function closeSearchOverlay() {
+      const bar = document.getElementById('search-overlay-bar');
+      const preview = document.getElementById('search-preview-dropdown');
+      if (bar) bar.style.display = 'none';
+      if (preview) preview.style.display = 'none';
+    }
+
+    window.toggleSearchOverlay = toggleSearchOverlay;
+    window.closeSearchOverlay = closeSearchOverlay;
+
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escaped})`, 'gi');
+      return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+
+    // Search input live query
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.id === 'search-input') {
+        const val = e.target.value.trim();
+        const lower = val.toLowerCase();
+        const prev = document.getElementById('search-preview-dropdown');
+        if (!prev) return;
+        if (!val) {
+          prev.style.display = 'none';
+          prev.innerHTML = '';
+          return;
+        }
+
+        const cards = Array.from(document.querySelectorAll('.article-card'));
+        const matched = cards.filter(c => {
+          const t = c.querySelector('.article-title')?.textContent?.toLowerCase() || '';
+          const sub = c.querySelector('.article-summary')?.textContent?.toLowerCase() || '';
+          return t.includes(lower) || sub.includes(lower);
+        });
+
+        if (matched.length > 0) {
+          const topMatches = matched.slice(0, 5);
+          prev.innerHTML = `
+            <div class="search-preview-header">
+              <span>Pratinjau Berita Terkait</span>
+              <span>${matched.length} berita ditemukan</span>
+            </div>
+            <div class="search-preview-list">
+              ${topMatches.map(c => {
+                const slug = c.getAttribute('data-slug');
+                const title = c.querySelector('.article-title')?.textContent || '';
+                const img = c.querySelector('img')?.src || '/logo-brand.svg';
+                const cat = (c.getAttribute('data-category') || 'BERITA').toUpperCase();
+                return `
+                  <div class="search-preview-item" data-search-slug="${slug}">
+                    <img src="${img}" class="search-preview-thumb" onerror="this.onerror=null;this.src='/logo-brand.svg';" />
+                    <div class="search-preview-info">
+                      <div class="search-preview-meta">
+                        <span class="search-preview-tag">${cat}</span>
+                        <span>•</span>
+                        <span>3 min baca</span>
+                      </div>
+                      <div class="search-preview-title">${highlightMatch(title, val)}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div class="search-preview-footer">
+              <button type="button" class="search-preview-all-btn" id="btn-see-all-search">
+                Lihat semua ${matched.length} hasil untuk "${val}" →
+              </button>
+            </div>
+          `;
+          prev.style.display = 'block';
+        } else {
+          prev.innerHTML = `
+            <div class="search-preview-empty">
+              <p style="margin: 0; font-size: 0.85rem; font-weight: 600;">Tidak ditemukan berita untuk "${val}"</p>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Coba kata kunci lain atau cari di halaman beranda</span>
+            </div>
+          `;
+          prev.style.display = 'block';
+        }
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('#btn-search-close')) {
+        closeSearchOverlay();
+        return;
+      }
+      const item = e.target.closest('[data-search-slug]');
+      if (item) {
+        const slug = item.getAttribute('data-search-slug');
+        if (slug) {
+          closeSearchOverlay();
+          window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+        }
+      }
+      const searchBox = document.getElementById('navbar-search-box');
+      if (searchBox && !searchBox.contains(e.target)) {
+        const prev = document.getElementById('search-preview-dropdown');
+        if (prev) prev.style.display = 'none';
+      }
+    });
+
+    // Bind article card click to open ArticleReaderModal
+    document.querySelectorAll('.article-card[data-slug]').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        const slug = card.getAttribute('data-slug');
+        if (slug) {
+          window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+        }
+      });
+    });
+
+    // Bind Hamburger menu
+    document.getElementById('btn-hamburger-menu')?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('open-category-drawer'));
+    });
+
+    // Bind Search trigger
+    document.getElementById('btn-search-trigger')?.addEventListener('click', () => {
+      toggleSearchOverlay();
+    });
+
+    // Bind User auth button
+    document.getElementById('user-auth-btn')?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('open-auth-modal'));
+    });
+
+    // Global / shortcut
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) {
+        e.preventDefault();
+        toggleSearchOverlay();
+      }
+      if (e.key === 'Escape') {
+        closeSearchOverlay();
+      }
+    });
+  </script>
+</BaseLayout>

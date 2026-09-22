@@ -1,0 +1,198 @@
+---
+import '../styles/main.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  canonicalUrl?: string;
+  publishedTime?: string;
+  authorName?: string;
+}
+
+const {
+  title = 'QUERYINDO — Portal Berita Teknologi Terdepan & Terupdate',
+  description = 'Portal jurnalisme teknologi independen nasional. Menyajikan berita investigasi kecerdasan buatan (AI), gadget, semikonduktor, keamanan siber, dan kedaulatan digital Indonesia.',
+  image = '/og-image.png',
+  type = 'website',
+  canonicalUrl = 'https://queryindo.com/',
+  publishedTime,
+  authorName,
+} = Astro.props;
+
+const siteName = 'QUERYINDO';
+const fullImageUrl = image.startsWith('http') ? image : new URL(image, Astro.site || 'https://queryindo.com').href;
+---
+
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content={description} />
+  <meta name="keywords" content="Berita Teknologi, AI Indonesia, Semikonduktor, Review Gadget, Keamanan Siber, Kedaulatan Digital, Startup RI, QUERYINDO" />
+  <meta name="author" content={authorName || "Redaksi QUERYINDO"} />
+  <link rel="canonical" href={canonicalUrl} />
+
+  <!-- Googlebot & Google News Crawl Directives -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot-news" content="index, follow" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content={siteName} />
+  <meta property="og:type" content={type} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={fullImageUrl} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="id_ID" />
+  {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+  {authorName && <meta property="article:author" content={authorName} />}
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@queryindo" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={fullImageUrl} />
+
+  <!-- Schema.org NewsMediaOrganization E-E-A-T JSON-LD -->
+  <script type="application/ld+json" is:inline>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "NewsMediaOrganization",
+          "@id": "https://queryindo.com/#organization",
+          "name": "QUERYINDO",
+          "url": "https://queryindo.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://queryindo.com/logo.png",
+            "width": 512,
+            "height": 512
+          },
+          "sameAs": [
+            "https://twitter.com/queryindo",
+            "https://instagram.com/queryindo",
+            "https://linkedin.com/company/queryindo"
+          ],
+          "publishingPrinciples": "https://queryindo.com/page/pedoman-media-siber",
+          "correctionsPolicy": "https://queryindo.com/page/kode-etik",
+          "ethicsPolicy": "https://queryindo.com/page/kode-etik",
+          "masthead": "https://queryindo.com/page/redaksi",
+          "diversityPolicy": "https://queryindo.com/page/tentang-kami",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Jl. S. Parman No 07 Cintamulya Candipuro",
+            "addressLocality": "Lampung Selatan",
+            "addressRegion": "Lampung",
+            "addressCountry": "ID"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+62-895-3238-61966",
+            "contactType": "editorial newsroom",
+            "email": "redaksi@queryindo.com",
+            "availableLanguage": ["id", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://queryindo.com/#website",
+          "url": "https://queryindo.com/",
+          "name": "QUERYINDO",
+          "publisher": { "@id": "https://queryindo.com/#organization" },
+          "inLanguage": "id-ID",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://queryindo.com/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+  </script>
+
+  <!-- Favicons & App Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="alternate" type="application/rss+xml" title="QUERYINDO RSS Feed" href="/rss.xml" />
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+  <!-- Preconnect & Asynchronous Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Public+Sans:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Google Publisher Center / Reader Revenue Manager (SwG Basic Sync) -->
+  <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
+  <script is:inline>
+    (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
+      basicSubscriptions.init({
+        type: "NewsArticle",
+        isPartOfType: ["Product"],
+        isPartOfProductId: "CAowvezHDA:openaccess",
+        clientOptions: { theme: "light", lang: "id" },
+      });
+    });
+  </script>
+
+  <!-- Script Pencegah Flash White (Zero FOUC) -->
+  <script is:inline>
+    (function() {
+      const stored = localStorage.getItem('queryindo_theme');
+      if (stored === 'light' || stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', stored);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
+  <!-- PWA Service Worker Registration -->
+  <script is:inline>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => {
+            reg.update();
+          })
+          .catch(err => console.warn('SW registration skipped:', err));
+      });
+    }
+  </script>
+
+  <!-- Custom Head Slot -->
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+
+  <!-- Headless Google Translate Client Engine (Loaded On-Demand by GoogleTranslateService) -->
+  <div id="google_translate_element" style="display: none;"></div>
+  <script is:inline type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'id',
+        includedLanguages: 'id,en',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+</body>
+</html>

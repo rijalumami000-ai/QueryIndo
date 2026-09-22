@@ -1,0 +1,956 @@
+import type { Article } from '../types/news';
+import { AuthService, ReaderAuthService } from '../services/authService';
+import { AuthorService } from '../services/authorService';
+import { ArticleService } from '../services/articleService';
+import { Toast } from '../utils/toast';
+import { ImageUtils } from '../utils/imageUtils';
+
+import { ArticleEditor } from './admin/ArticleEditor';
+import { AuthorsManager } from './admin/AuthorsManager';
+import { AdsManager } from './admin/AdsManager';
+import { ShoppingManager } from './admin/ShoppingManager';
+import { PollsManager } from './admin/PollsManager';
+import { AnalyticsTab } from './admin/AnalyticsTab';
+import { SubscribersManager } from './admin/SubscribersManager';
+import { SocialManager } from './admin/SocialManager';
+import { SettingsManager } from './admin/SettingsManager';
+
+import { CATEGORIES, getSubCategories } from '../data/mockNews';
+
+export class AdminCMS {
+  private articles: Article[];
+  private onArticlesChange: () => void;
+  private searchKeyword: string = '';
+  private filterCategory: string = 'all';
+  private filterSubCategory: string = 'all';
+  private filterAuthor: string = 'all';
+  private filterDateRange: string = 'all';
+  private currentPage: number = 1;
+  private pageSize: number = 30;
+  private activeTab: 'articles' | 'analytics' | 'authors' | 'ads' | 'shopping' | 'polls' | 'subscribers' | 'social' | 'settings' = 'articles';
+  private adPlacementFilter: string = 'all';
+
+  constructor(onArticlesChange: () => void) {
+    this.articles = ArticleService.getArticles();
+    this.onArticlesChange = onArticlesChange;
+  }
+
+  public renderAdminModalHTML(): string {
+    this.articles = ArticleService.getArticles();
+    const user = AuthService.getCurrentUser();
+
+    // If not logged in, render Encrypted Login View
+    if (!user) {
+      return this.renderLoginViewHTML();
+    }
+
+    // If logged in, render Professional Fullscreen CMS Dashboard Workspace View
+    return this.renderFullscreenDashboardHTML(user);
+  }
+
+  // Login View HTML
+  private renderLoginViewHTML(): string {
+    return `
+      <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; background: var(--bg-primary); color: var(--text-primary); overflow: hidden;">
+        <div class="modal-header-bar" style="background: var(--bg-secondary); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 2.2rem; height: 2.2rem; background: var(--gradient-brand); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 800;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <h3 style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin: 0;">Otentikasi Redaksi QUERYINDO</h3>
+              <span style="font-size: 0.75rem; color: var(--accent-cyan); font-family: var(--font-mono);">Protected 256-Bit SSL Guard</span>
+            </div>
+          </div>
+          <button class="btn-close" id="admin-login-close-btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 50%; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Kembali ke Beranda">✕</button>
+        </div>
+
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+          <div style="width: 100%; max-width: 440px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2.5rem 2.25rem; box-shadow: var(--shadow-xl);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+              <div style="width: 3.8rem; height: 3.8rem; background: rgba(0, 242, 254, 0.08); border: 1.5px solid var(--accent-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; color: var(--accent-cyan); font-size: 1.6rem; font-weight: 800; font-family: var(--font-main);">
+                $
+              </div>
+              <h2 style="font-size: 1.45rem; font-weight: 800; margin: 0 0 0.4rem 0; color: var(--text-primary);">Dasbor Editorial</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Masuk dengan akun Founder & CEO atau Editor terverifikasi</p>
+            </div>
+
+            <form id="cms-login-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div id="login-error-alert" style="display: none; padding: 0.75rem; background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); border-radius: var(--radius-md); color: var(--accent-rose); font-size: 0.8rem; font-weight: 600;">
+                Email atau kata sandi tidak valid.
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-secondary);">Email Redaksi / Akun Founder</label>
+                <input type="text" id="login-email" required value="Rijalumami000@gmail.com" placeholder="Rijalumami000@gmail.com" autocomplete="username" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; box-sizing: border-box;" />
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-secondary);">Kata Sandi (Password)</label>
+                <input type="password" id="login-password" required value="" placeholder="Masukkan kata sandi..." autocomplete="current-password" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; box-sizing: border-box;" />
+              </div>
+
+              <button type="submit" id="btn-login-submit" style="margin-top: 0.5rem; width: 100%; padding: 0.85rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-md); border: none; font-size: 0.95rem; cursor: pointer; box-shadow: var(--shadow-glow); transition: all 0.2s ease;">
+                Buka Dasbor Redaksi →
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Format numeric statistics
+  private formatStats(num: number): string {
+    if (!num || num <= 0) return '0';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return num.toLocaleString('id-ID');
+  }
+
+  // Professional Fullscreen CMS Dashboard Workspace
+  private renderFullscreenDashboardHTML(user: ReturnType<typeof AuthService.getCurrentUser>): string {
+    const isSuperuser = user?.role === 'superuser';
+    if (!isSuperuser && this.activeTab !== 'articles' && this.activeTab !== 'analytics') {
+      this.activeTab = 'articles';
+    }
+
+    const totalViews = this.articles.reduce((acc, a) => acc + (a.viewsCount || 0), 0);
+    const totalLikes = this.articles.reduce((acc, a) => acc + (a.likesCount || 0), 0);
+    const featuredCount = this.articles.filter(a => a.isFeatured).length;
+
+    const currentReader = ReaderAuthService.getCurrentReader();
+    const matchedAuthor = user?.fullName ? AuthorService.getAuthorByName(user.fullName) : undefined;
+    const userAvatar = (user?.avatar && !user.avatar.includes('unsplash.com/photo-1534528741775-53994a69daeb'))
+      ? user.avatar
+      : (matchedAuthor?.avatar || currentReader?.avatar || user?.avatar || '');
+    const activeAvatar = ImageUtils.normalizeImageUrl(userAvatar);
+
+    // Build unique categories list
+    const uniqueCategories = new Set<string>();
+    CATEGORIES.filter(c => c.id !== 'all').forEach(c => uniqueCategories.add(c.id));
+    this.articles.forEach(a => { if (a.category) uniqueCategories.add(a.category); });
+
+    const categoryOptionsHTML = Array.from(uniqueCategories).map(catId => {
+      const catObj = CATEGORIES.find(c => c.id === catId);
+      const label = catObj ? catObj.name : catId.toUpperCase();
+      const count = this.articles.filter(a => a.category === catId).length;
+      return `<option value="${catId}" ${this.filterCategory === catId ? 'selected' : ''}>${label} (${count})</option>`;
+    }).join('');
+
+    // Build unique authors list
+    const uniqueAuthors = new Set<string>();
+    AuthorService.getAuthors().forEach(a => { if (a.name) uniqueAuthors.add(a.name); });
+    this.articles.forEach(a => { if (a.author?.name) uniqueAuthors.add(a.author.name); });
+
+    const authorOptionsHTML = Array.from(uniqueAuthors).map(authorName => {
+      const count = this.articles.filter(a => a.author?.name === authorName).length;
+      return `<option value="${authorName}" ${this.filterAuthor === authorName ? 'selected' : ''}>${authorName} (${count})</option>`;
+    }).join('');
+
+    // Build subcategory options
+    let subCategoryOptionsHTML = '<option value="all">Semua Sub-Kanal</option>';
+    if (this.filterCategory !== 'all') {
+      const subCats = getSubCategories(this.filterCategory);
+      subCategoryOptionsHTML += subCats.map(sub => {
+        const count = this.articles.filter(a => a.category === this.filterCategory && (a.subCategory === sub.id || a.subCategory === sub.slug)).length;
+        return `<option value="${sub.id}" ${this.filterSubCategory === sub.id ? 'selected' : ''}>${sub.name} (${count})</option>`;
+      }).join('');
+    }
+
+    const filteredCount = this.getFilteredArticles().length;
+    const isFiltered = this.filterCategory !== 'all' || this.filterSubCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
+
+    return `
+      <div style="width: 100%; height: 100vh; display: flex; background: var(--bg-primary); color: var(--text-primary); overflow: hidden;">
+        
+        <!-- Left Navigation Sidebar Rail -->
+        <aside style="width: 260px; height: 100vh; flex-shrink: 0; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem 1rem; overflow-y: auto;">
+          <div>
+            <!-- Brand CMS Header -->
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+              <div style="width: 2.2rem; height: 2.2rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent-primary);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div>
+                <h3 style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; color: var(--text-primary);">QUERYINDO</h3>
+                <span style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-cyan);">EDITORIAL CMS</span>
+              </div>
+            </div>
+
+            <!-- Navigation Links with Clean SVG Icons (Role-Based Permissions) -->
+            <nav style="display: flex; flex-direction: column; gap: 0.35rem;">
+              <button class="nav-sidebar-link ${this.activeTab === 'articles' ? 'active' : ''}" data-tab="articles">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                <span>Manajer Publikasi</span>
+              </button>
+              ${isSuperuser ? `
+                <button class="nav-sidebar-link ${this.activeTab === 'authors' ? 'active' : ''}" data-tab="authors">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <span>Dewan Redaksi</span>
+                </button>
+              ` : ''}
+              <button class="nav-sidebar-link ${this.activeTab === 'analytics' ? 'active' : ''}" data-tab="analytics">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                <span>Kinerja Redaksi</span>
+              </button>
+              ${isSuperuser ? `
+                <button class="nav-sidebar-link ${this.activeTab === 'ads' ? 'active' : ''}" data-tab="ads">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                  <span>Iklan Banner</span>
+                </button>
+                <button class="nav-sidebar-link ${this.activeTab === 'shopping' ? 'active' : ''}" data-tab="shopping">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                  <span>Belanja Tekno</span>
+                </button>
+                <button class="nav-sidebar-link ${this.activeTab === 'polls' ? 'active' : ''}" data-tab="polls">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                  <span>Jajak Pendapat</span>
+                </button>
+                <button class="nav-sidebar-link ${this.activeTab === 'subscribers' ? 'active' : ''}" data-tab="subscribers">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  <span>Pelanggan Surel</span>
+                </button>
+                <button class="nav-sidebar-link ${this.activeTab === 'social' ? 'active' : ''}" data-tab="social">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  <span>Media Sosial</span>
+                </button>
+                <button class="nav-sidebar-link ${this.activeTab === 'settings' ? 'active' : ''}" data-tab="settings">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  <span>Pengaturan Sistem</span>
+                </button>
+              ` : ''}
+            </nav>
+          </div>
+
+          <!-- Bottom User & Logout Profile Card -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <img src="${activeAvatar}" alt="${user?.fullName}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid ${isSuperuser ? 'var(--accent-cyan)' : 'var(--accent-primary)'};" />
+              <div style="overflow: hidden;">
+                <div style="font-weight: 800; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--text-primary);">${user?.fullName}</div>
+                <div style="font-size: 0.72rem; color: ${isSuperuser ? 'var(--accent-cyan)' : 'var(--text-secondary)'}; font-weight: 700;">
+                  ${user?.roleTitle || (isSuperuser ? 'Founder & CEO' : 'Editor Redaksi')}
+                </div>
+              </div>
+            </div>
+
+            <button id="cms-logout-btn" style="width: 100%; padding: 0.5rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              <span>Keluar Dasbor</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Right Main Content Area -->
+        <main style="flex: 1; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-primary);">
+          
+          <!-- Top Global Utility Header -->
+          <header style="height: 4.25rem; flex-shrink: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h2 style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">
+                ${this.activeTab === 'analytics' ? 'Analitik & Kinerja Editorial' :
+                  this.activeTab === 'authors' ? 'Dewan Redaksi & Jurnalis' :
+                  this.activeTab === 'ads' ? 'Manajemen Iklan Banner Sponsor' :
+                  this.activeTab === 'shopping' ? 'Manajemen Belanja Tekno & Produk Rekomendasi' :
+                  this.activeTab === 'polls' ? 'Manajemen Jajak Pendapat Komunitas' :
+                  this.activeTab === 'subscribers' ? 'Basis Data Pelanggan Newsletter Surel' :
+                  this.activeTab === 'social' ? 'Integrasi Kanal Media Sosial' :
+                  this.activeTab === 'settings' ? 'Konfigurasi & Pengaturan Portal' :
+                  'Pusat Manajemen Berita & Konten'}
+              </h2>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              ${this.activeTab === 'articles' ? `
+                <div style="position: relative;">
+                  <input type="text" id="cms-search-input" value="${this.searchKeyword}" placeholder="Cari judul atau tag berita..." style="width: 260px; padding: 0.5rem 0.75rem 0.5rem 2.2rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-full); font-size: 0.8rem; color: var(--text-primary);" />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <button id="cms-btn-new-article" style="padding: 0.55rem 1.25rem; background: var(--gradient-brand); color: #000; font-weight: 800; border-radius: var(--radius-full); font-size: 0.825rem; display: flex; align-items: center; gap: 0.4rem; box-shadow: var(--shadow-glow); cursor: pointer;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Tulis Berita Baru</span>
+                </button>
+              ` : ''}
+
+              <!-- Close Modal Button -->
+              <button id="admin-modal-close-btn" class="btn-close" style="width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);" title="Kembali ke Beranda">✕</button>
+            </div>
+          </header>
+
+          <!-- Main Scrollable Body View -->
+          <div class="cms-scroll-view" style="flex: 1; min-height: 0; height: calc(100vh - 4.25rem); padding: 2rem 2rem 4rem 2rem; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;">
+            
+            ${this.activeTab === 'analytics' ? AnalyticsTab.render() :
+              this.activeTab === 'authors' ? AuthorsManager.render(this.articles) :
+              this.activeTab === 'ads' ? AdsManager.render(this.adPlacementFilter) :
+              this.activeTab === 'shopping' ? ShoppingManager.render() :
+              this.activeTab === 'polls' ? PollsManager.render() :
+              this.activeTab === 'subscribers' ? SubscribersManager.render() :
+              this.activeTab === 'social' ? SocialManager.render() :
+              this.activeTab === 'settings' ? SettingsManager.render() :
+              `
+              <!-- Analytics Top Summary Cards -->
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Total Publikasi</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.35rem;">${this.articles.length} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">Artikel</span></div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Total Pembaca (Views)</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.35rem;">${this.formatStats(totalViews)}</div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Total Interaksi (Likes)</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.35rem;">${this.formatStats(totalLikes)}</div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Headline Utama (Featured)</div>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-amber); margin-top: 0.35rem;">${featuredCount} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">Aktif</span></div>
+                </div>
+              </div>
+
+              <!-- Content Manager Table Section -->
+              <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
+                <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                  <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em;">Daftar Naskah & Berita Redaksi</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Kelola publikasi, kurasi naskah, verifikasi cek fakta, dan penugasan redaksional.</p>
+                  </div>
+                </div>
+
+                <!-- Comprehensive Filter Toolbar (Kategori, Penulis, Waktu/Tanggal) -->
+                <div style="padding: 0.9rem 1.5rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.85rem;">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+                    
+                    <!-- Filter Kategori -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Kategori:</span>
+                      <select id="cms-filter-category" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterCategory === 'all' ? 'selected' : ''}>Semua Kategori (${this.articles.length})</option>
+                        ${categoryOptionsHTML}
+                      </select>
+                    </div>
+
+                    <!-- Filter Sub-Kanal -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Sub-Kanal:</span>
+                      <select id="cms-filter-subcategory" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;" ${this.filterCategory === 'all' ? 'disabled' : ''}>
+                        ${subCategoryOptionsHTML}
+                      </select>
+                    </div>
+
+                    <!-- Filter Penulis -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Penulis:</span>
+                      <select id="cms-filter-author" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterAuthor === 'all' ? 'selected' : ''}>Semua Penulis</option>
+                        ${authorOptionsHTML}
+                      </select>
+                    </div>
+
+                    <!-- Filter Waktu / Tanggal -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Waktu:</span>
+                      <select id="cms-filter-date" style="padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none;">
+                        <option value="all" ${this.filterDateRange === 'all' ? 'selected' : ''}>Semua Waktu</option>
+                        <option value="today" ${this.filterDateRange === 'today' ? 'selected' : ''}>24 Jam Terakhir</option>
+                        <option value="7days" ${this.filterDateRange === '7days' ? 'selected' : ''}>7 Hari Terakhir</option>
+                        <option value="30days" ${this.filterDateRange === '30days' ? 'selected' : ''}>30 Hari Terakhir</option>
+                        <option value="this_month" ${this.filterDateRange === 'this_month' ? 'selected' : ''}>Bulan Ini</option>
+                        <option value="this_year" ${this.filterDateRange === 'this_year' ? 'selected' : ''}>Tahun Ini</option>
+                      </select>
+                    </div>
+
+                    <!-- Filter Search Berita -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem; position: relative;">
+                      <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Cari:</span>
+                      <div style="position: relative; display: flex; align-items: center;">
+                        <input type="text" id="cms-toolbar-search-input" value="${this.searchKeyword}" placeholder="Cari judul, tag, isi..." style="padding: 0.4rem 1.8rem 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); outline: none; width: 190px;" />
+                        <button id="cms-toolbar-search-clear" title="Hapus pencarian" style="position: absolute; right: 0.4rem; background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; display: ${this.searchKeyword ? 'block' : 'none'}; padding: 0.1rem 0.25rem;">✕</button>
+                      </div>
+                    </div>
+
+                    <button id="cms-btn-reset-filters" style="padding: 0.35rem 0.75rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: ${isFiltered ? 'inline-flex' : 'none'}; align-items: center; gap: 0.3rem;">
+                      ✕ Reset Filter
+                    </button>
+                  </div>
+
+                  <div id="cms-filter-counter" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                    Menampilkan <strong>${filteredCount}</strong> dari ${this.articles.length} naskah
+                  </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead>
+                      <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 0.85rem 1.25rem;">Berita & Judul Utama</th>
+                        <th style="padding: 0.85rem 1.25rem;">Kategori</th>
+                        <th style="padding: 0.85rem 1.25rem;">Penulis</th>
+                        <th style="padding: 0.85rem 1.25rem;">Statistik</th>
+                        <th style="padding: 0.85rem 1.25rem;">Status / Lencana</th>
+                        <th style="padding: 0.85rem 1.25rem; text-align: right;">Aksi Redaksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cms-table-body">
+                      ${this.renderTableRowsHTML()}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination Bar Container -->
+                <div id="cms-pagination-container" style="padding: 0.85rem 1.5rem; background: var(--bg-tertiary); border-top: 1px solid var(--border-color); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+                  ${this.renderPaginationHTML()}
+                </div>
+              </div>
+            `}
+
+          </div>
+        </main>
+      </div>
+    `;
+  }
+
+  // Filter articles based on keyword, category, author, and date range
+  private getFilteredArticles(): Article[] {
+    const now = Date.now();
+    return this.articles.filter(art => {
+      // 1. Search keyword
+      if (this.searchKeyword && this.searchKeyword.trim() !== '') {
+        const kw = this.searchKeyword.trim().toLowerCase();
+        const inTitle = (art.title || '').toLowerCase().includes(kw);
+        const inSubtitle = (art.subtitle || '').toLowerCase().includes(kw);
+        const inAuthor = (art.author?.name || '').toLowerCase().includes(kw);
+        const inCategory = (art.category || '').toLowerCase().includes(kw);
+        const inTags = Array.isArray(art.tags) && art.tags.some(t => (t || '').toLowerCase().includes(kw));
+        const inContent = (art.content || '').toLowerCase().includes(kw);
+        if (!inTitle && !inSubtitle && !inAuthor && !inCategory && !inTags && !inContent) {
+          return false;
+        }
+      }
+
+      // 2. Category filter
+      if (this.filterCategory !== 'all') {
+        if ((art.category || '').toLowerCase() !== this.filterCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 2b. Sub-category filter
+      if (this.filterSubCategory !== 'all') {
+        if ((art.subCategory || '').toLowerCase() !== this.filterSubCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 3. Author filter
+      if (this.filterAuthor !== 'all') {
+        if ((art.author?.name || '').toLowerCase() !== this.filterAuthor.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 4. Date range filter
+      if (this.filterDateRange !== 'all') {
+        const pubTime = new Date(art.publishedAt).getTime();
+        if (!isNaN(pubTime)) {
+          if (this.filterDateRange === 'today') {
+            if (now - pubTime > 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === '7days') {
+            if (now - pubTime > 7 * 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === '30days') {
+            if (now - pubTime > 30 * 24 * 60 * 60 * 1000) return false;
+          } else if (this.filterDateRange === 'this_month') {
+            const nowDate = new Date();
+            const pubDate = new Date(pubTime);
+            if (pubDate.getMonth() !== nowDate.getMonth() || pubDate.getFullYear() !== nowDate.getFullYear()) {
+              return false;
+            }
+          } else if (this.filterDateRange === 'this_year') {
+            const nowDate = new Date();
+            const pubDate = new Date(pubTime);
+            if (pubDate.getFullYear() !== nowDate.getFullYear()) {
+              return false;
+            }
+          }
+        }
+      }
+
+      return true;
+    });
+  }
+
+  // Calculate total pages for pagination
+  private getTotalPages(): number {
+    const total = this.getFilteredArticles().length;
+    return Math.max(1, Math.ceil(total / this.pageSize));
+  }
+
+  // Get articles slice for current page
+  private getPagedArticles(): Article[] {
+    const filtered = this.getFilteredArticles();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+    if (this.currentPage > totalPages) {
+      this.currentPage = totalPages;
+    }
+    if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return filtered.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  // Render Pagination HTML
+  private renderPaginationHTML(): string {
+    const filtered = this.getFilteredArticles();
+    const total = filtered.length;
+    const totalPages = this.getTotalPages();
+    const start = total === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(total, this.currentPage * this.pageSize);
+    const pageSizes = [10, 30, 60, 100, 200, 300, 400, 500, 1000];
+
+    return `
+      <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--text-secondary);">
+        <span>Tampilkan:</span>
+        <select id="cms-page-size" style="padding: 0.35rem 0.65rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-primary); cursor: pointer; outline: none; font-weight: 700;">
+          ${pageSizes.map(sz => `<option value="${sz}" ${this.pageSize === sz ? 'selected' : ''}>${sz}</option>`).join('')}
+        </select>
+        <span>naskah per halaman</span>
+      </div>
+
+      <div id="cms-pagination-info" style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+        Menampilkan <strong>${start} - ${end}</strong> dari <strong>${total}</strong> naskah
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <button id="cms-page-prev" ${this.currentPage <= 1 ? 'disabled' : ''} style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: ${this.currentPage <= 1 ? 'var(--text-muted)' : 'var(--text-primary)'}; cursor: ${this.currentPage <= 1 ? 'not-allowed' : 'pointer'}; opacity: ${this.currentPage <= 1 ? '0.45' : '1'}; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Previous</span>
+        </button>
+
+        <div style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); min-width: 90px; text-align: center;">
+          Hal ${this.currentPage} / ${totalPages}
+        </div>
+
+        <button id="cms-page-next" ${this.currentPage >= totalPages ? 'disabled' : ''} style="padding: 0.38rem 0.85rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: ${this.currentPage >= totalPages ? 'var(--text-muted)' : 'var(--text-primary)'}; cursor: ${this.currentPage >= totalPages ? 'not-allowed' : 'pointer'}; opacity: ${this.currentPage >= totalPages ? '0.45' : '1'}; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;">
+          <span>Next</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    `;
+  }
+
+  // Render Table Rows HTML
+  private renderTableRowsHTML(): string {
+    const filtered = this.getFilteredArticles();
+
+    if (filtered.length === 0) {
+      return `
+        <tr>
+          <td colspan="6" style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="width: 2.8rem; height: 2.8rem; border-radius: 50%; background: var(--bg-tertiary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; color: var(--text-muted);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; font-size: 0.95rem;">Tidak Ada Naskah Berita yang Cocok</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 380px; margin: 0 auto;">Coba sesuaikan pilihan filter kategori, penulis, rentang waktu, atau kata kunci pencarian.</div>
+          </td>
+        </tr>
+      `;
+    }
+
+    const paged = this.getPagedArticles();
+
+    return paged.map(art => `
+      <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+        <td style="padding: 0.9rem 1.25rem; max-width: 320px;">
+          <div style="font-weight: 700; line-height: 1.35; color: var(--text-primary); font-size: 0.9rem;">${art.title}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; font-family: var(--font-mono);">ID: ${art.id} • ${new Date(art.publishedAt).toLocaleDateString('id-ID')}</div>
+        </td>
+        <td style="padding: 0.9rem 1.25rem;">
+          <span class="tag-badge" style="font-size: 0.68rem;">${art.category.toUpperCase()}</span>
+          ${art.subCategory ? `<div style="margin-top: 0.3rem;"><span class="tag-badge" style="font-size: 0.62rem; background: var(--bg-tertiary); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.3); font-weight: 700;">${art.subCategory}</span></div>` : ''}
+        </td>
+        <td style="padding: 0.9rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <img src="${art.author.avatar}" alt="${art.author.name}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />
+            <span style="font-size: 0.825rem; font-weight: 600;">${art.author.name}</span>
+          </div>
+        </td>
+        <td style="padding: 0.9rem 1.25rem; font-family: var(--font-mono); font-size: 0.78rem;">
+          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--text-secondary);" title="${art.viewsCount || 0} pembaca">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>${this.formatStats(art.viewsCount || 0)}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-rose); margin-top: 0.2rem;" title="${art.likesCount || 0} suka">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span>${this.formatStats(art.likesCount || 0)}</span>
+          </div>
+        </td>
+        <td style="padding: 0.9rem 1.25rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+            ${art.isFeatured ? `<span class="tag-badge" style="background: rgba(234, 179, 8, 0.08); color: var(--accent-amber); font-size: 0.65rem; border-color: rgba(234, 179, 8, 0.25);">HEADLINE</span>` : ''}
+            ${art.isBreaking ? `<span class="tag-badge" style="background: rgba(239, 68, 68, 0.08); color: var(--accent-rose); font-size: 0.65rem; border-color: rgba(239, 68, 68, 0.25);">BREAKING</span>` : ''}
+            ${art.isFactChecked ? `<span class="tag-badge" style="background: rgba(16, 185, 129, 0.08); color: var(--accent-emerald); font-size: 0.65rem; border-color: rgba(16, 185, 129, 0.25);">FACT CHECKED</span>` : ''}
+            ${art.isSponsored ? `<span class="tag-badge" style="background: rgba(37, 99, 235, 0.08); color: #60a5fa; font-size: 0.65rem; border-color: rgba(59, 130, 246, 0.25);">SPONSORED</span>` : ''}
+            ${!art.isFeatured && !art.isBreaking && !art.isFactChecked && !art.isSponsored ? `<span style="color: var(--text-muted); font-size: 0.72rem; font-family: var(--font-mono);">STANDAR</span>` : ''}
+          </div>
+        </td>
+        <td style="padding: 0.9rem 1.25rem; text-align: right;">
+          <div style="display: inline-flex; gap: 0.45rem;">
+            <button class="btn-cms-action btn-edit-article" data-id="${art.id}" style="padding: 0.35rem 0.65rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+              Sunting
+            </button>
+            <button class="btn-cms-action btn-toggle-featured" data-id="${art.id}" style="padding: 0.35rem 0.55rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: ${art.isFeatured ? 'var(--accent-amber)' : 'var(--text-muted)'}; font-size: 0.75rem; cursor: pointer;">
+              ${art.isFeatured ? 'Headline ✓' : 'Set Headline'}
+            </button>
+            <button class="btn-cms-action btn-delete-article" data-id="${art.id}" style="padding: 0.35rem 0.55rem; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); color: var(--accent-rose); font-size: 0.75rem; cursor: pointer;">
+              Hapus
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Bind All Admin Events
+  public bindAdminEvents(modalElem: HTMLElement) {
+    const user = AuthService.getCurrentUser();
+
+    // Login Form Handler
+    if (!user) {
+      const loginForm = modalElem.querySelector('#cms-login-form') as HTMLFormElement;
+      const loginCloseBtn = modalElem.querySelector('#admin-login-close-btn');
+      
+      loginCloseBtn?.addEventListener('click', () => {
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/';
+        } else {
+          const modal = document.getElementById('admin-cms-modal');
+          if (modal) modal.classList.remove('open');
+          document.body.style.overflow = '';
+          window.dispatchEvent(new CustomEvent('modal-closed'));
+        }
+      });
+
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const emailInput = modalElem.querySelector('#login-email') as HTMLInputElement;
+          const passwordInput = modalElem.querySelector('#login-password') as HTMLInputElement;
+          const errorAlert = modalElem.querySelector('#login-error-alert') as HTMLElement;
+          const submitBtn = modalElem.querySelector('#btn-login-submit') as HTMLButtonElement;
+
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Memverifikasi Kredensial...';
+          }
+
+          const result = await AuthService.login(emailInput.value, passwordInput.value);
+          
+          if (result.success) {
+            modalElem.innerHTML = this.renderAdminModalHTML();
+            this.bindAdminEvents(modalElem);
+          } else {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Buka Dasbor Redaksi →';
+            }
+            if (errorAlert) {
+              errorAlert.textContent = result.message;
+              errorAlert.style.display = 'block';
+            }
+          }
+        });
+      }
+      return;
+    }
+
+    // Top Header Close Button (✕)
+    const adminCloseBtn = modalElem.querySelector('#admin-modal-close-btn');
+    adminCloseBtn?.addEventListener('click', () => {
+      if (window.location.pathname.startsWith('/admin')) {
+        window.location.href = '/';
+      } else {
+        window.location.hash = '';
+        const modal = document.getElementById('admin-cms-modal');
+        if (modal) modal.classList.remove('open');
+        document.body.style.overflow = '';
+        window.dispatchEvent(new CustomEvent('modal-closed'));
+      }
+    });
+
+    // Sidebar Tab Switcher
+    modalElem.querySelectorAll('.nav-sidebar-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab') as any;
+        if (tab) {
+          this.activeTab = tab;
+          modalElem.innerHTML = this.renderAdminModalHTML();
+          this.bindAdminEvents(modalElem);
+        }
+      });
+    });
+
+    // Logout Handler
+    const logoutBtn = modalElem.querySelector('#cms-logout-btn, #btn-logout-cms');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        AuthService.logout();
+        modalElem.innerHTML = this.renderAdminModalHTML();
+        this.bindAdminEvents(modalElem);
+        Toast.show('Sesi redaksi telah berakhir.');
+      });
+    }
+
+    // Search Inputs (Global Header & Toolbar Search)
+    const searchInput = modalElem.querySelector('#cms-search-input') as HTMLInputElement;
+    const toolbarSearchInput = modalElem.querySelector('#cms-toolbar-search-input') as HTMLInputElement;
+    const toolbarSearchClear = modalElem.querySelector('#cms-toolbar-search-clear') as HTMLButtonElement;
+
+    const handleSearchInput = (val: string) => {
+      this.searchKeyword = val;
+      this.currentPage = 1;
+      if (searchInput && searchInput.value !== val) searchInput.value = val;
+      if (toolbarSearchInput && toolbarSearchInput.value !== val) toolbarSearchInput.value = val;
+      if (toolbarSearchClear) {
+        toolbarSearchClear.style.display = val.trim() ? 'block' : 'none';
+      }
+      this.refreshTable(modalElem);
+    };
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        handleSearchInput((e.target as HTMLInputElement).value);
+      });
+    }
+
+    if (toolbarSearchInput) {
+      toolbarSearchInput.addEventListener('input', (e) => {
+        handleSearchInput((e.target as HTMLInputElement).value);
+      });
+    }
+
+    if (toolbarSearchClear) {
+      toolbarSearchClear.addEventListener('click', () => {
+        handleSearchInput('');
+      });
+    }
+
+    // Category Filter Select
+    const filterCatSelect = modalElem.querySelector('#cms-filter-category') as HTMLSelectElement;
+    if (filterCatSelect) {
+      filterCatSelect.addEventListener('change', (e) => {
+        this.filterCategory = (e.target as HTMLSelectElement).value;
+        this.filterSubCategory = 'all';
+        this.currentPage = 1;
+        this.refreshDashboard(modalElem);
+      });
+    }
+
+    // Sub-Category Filter Select
+    const filterSubCatSelect = modalElem.querySelector('#cms-filter-subcategory') as HTMLSelectElement;
+    if (filterSubCatSelect) {
+      filterSubCatSelect.addEventListener('change', (e) => {
+        this.filterSubCategory = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Author Filter Select
+    const filterAuthorSelect = modalElem.querySelector('#cms-filter-author') as HTMLSelectElement;
+    if (filterAuthorSelect) {
+      filterAuthorSelect.addEventListener('change', (e) => {
+        this.filterAuthor = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Date Range Filter Select
+    const filterDateSelect = modalElem.querySelector('#cms-filter-date') as HTMLSelectElement;
+    if (filterDateSelect) {
+      filterDateSelect.addEventListener('change', (e) => {
+        this.filterDateRange = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    // Reset Filters Button
+    const resetFiltersBtn = modalElem.querySelector('#cms-btn-reset-filters');
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener('click', () => {
+        this.filterCategory = 'all';
+        this.filterSubCategory = 'all';
+        this.filterAuthor = 'all';
+        this.filterDateRange = 'all';
+        this.searchKeyword = '';
+        this.currentPage = 1;
+        const searchInp = modalElem.querySelector('#cms-search-input') as HTMLInputElement;
+        if (searchInp) searchInp.value = '';
+        const tbSearchInp = modalElem.querySelector('#cms-toolbar-search-input') as HTMLInputElement;
+        if (tbSearchInp) tbSearchInp.value = '';
+        this.refreshDashboard(modalElem);
+      });
+    }
+
+    const createBtn = modalElem.querySelector('#cms-btn-new-article, #btn-create-article');
+    if (createBtn) {
+      createBtn.addEventListener('click', () => {
+        ArticleEditor.open(null, modalElem, () => {
+          this.articles = ArticleService.getArticles();
+          this.onArticlesChange();
+          this.refreshDashboard(modalElem);
+        });
+      });
+    }
+
+    // Bind Specific Tab Action Events
+    if (this.activeTab === 'authors') {
+      AuthorsManager.bindEvents(modalElem, this.articles, () => this.refreshDashboard(modalElem));
+    } else if (this.activeTab === 'ads') {
+      AdsManager.bindEvents(
+        modalElem,
+        (newFilter: string) => {
+          this.adPlacementFilter = newFilter;
+          this.refreshDashboard(modalElem);
+        },
+        () => this.refreshDashboard(modalElem)
+      );
+    } else if (this.activeTab === 'shopping') {
+      ShoppingManager.bindEvents(modalElem, () => this.refreshDashboard(modalElem));
+    } else if (this.activeTab === 'polls') {
+      PollsManager.bindEvents(modalElem, () => this.refreshDashboard(modalElem));
+    } else if (this.activeTab === 'subscribers') {
+      SubscribersManager.bindEvents(modalElem, this.articles, () => this.refreshDashboard(modalElem));
+    } else if (this.activeTab === 'social') {
+      SocialManager.bindEvents(modalElem, () => this.refreshDashboard(modalElem));
+    } else if (this.activeTab === 'settings') {
+      SettingsManager.bindEvents(
+        modalElem,
+        () => {
+          this.activeTab = 'social';
+          this.refreshDashboard(modalElem);
+        },
+        () => this.refreshDashboard(modalElem)
+      );
+    } else if (this.activeTab === 'articles') {
+      this.bindTableActionEvents(modalElem);
+      this.bindPaginationEvents(modalElem);
+    }
+  }
+
+  // Bind Pagination Events
+  private bindPaginationEvents(modalElem: HTMLElement) {
+    const pageSizeSelect = modalElem.querySelector('#cms-page-size') as HTMLSelectElement;
+    if (pageSizeSelect) {
+      pageSizeSelect.addEventListener('change', (e) => {
+        this.pageSize = parseInt((e.target as HTMLSelectElement).value, 10) || 30;
+        this.currentPage = 1;
+        this.refreshTable(modalElem);
+      });
+    }
+
+    const prevBtn = modalElem.querySelector('#cms-page-prev') as HTMLButtonElement;
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (this.currentPage > 1) {
+          this.currentPage--;
+          this.refreshTable(modalElem);
+        }
+      });
+    }
+
+    const nextBtn = modalElem.querySelector('#cms-page-next') as HTMLButtonElement;
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        const totalPages = this.getTotalPages();
+        if (this.currentPage < totalPages) {
+          this.currentPage++;
+          this.refreshTable(modalElem);
+        }
+      });
+    }
+  }
+
+  // Bind Table Actions
+  private bindTableActionEvents(modalElem: HTMLElement) {
+    modalElem.querySelectorAll('.btn-edit-article').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const art = this.articles.find(a => a.id === id);
+        if (art) {
+          ArticleEditor.open(art, modalElem, () => {
+            this.articles = ArticleService.getArticles();
+            this.onArticlesChange();
+            this.refreshTable(modalElem);
+          });
+        }
+      });
+    });
+
+    modalElem.querySelectorAll('.btn-toggle-featured').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const art = this.articles.find(a => a.id === id);
+        if (art && id) {
+          const newFeatured = !art.isFeatured;
+          await ArticleService.updateArticle(id, { isFeatured: newFeatured });
+          this.articles = ArticleService.getArticles();
+          this.onArticlesChange();
+          this.refreshTable(modalElem);
+          Toast.show(`Status Headline artikel "${art.title}" berhasil diubah.`);
+        }
+      });
+    });
+
+    modalElem.querySelectorAll('.btn-delete-article').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (confirm('Apakah Anda yakin ingin menghapus artikel berita ini secara permanen dari portal QUERYINDO?')) {
+          try {
+            const success = await ArticleService.deleteArticle(id);
+            if (success) {
+              this.articles = ArticleService.getArticles();
+              this.onArticlesChange();
+              this.refreshTable(modalElem);
+              Toast.show('Artikel berita berhasil dihapus secara permanen dari server.');
+            }
+          } catch (err: any) {
+            Toast.show(err?.message || 'Gagal menghapus artikel dari server.');
+          }
+        }
+      });
+    });
+  }
+
+  private refreshTable(modalElem: HTMLElement) {
+    const tbody = modalElem.querySelector('#cms-table-body');
+    if (tbody) {
+      tbody.innerHTML = this.renderTableRowsHTML();
+      this.bindTableActionEvents(modalElem);
+    }
+    const counter = modalElem.querySelector('#cms-filter-counter');
+    if (counter) {
+      counter.innerHTML = `Menampilkan <strong>${this.getFilteredArticles().length}</strong> dari ${this.articles.length} naskah`;
+    }
+    const paginationContainer = modalElem.querySelector('#cms-pagination-container');
+    if (paginationContainer) {
+      paginationContainer.innerHTML = this.renderPaginationHTML();
+      this.bindPaginationEvents(modalElem);
+    }
+    const isFiltered = this.filterCategory !== 'all' || this.filterSubCategory !== 'all' || this.filterAuthor !== 'all' || this.filterDateRange !== 'all' || this.searchKeyword.trim() !== '';
+    const resetBtn = modalElem.querySelector('#cms-btn-reset-filters') as HTMLElement;
+    if (resetBtn) {
+      resetBtn.style.display = isFiltered ? 'inline-flex' : 'none';
+    }
+  }
+
+  private refreshDashboard(modalElem: HTMLElement) {
+    modalElem.innerHTML = this.renderAdminModalHTML();
+    this.bindAdminEvents(modalElem);
+  }
+}

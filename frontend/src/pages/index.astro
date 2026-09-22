@@ -1,0 +1,845 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ByteShortsReel from '../components/islands/ByteShortsReel';
+import ArticleReaderModal from '../components/islands/ArticleReaderModal';
+import CategoryDrawer from '../components/islands/CategoryDrawer';
+import BookmarksDrawer from '../components/islands/BookmarksDrawer';
+import UserAuthModal from '../components/islands/UserAuthModal';
+import { CATEGORIES, MASTER_TAXONOMY } from '../data/mockNews';
+
+const categories14 = CATEGORIES.filter(c => c.id !== 'all');
+---
+
+<BaseLayout>
+<div id="app">
+    <!-- Main Navigation Header (QUERYINDO Unified Navigation System) -->
+    <header class="navbar" id="site-header">
+      <div class="navbar-inner-wrapper">
+        <div class="navbar-content">
+          <!-- 1. Leftmost Edge: Hamburger Menu Button ONLY (Mentok Paling Kiri) -->
+          <div class="navbar-left-edge">
+            <button id="btn-hamburger-menu" class="btn-hamburger-menu" title="Buka Direktori Seluruh Kanal Berita (14 Kanal)" aria-label="Menu Direktori">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 2. Center Editorial Spine: Brand Logo + All 14 Categories in 1 Prominent Unified Nav -->
+          <div class="navbar-center-spine">
+            <a href="#" class="brand-logo" id="logo-btn" aria-label="QueryIndo — Portal Berita Teknologi Indonesia">
+              <div class="brand-emblem-wrap">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="navBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0B1120"/>
+                      <stop offset="100%" stop-color="#020408"/>
+                    </linearGradient>
+                    <linearGradient id="navQGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00F2FE"/>
+                      <stop offset="45%" stop-color="#38BDF8"/>
+                      <stop offset="100%" stop-color="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="navRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FF2E54"/>
+                      <stop offset="100%" stop-color="#E11D48"/>
+                    </linearGradient>
+                    <linearGradient id="navRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45"/>
+                      <stop offset="100%" stop-color="#1E293B" stop-opacity="0.2"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navBg)" stroke="url(#navRim)" stroke-width="1.2"/>
+                  <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
+                  <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+              </div>
+              <div class="brand-text-lockup">
+                <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+                <div class="brand-wordmark-row">
+                  <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+                  <span class="brand-domain-tag">.COM</span>
+                </div>
+              </div>
+            </a>
+
+            <nav class="header-categories-nav" id="header-categories-nav" aria-label="Kategori Berita Utama">
+              <a href="#" class="cat-nav-item active" data-nav-category="all">
+                <span class="cat-nav-title">Beranda</span>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="ai">
+                <span class="cat-nav-title">AI</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="gadget">
+                <span class="cat-nav-title">Gadget</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="software">
+                <span class="cat-nav-title">Software</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="startup">
+                <span class="cat-nav-title">Startup</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="fintech">
+                <span class="cat-nav-title">Fintech</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="ev">
+                <span class="cat-nav-title">Mobil Listrik</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="cybersecurity">
+                <span class="cat-nav-title">Siber</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="gaming">
+                <span class="cat-nav-title">Gaming</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="internet">
+                <span class="cat-nav-title">Internet</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="space">
+                <span class="cat-nav-title">Antariksa</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="climatetech">
+                <span class="cat-nav-title">Tekno Hijau</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="biotech">
+                <span class="cat-nav-title">Bioteknologi</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="review">
+                <span class="cat-nav-title">Review</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+              <a href="#" class="cat-nav-item" data-nav-category="tips">
+                <span class="cat-nav-title">Tips</span>
+                <svg class="cat-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
+            </nav>
+          </div>
+
+          <!-- 3. Rightmost Edge: Search & User Login Icon Buttons ONLY (Mentok Paling Kanan) -->
+          <div class="navbar-right-edge">
+            <button id="btn-search-toggle" class="btn-search-toggle" onclick="toggleSearchOverlay()" title="Cari Berita (Tekan /)" aria-label="Buka Pencarian" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+
+            <div class="user-avatar-menu-wrap" id="user-avatar-menu-wrap">
+              <button id="user-auth-btn" class="btn-user-avatar" title="Akun & Preferensi Pengguna" aria-label="Akun & Preferensi" aria-expanded="false" aria-haspopup="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </button>
+
+              <div class="user-avatar-dropdown" id="user-avatar-dropdown" style="display: none;">
+                <!-- Profile / Auth Section -->
+                <div class="dropdown-header-section" id="dropdown-user-header">
+                  <div class="dropdown-user-info">
+                    <span class="dropdown-user-name" id="dropdown-user-name">Pengunjung Tamu</span>
+                    <span class="dropdown-user-role" id="dropdown-user-status">Belum Masuk</span>
+                  </div>
+                  <button id="dropdown-auth-action-btn" class="dropdown-auth-btn">Masuk / Profil</button>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Bookmarks Item -->
+                <button id="dropdown-bookmarks-btn" class="dropdown-item">
+                  <div class="dropdown-item-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                    <span>Artikel Tersimpan</span>
+                  </div>
+                  <span class="dropdown-count-badge" id="dropdown-bookmark-count">0</span>
+                </button>
+
+                <!-- Admin CMS Item (Dasbor Redaksi) -->
+                <a href="/admin" id="dropdown-admin-cms-btn" class="dropdown-item">
+                  <div class="dropdown-item-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+                    <span>Dasbor Redaksi (CMS)</span>
+                  </div>
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Theme Toggle Item -->
+                <div class="dropdown-item dropdown-theme-row" id="dropdown-theme-row">
+                  <div class="dropdown-item-left">
+                    <svg id="dropdown-theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <span id="dropdown-theme-text">Mode Gelap</span>
+                  </div>
+                  <button id="dropdown-theme-toggle-btn" class="dropdown-toggle-pill" aria-label="Ubah Tema Mode Gelap/Terang">
+                    <span class="toggle-pill-knob"></span>
+                  </button>
+                </div>
+
+                <!-- Language Switcher Item -->
+                <div class="dropdown-item dropdown-lang-row">
+                  <div class="dropdown-item-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Bahasa</span>
+                  </div>
+                  <div class="dropdown-lang-pills" id="dropdown-lang-switcher">
+                    <button class="btn-lang-pill active" data-lang="id">ID</button>
+                    <button class="btn-lang-pill" data-lang="en">EN</button>
+                  </div>
+                </div>
+
+                <!-- Logged in Logout item (shown only when logged in) -->
+                <div id="dropdown-logout-wrapper" style="display: none;">
+                  <div class="dropdown-divider"></div>
+                  <button id="dropdown-logout-btn" class="dropdown-item dropdown-logout-btn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Keluar Akun</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full-Width Mega Menu Container (Height: ~12 cm, approx 440px) -->
+      <div id="header-mega-menu" class="header-mega-menu" style="display: none;">
+        <div class="mega-menu-inner container">
+          <!-- Rendered dynamically on category hover by TypeScript -->
+        </div>
+      </div>
+
+      <!-- Expandable Search Overlay Bar -->
+      <div class="search-overlay-bar" id="search-overlay-bar" style="display: none;">
+        <div class="container search-overlay-content">
+          <div class="search-box" id="navbar-search-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Cari liputan AI, gadget, semikonduktor, startup..." autocomplete="off" />
+            <div class="search-actions">
+              <button id="btn-filter-toggle" class="btn-filter-icon" title="Filter Lanjutan (Advanced Filter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </button>
+              <button id="btn-search-close" class="btn-search-close" title="Tutup Pencarian (Esc)">✕</button>
+            </div>
+            <div id="search-preview-dropdown" class="search-preview-dropdown" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="navbar-scroll-progress" class="navbar-scroll-progress"></div>
+    </header>
+
+    <!-- Advanced Filter Expandable Panel -->
+    <div id="advanced-filter-panel" class="advanced-filter-panel" style="display:none;">
+      <div class="container" style="display:flex; flex-direction:column; gap:0.75rem;">
+        <div class="advanced-filter-grid">
+          <!-- Sorting Options -->
+          <div>
+            <label class="filter-group-label" id="lbl-sort-by">Urutkan Berdasarkan</label>
+            <select id="filter-sort-by" class="filter-select">
+              <option value="latest">Terbaru</option>
+              <option value="views">Terpopuler (Dilihat)</option>
+              <option value="likes">Paling Disukai</option>
+            </select>
+          </div>
+
+          <!-- Date Options -->
+          <div>
+            <label class="filter-group-label" id="lbl-date-range">Rentang Waktu</label>
+            <select id="filter-date-range" class="filter-select">
+              <option value="all">Semua Waktu</option>
+              <option value="24h">24 Jam Terakhir</option>
+              <option value="week">Minggu Ini</option>
+              <option value="month">Bulan Ini</option>
+            </select>
+          </div>
+
+          <!-- Filter tags -->
+          <div>
+            <label class="filter-group-label" id="lbl-popular-tags">Tag Populer</label>
+            <div id="filter-tag-chips" class="filter-tag-chips-wrap">
+              <!-- Javascript chips -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <main class="container">
+      <!-- ByteShorts Visual Stories Carousel Bar (React Island) -->
+      <div id="byteshorts-bar-container">
+        <ByteShortsReel client:load />
+      </div>
+
+      <!-- [AD SPACE 1] Top Billboard Banner -->
+      <div id="top-billboard-ad-container"></div>
+
+      <!-- Hero Section: Featured Article & Sidebar -->
+      <section class="section-hero" id="hero-section">
+        <div class="hero-grid">
+          <!-- Main Hero Featured Article -->
+          <div id="featured-article-container">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Sidebar Trending & Poll -->
+          <div class="trending-sidebar">
+            <div class="sidebar-header">
+              <h2 class="sidebar-title" id="trending-title-header">Populer Minggu Ini</h2>
+            </div>
+            <div id="trending-articles-container" class="trending-articles-list">
+              <!-- Rendered by JS -->
+            </div>
+
+
+          </div>
+        </div>
+      </section>
+
+      <!-- [SECTION 2] Pilihan Redaksi (Editor's Pick Bento Showcase) -->
+      <section class="section-editorial-bento" id="editors-pick-section">
+        <div class="section-header-bar">
+          <div class="section-header-left">
+            <span class="section-indicator-badge">PILIHAN REDAKSI</span>
+            <h2 class="section-main-title">Investigasi & Analisis Khusus</h2>
+          </div>
+          <span class="section-header-subtitle">Laporan mendalam terkurasi oleh dewan redaksi QUERYINDO</span>
+        </div>
+        <div class="bento-grid" id="editors-pick-container">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- [SHOPPING CAROUSEL] Rekomendasi Barang Pilihanmu (Affiliate & E-Commerce Carousel) -->
+      <div id="shopping-carousel-container"></div>
+
+      <!-- [AD SPACE 2] Mid-Stream Panoramic Interstitial Banner -->
+      <div id="midstream-ad-container"></div>
+
+      <!-- [SECTION 3] Deep Tech & AI Matrix (4-Column Multi-Card Grid) -->
+      <section class="section-matrix" id="deep-tech-matrix-section">
+        <div class="section-header-bar">
+          <div class="section-header-left">
+            <span class="section-indicator-badge badge-accent-cyan">DEEP TECH MATRIX</span>
+            <h2 class="section-main-title">Kecerdasan Buatan & Semikonduktor</h2>
+          </div>
+          <span class="section-header-subtitle">Arsitektur model bahasa, akselerator silikon, dan sains masa depan</span>
+        </div>
+        <div class="matrix-grid" id="deep-tech-matrix-container">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+
+      <!-- [SECTION 5] Kilas Cepat 24 Jam & Radar Industri / Sidebar Ad (Split-Stream Wire) -->
+      <section class="section-rapid-wire" id="rapid-wire-section">
+        <div class="wire-split-grid">
+          <!-- Left Column: Rapid News Timeline -->
+          <div class="wire-timeline-column">
+            <div class="wire-header">
+              <div class="wire-title-wrap">
+                <span class="wire-live-dot"></span>
+                <h3 class="wire-main-title">Kilas Berita 24 Jam</h3>
+              </div>
+              <span class="wire-badge-freq">UPDATE REAL-TIME</span>
+            </div>
+            <div class="wire-feed-list" id="rapid-wire-container">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Right Column: Hardware Spotlight & [AD SPACE 3] Sidebar Ad Card -->
+          <div class="wire-radar-column">
+            <div class="wire-header">
+              <h3 class="wire-main-title">Radar Produk & Hardware</h3>
+              <span class="wire-badge-freq wire-badge-cyan">LAB QUERYINDO</span>
+            </div>
+            <div class="radar-card-wrap" id="radar-product-container">
+              <!-- Rendered by JS -->
+            </div>
+            <div id="wire-sidebar-ad-container">
+              <!-- Rendered by AdBanner component -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [SECTION 6] Main Articles Feed Grid (Semua Berita) -->
+      <section class="section-feed">
+        <!-- Dynamic Leaderboard Ad Banner -->
+        <div id="leaderboard-ad-container"></div>
+
+        <div class="section-header">
+          <h2 class="section-title" id="feed-title">Semua Berita & Eksplorasi Arsip</h2>
+          <span id="results-count" class="feed-results-count">
+            <!-- Rendered by JS -->
+          </span>
+        </div>
+
+        <div class="articles-grid" id="articles-grid">
+          <!-- Article Cards Rendered by JS -->
+        </div>
+        <div id="feed-load-more-container" style="text-align: center; margin-top: 2rem;"></div>
+      </section>
+
+    </main>
+
+    <!-- Institutional Full-Page Container (hidden by default) -->
+    <div id="institutional-page-container" style="display:none;"></div>
+
+    <!-- Footer (The Verge / Reuters / NYTimes Level Comprehensive Editorial Footer) -->
+    <footer class="footer" id="main-footer">
+      <div class="container" style="position: relative; z-index: 5;">
+        
+        <!-- [FOOTER BLOCK 1] Ultra-Minimalist Single-Row Newsletter Subscription Bar -->
+        <div class="footer-newsletter-simple" id="footer-newsletter-section">
+          <div class="footer-nl-text">
+            <span class="footer-nl-label">Langganan Wawasan Tekno:</span>
+            <span class="footer-nl-desc">Kurasi riset AI, semikonduktor, dan keamanan siber esensial setiap pagi.</span>
+          </div>
+          <form class="footer-nl-form" id="footer-newsletter-form">
+            <input type="email" class="footer-nl-input" placeholder="Masukkan alamat email..." required />
+            <button type="submit" class="footer-nl-btn" id="btn-footer-subscribe">Langganan</button>
+          </form>
+        </div>
+
+        <!-- [FOOTER BLOCK 2] Brand Identity & Dewan Pers Verification Header -->
+        <div class="footer-brand-compliance-row">
+          <div class="footer-brand-summary">
+            <a href="#" class="brand-logo footer-brand-logo" aria-label="QueryIndo Home">
+              <div class="brand-emblem-wrap">
+                <svg class="brand-emblem-svg" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+                  <rect x="2" y="2" width="60" height="60" rx="16" fill="#0B1120" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.2"/>
+                  <circle cx="29" cy="29" r="14.5" fill="none" stroke="url(#navQGrad)" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 27 27 L 46 46" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="46.5" cy="46.5" r="4.5" fill="url(#navRed)"/>
+                  <circle cx="46.5" cy="46.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+              </div>
+              <div class="brand-text-lockup">
+                <span class="brand-kicker">PORTAL TEKNOLOGI NUSANTARA</span>
+                <div class="brand-wordmark-row">
+                  <span class="brand-word-query">QUERY</span><span class="brand-word-indo">INDO</span>
+                  <span class="brand-domain-tag">.COM</span>
+                </div>
+              </div>
+            </a>
+            <p class="footer-editorial-mission">
+              QueryIndo adalah media siber jurnalisme teknologi independen nasional yang menyajikan liputan investigatif, riset ilmiah, dan analisis kritis kecerdasan buatan, infrastruktur digital, perangkat keras, dan kedaulatan sains nusantara.
+            </p>
+            <div class="footer-social-wrapper">
+              <span class="footer-social-label">Saluran Resmi:</span>
+              <ul class="footer-social-list" id="footer-social-list">
+                <!-- Dynamic Official Social Channels from SocialMediaService -->
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-compliance-clean">
+            <div class="compliance-badge-simple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <strong>Verifikasi Pedoman Media Siber Dewan Pers</strong>
+            </div>
+            <p class="compliance-desc">
+              Seluruh produk jurnalistik QueryIndo mematuhi <strong>Peraturan Dewan Pers No. 1/Peraturan-DP/III/2012</strong> tentang Pedoman Pemberitaan Media Siber dan UU Pers No. 40 Tahun 1999.
+            </p>
+            <div class="compliance-links">
+              <a href="/page/pedoman-media-siber">Baca Pedoman Media Siber</a>
+              <span class="compliance-link-sep">•</span>
+              <a href="/page/kode-etik#hak-jawab">Panduan Hak Jawab &amp; Koreksi</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- [FOOTER BLOCK 3] 14 Categories & 140 Subcategories Comprehensive Directory Grid (Headerless) -->
+        <div class="footer-directory-section">
+          <div class="footer-directory-grid" id="footer-directory-grid">
+            {categories14.map(cat => {
+              const subCats = MASTER_TAXONOMY[cat.id] || [];
+              return (
+                <div class="footer-dir-col-group">
+                  <a href={`/${cat.id}`} class="footer-dir-cat-title" data-cat={cat.id}>
+                    {cat.name}
+                  </a>
+                  <div class="footer-dir-subcats-stack">
+                    {subCats.map(sub => (
+                      <a href={`/${cat.id}?sub=${sub.slug}`} class="footer-dir-subcat-link" data-cat={cat.id} data-subcat={sub.slug}>
+                        {sub.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <!-- [FOOTER BLOCK 4] Horizontal Institutional & Redaksi Navigation Bar (2 Structured Rows) -->
+        <div class="footer-institutional-strip">
+          <nav class="footer-institutional-nav" aria-label="Navigasi Lembaga & Redaksi">
+            <div class="footer-nav-row">
+              <a href="/page/tentang-kami" id="link-about">Tentang Kami</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/redaksi" id="link-redaksi">Susunan Redaksi</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/pedoman-media-siber" id="link-cyber-guidelines">Pedoman Media Siber</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/kode-etik" id="link-ethics">Kode Etik Jurnalistik</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/pedoman-ai" id="link-ai-guidelines">Transparansi AI</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/cek-fakta" id="link-fact-check">Cek Fakta</a>
+            </div>
+            <div class="footer-nav-row">
+              <a href="/page/disclaimer" id="link-disclaimer">Disclaimer</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/kode-etik#hak-jawab" id="link-hak-jawab">Hak Jawab &amp; Koreksi</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/panduan-komunitas" id="link-community">Panduan Komunitas</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/info-iklan" id="link-ads">Info Iklan</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/hubungi-kami" id="link-contact">Kontak Redaksi</a>
+              <span class="nav-sep" aria-hidden="true">•</span>
+              <a href="/page/peta-situs" id="link-sitemap">Peta Situs</a>
+            </div>
+          </nav>
+        </div>
+
+        <!-- [FOOTER BLOCK 5] Footer Bottom Legal Strip -->
+        <div class="footer-bottom">
+          <div class="footer-legal-copy">
+            <p>© 2026 <strong>QUERYINDO</strong> (PT Inovasi Media Nusantara). Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+            <p class="footer-legal-sub">Dilarang mengutip atau memperbanyak sebagian atau seluruh isi tanpa izin tertulis dari Redaksi QueryIndo.</p>
+          </div>
+          <div class="footer-bottom-links">
+            <a href="/page/privasi" id="link-privacy">Kebijakan Privasi</a>
+            <a href="/page/syarat-ketentuan" id="link-terms">Syarat &amp; Ketentuan</a>
+            <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed</a>
+            <a href="/admin" id="link-admin-cms">Dasbor Redaksi (CMS)</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back to Top Button -->
+      <button id="btn-back-to-top" class="btn-back-to-top" title="Kembali ke Atas" aria-label="Scroll to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+
+
+    <!-- Structured Directory Overlay (CNN/Reuters Full-Width Mega Directory - Top Level Modal) -->
+    <div class="category-drawer-overlay" id="category-drawer-overlay" style="display: none;">
+      <div class="category-drawer-panel" id="category-drawer-panel">
+        <div class="drawer-header-bar">
+          <div class="container drawer-header-inner">
+            <div class="drawer-brand-lockup">
+              <span class="drawer-main-title">DIREKTORI SELURUH KANAL BERITA</span>
+              <span class="drawer-subtitle">14 Kanal Berita Teknologi & 140 Sub-Kanal Komprehensif Nusantara</span>
+            </div>
+            <div style="flex: 1; max-width: 400px; min-width: 240px; margin: 0 16px;">
+              <input
+                type="text"
+                id="drawer-search-filter"
+                placeholder="Cari subkategori (mis. LLM, RISC-V, EV, Robotik)..."
+                style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color, rgba(255,255,255,0.2)); background: var(--bg-secondary, rgba(255,255,255,0.05)); color: var(--text-primary, #fff); font-size: 0.85rem; outline: none; box-sizing: border-box;"
+              />
+            </div>
+            <button id="btn-drawer-close" class="btn-drawer-close" aria-label="Tutup Menu Direktori">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="container drawer-body-container">
+          <div class="drawer-categories-tree" id="drawer-categories-tree">
+            {categories14.map(cat => {
+              const subCats = MASTER_TAXONOMY[cat.id] || [];
+              return (
+                <div class="directory-col-group" data-cat-group={cat.id}>
+                  <a href={`/${cat.id}`} class="directory-cat-title" data-cat={cat.id}>
+                    {cat.name}
+                  </a>
+                  <div class="directory-subcats-stack">
+                    {subCats.map(sub => (
+                      <a href={`/${cat.id}?sub=${sub.slug}`} class="directory-subcat-link" data-cat={cat.id} data-subcat={sub.slug} data-subname={sub.name.toLowerCase()}>
+                        {sub.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div class="drawer-footer-institutional">
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">STANDAR EDITORIAL</span>
+              <a href="/page/tentang-kami">Tentang Kami</a>
+              <a href="/page/redaksi">Susunan Redaksi</a>
+              <a href="/page/pedoman-media-siber">Pedoman Media Siber</a>
+              <a href="/page/kode-etik">Kode Etik Jurnalistik</a>
+              <a href="/page/pedoman-ai">Transparansi AI</a>
+              <a href="/page/cek-fakta">Cek Fakta</a>
+            </div>
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">KEBIJAKAN &amp; HUKUM</span>
+              <a href="/page/disclaimer">Disclaimer (Penafian)</a>
+              <a href="/page/kode-etik#hak-jawab">Hak Jawab &amp; Koreksi</a>
+              <a href="/page/panduan-komunitas">Panduan Komunitas</a>
+              <a href="/page/privasi">Kebijakan Privasi</a>
+              <a href="/page/syarat-ketentuan">Syarat &amp; Ketentuan</a>
+            </div>
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">LAYANAN &amp; SINDIKASI</span>
+              <a href="/page/hubungi-kami">Kontak Redaksi &amp; Newsroom</a>
+              <a href="/page/info-iklan">Kerjasama &amp; Beriklan</a>
+              <a href="/page/peta-situs">Peta Situs Visual</a>
+              <a href="/rss.xml" target="_blank" rel="alternate">RSS Feed Sindikasi</a>
+              <a href="mailto:redaksi@queryindo.com">Kirim Siaran Pers</a>
+            </div>
+            <div class="drawer-footer-col">
+              <span class="drawer-footer-heading">MEDIA SOSIAL RESMI</span>
+              <div class="drawer-social-channels" id="drawer-social-channels"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Reader Modal (React Island with Full Reader & Comments) -->
+    <ArticleReaderModal client:load />
+
+    <!-- Saved Articles (Bookmarks) Modal (React Island) -->
+    <BookmarksDrawer client:load />
+
+    <!-- Reader User Authentication & Profile Modal (React Island) -->
+    <UserAuthModal client:load />
+
+    <!-- Article Reader Modal Overlay (DOM Fallback Container) -->
+    <div class="modal-overlay" id="reader-modal" style="display: none;">
+      <div class="modal-container" id="reader-modal-container">
+        <div class="modal-header-bar">
+          <div class="modal-controls">
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Ukuran Teks:</span>
+            <div class="font-size-toggle">
+              <button class="btn-size active" data-size="normal">A</button>
+              <button class="btn-size" data-size="large" style="font-size:0.85rem;">A+</button>
+              <button class="btn-size" data-size="xlarge" style="font-size:0.95rem;">A++</button>
+            </div>
+          </div>
+          <button class="btn-close" id="modal-close-btn" aria-label="Close Reader">✕</button>
+        </div>
+        <div class="article-reader-body" id="modal-reader-content"></div>
+      </div>
+    </div>
+
+    <!-- Saved Articles (Bookmarks) Drawer Modal (DOM Fallback Container) -->
+    <div class="modal-overlay" id="bookmarks-modal" data-lenis-prevent style="display: none;">
+      <div class="modal-container" style="max-width: 600px;">
+        <div class="modal-header-bar">
+          <h3 style="font-weight:800;">Artikel Tersimpan</h3>
+          <button class="btn-close" id="bookmarks-close-btn" aria-label="Close Bookmarks">✕</button>
+        </div>
+        <div style="padding: 1.5rem;" id="bookmarks-list-container"></div>
+      </div>
+    </div>
+
+    <!-- Reader User Authentication & Profile Modal (DOM Fallback Container) -->
+    <div class="modal-overlay" id="user-auth-modal" data-lenis-prevent style="display: none;">
+      <div class="modal-container" id="user-auth-container" style="max-width: 440px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-xl); background: var(--bg-secondary);"></div>
+    </div>
+
+    <!-- Admin CMS Modal (DOM Fallback Container) -->
+    <div class="modal-overlay" id="admin-cms-modal" data-lenis-prevent style="display: none;">
+      <div class="modal-container" id="admin-cms-container" style="max-width: 1040px; display: flex; flex-direction: column;"></div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div class="cookie-consent-banner" id="cookie-consent-banner">
+      <div class="cookie-consent-inner">
+        <div class="cookie-consent-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+            <circle cx="8.5" cy="8.5" r="1" fill="currentColor"/><circle cx="10.5" cy="15.5" r="1" fill="currentColor"/><circle cx="15.5" cy="13.5" r="1" fill="currentColor"/><circle cx="7" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="cookie-consent-text">
+          <p id="cookie-consent-msg">Situs web kami menggunakan cookie untuk memberikan konten dan pengalaman terbaik kepada pengguna. Cookie diperlukan agar situs kami berfungsi. Dengan persetujuan Anda, cookie dapat digunakan untuk meningkatkan pengalaman pengguna, menganalisis lalu lintas situs web, mengumpulkan data kunjungan, dan untuk tujuan pemasaran.</p>
+        </div>
+        <div class="cookie-consent-actions">
+          <button class="cookie-btn cookie-btn-accept" id="cookie-accept-btn">Menerima</button>
+          <button class="cookie-btn cookie-btn-reject" id="cookie-reject-btn">Menolak</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Instant Event Delegation Bridge -->
+  <script is:inline>
+    function toggleSearchOverlay() {
+      const bar = document.getElementById('search-overlay-bar');
+      const input = document.getElementById('search-input');
+      if (bar) {
+        const isHidden = bar.style.display === 'none' || !bar.style.display;
+        bar.style.display = isHidden ? 'block' : 'none';
+        if (isHidden && input) {
+          setTimeout(() => input.focus(), 60);
+          if (input.value.trim()) {
+            const preview = document.getElementById('search-preview-dropdown');
+            if (preview) preview.style.display = 'block';
+          }
+        } else {
+          const preview = document.getElementById('search-preview-dropdown');
+          if (preview) preview.style.display = 'none';
+        }
+      }
+    }
+
+    function closeSearchOverlay() {
+      const bar = document.getElementById('search-overlay-bar');
+      const preview = document.getElementById('search-preview-dropdown');
+      if (bar) bar.style.display = 'none';
+      if (preview) preview.style.display = 'none';
+    }
+
+    window.toggleSearchOverlay = toggleSearchOverlay;
+    window.closeSearchOverlay = closeSearchOverlay;
+
+    function openCategoryDrawer() {
+      const drawer = document.getElementById('category-drawer-overlay');
+      if (drawer) {
+        drawer.style.display = 'block';
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        const filterInput = document.getElementById('drawer-search-filter');
+        if (filterInput) setTimeout(() => filterInput.focus(), 60);
+      }
+    }
+
+    function closeCategoryDrawer() {
+      const drawer = document.getElementById('category-drawer-overlay');
+      if (drawer) {
+        drawer.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+
+    window.addEventListener('open-category-drawer', openCategoryDrawer);
+    window.addEventListener('close-category-drawer', closeCategoryDrawer);
+
+    // Live search filter inside drawer
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.id === 'drawer-search-filter') {
+        const q = e.target.value.toLowerCase().trim();
+        const groups = document.querySelectorAll('#drawer-categories-tree .directory-col-group');
+        groups.forEach(group => {
+          if (!q) {
+            group.style.display = '';
+            group.querySelectorAll('.directory-subcat-link').forEach(link => link.style.display = '');
+            return;
+          }
+          const catTitle = group.querySelector('.directory-cat-title')?.textContent?.toLowerCase() || '';
+          let hasMatch = catTitle.includes(q);
+          const links = group.querySelectorAll('.directory-subcat-link');
+          links.forEach(link => {
+            const subName = link.getAttribute('data-subname') || link.textContent?.toLowerCase() || '';
+            const subMatch = subName.includes(q);
+            link.style.display = subMatch || hasMatch ? '' : 'none';
+            if (subMatch) hasMatch = true;
+          });
+          group.style.display = hasMatch ? '' : 'none';
+        });
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      const target = e.target;
+      if (!target) return;
+
+      // 1. Hamburger Drawer Open
+      if (target.closest('#btn-hamburger-menu, .btn-hamburger-menu, [data-open-drawer]')) {
+        e.preventDefault();
+        openCategoryDrawer();
+        return;
+      }
+
+      // 1b. Hamburger Drawer Close
+      if (target.closest('#btn-drawer-close, .btn-drawer-close')) {
+        e.preventDefault();
+        closeCategoryDrawer();
+        return;
+      }
+
+      // Close drawer if clicking outside panel
+      if (target.id === 'category-drawer-overlay') {
+        closeCategoryDrawer();
+        return;
+      }
+
+      // 2. Search Toggle
+      if (target.closest('#btn-search-toggle, .btn-search-toggle, #btn-search-trigger, .btn-search-trigger, [data-search-trigger]')) {
+        e.preventDefault();
+        toggleSearchOverlay();
+        return;
+      }
+      if (target.closest('#btn-search-close, .btn-search-close')) {
+        e.preventDefault();
+        closeSearchOverlay();
+        return;
+      }
+
+      // 3. User Auth & Profile Modal
+      if (target.closest('#dropdown-auth-action-btn, #m-user-auth-btn, .btn-login, [data-open-auth]')) {
+        e.preventDefault();
+        const dropdown = document.getElementById('user-avatar-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+        window.dispatchEvent(new CustomEvent('open-auth-modal'));
+        return;
+      }
+
+      // 4. Bookmarks Drawer
+      if (target.closest('#dropdown-bookmarks-btn, #bookmarks-btn, [data-open-bookmarks]')) {
+        e.preventDefault();
+        const dropdown = document.getElementById('user-avatar-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+        window.dispatchEvent(new CustomEvent('open-bookmarks-drawer'));
+        return;
+      }
+
+      // 6. Article Card Click -> Open Article Reader Modal
+      if (!target.closest('button, input, select, textarea, .btn-bookmark, .tag-badge, .cat-pill, .btn-lang, .dropdown-item, .cat-nav-item, .directory-cat-title, .directory-subcat-link')) {
+        const card = target.closest('[data-article-slug], [data-slug], [data-article-id], [data-id], .hero-card, .trending-item, .matrix-card, .bento-featured-card, .feed-card, .article-card');
+        if (card) {
+          const slug = card.getAttribute('data-article-slug') || card.getAttribute('data-slug') || card.getAttribute('data-article-id') || card.getAttribute('data-id');
+          if (slug) {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+          }
+        }
+      }
+    }, false);
+
+    window.addEventListener('keydown', function(e) {
+      if ((e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) {
+        e.preventDefault();
+        toggleSearchOverlay();
+      }
+      if (e.key === 'Escape') {
+        closeCategoryDrawer();
+        closeSearchOverlay();
+      }
+    });
+  </script>
+
+  <script src="../client-main.ts"></script>
+</BaseLayout>

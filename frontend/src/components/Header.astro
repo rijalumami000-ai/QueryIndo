@@ -1,0 +1,77 @@
+---
+import ThemeToggle from './islands/ThemeToggle';
+import SearchModal from './islands/SearchModal';
+import { CATEGORIES } from '../data/mockNews';
+import type { Article } from '../types/news';
+
+interface Props {
+  articlesForSearch?: Article[];
+}
+
+const { articlesForSearch = [] } = Astro.props;
+
+const featuredCategories = [
+  { id: 'ai', name: 'Kecerdasan Buatan' },
+  { id: 'gadget', name: 'Gadget & Gear' },
+  { id: 'software', name: 'Software & Dev' },
+  { id: 'cybersecurity', name: 'Keamanan Siber' },
+  { id: 'startup', name: 'Startup & Bisnis' },
+  { id: 'fintech', name: 'Fintech' },
+  { id: 'ev', name: 'Kendaraan Listrik' },
+  { id: 'space', name: 'Antariksa' },
+  { id: 'review', name: 'Ulasan Mendalam' },
+];
+---
+
+<header class="navbar" id="site-header">
+  <div class="navbar-inner-wrapper">
+    <div class="navbar-content">
+      <!-- 1. Left Section: Logo Brand -->
+      <div class="navbar-left" style="display: flex; align-items: center; gap: 16px;">
+        <a href="/" class="brand-logo" title="QUERYINDO - Beranda" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+          <img src="/logo-brand.svg" alt="QUERYINDO" width="34" height="34" style="object-fit: contain;" />
+          <span style="font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif); font-size: 1.35rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary, #ffffff);">
+            QUERY<span style="color: var(--brand-cyan, #00f2fe);">INDO</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- 2. Middle Section: Search Trigger Island -->
+      <div class="navbar-search-wrapper" style="flex: 1; max-width: 400px; margin: 0 20px;">
+        <SearchModal client:idle initialArticles={articlesForSearch} />
+      </div>
+
+      <!-- 3. Right Section: Theme Toggle Island & Social Links -->
+      <div class="navbar-right" style="display: flex; align-items: center; gap: 12px;">
+        <ThemeToggle client:load />
+        <a 
+          href="https://twitter.com/queryindo" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="btn-social-nav"
+          style="color: var(--text-secondary, #94a3b8); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color, rgba(255,255,255,0.1));"
+        >
+          Follow X
+        </a>
+      </div>
+    </div>
+
+    <!-- Category Strip -->
+    <nav class="category-bar" aria-label="Kanal Berita" style="border-top: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding: 8px 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
+      <div class="container" style="display: flex; gap: 8px; align-items: center;">
+        <a href="/" class="nav-tab active" style="font-size: 0.85rem; font-weight: 600; text-decoration: none; padding: 6px 14px; border-radius: 20px; background: var(--brand-cyan, #00f2fe); color: #000000;">
+          Semua Kanal
+        </a>
+        {featuredCategories.map((cat) => (
+          <a 
+            href={`/${cat.id}`} 
+            class="nav-tab" 
+            style="font-size: 0.85rem; font-weight: 500; text-decoration: none; padding: 6px 14px; border-radius: 20px; color: var(--text-secondary, #94a3b8); transition: all 0.2s ease;"
+          >
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    </nav>
+  </div>
+</header>

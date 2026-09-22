@@ -1,0 +1,195 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import BookmarkButton from '../components/islands/BookmarkButton';
+import ShareBar from '../components/islands/ShareBar';
+import type { Article } from '../types/news';
+
+interface Props {
+  article: Article;
+  relatedArticles?: Article[];
+}
+
+const { article, relatedArticles = [] } = Astro.props;
+
+// Schema.org NewsArticle JSON-LD
+const newsArticleSchema = {
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": article.title,
+  "description": article.subtitle,
+  "image": [article.imageUrl],
+  "datePublished": article.publishedAt,
+  "dateModified": article.publishedAt,
+  "author": [{
+    "@type": "Person",
+    "name": article.author?.name || "Redaksi QUERYINDO",
+    "jobTitle": article.author?.role || "Jurnalis Teknologi"
+  }],
+  "publisher": {
+    "@type": "NewsMediaOrganization",
+    "name": "QUERYINDO",
+    "url": "https://queryindo.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://queryindo.com/logo.png"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `https://queryindo.com/berita/${article.slug}`
+  }
+};
+
+const formattedDate = new Date(article.publishedAt).toLocaleDateString('id-ID', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+---
+
+<BaseLayout
+  title={`${article.title} — QUERYINDO`}
+  description={article.subtitle}
+  image={article.imageUrl}
+  type="article"
+  canonicalUrl={`https://queryindo.com/berita/${article.slug}`}
+  publishedTime={article.publishedAt}
+  authorName={article.author?.name}
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(newsArticleSchema)} />
+
+  <!-- Standalone Top Navigation Header -->
+  <header style="background: var(--bg-surface, #0f172a); border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.1)); padding: 14px 24px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+      <a href="/" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+        <img src="/logo-brand.svg" alt="QUERYINDO" width="32" height="32" style="object-fit: contain;" />
+        <span style="font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif); font-size: 1.25rem; font-weight: 800; color: var(--text-primary, #ffffff); letter-spacing: -0.5px;">
+          QUERY<span style="color: var(--brand-cyan, #00f2fe);">INDO</span>
+        </span>
+      </a>
+      <a href="/" style="font-size: 0.88rem; font-weight: 600; color: var(--brand-cyan, #00f2fe); text-decoration: none; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.25); background: rgba(0, 242, 254, 0.05); transition: background 0.2s ease;">
+        &larr; Kembali ke Beranda
+      </a>
+    </div>
+  </header>
+
+  <div class="article-reader-container" style="max-width: 860px; margin: 36px auto 60px; padding: 0 20px;">
+    <!-- Breadcrumbs -->
+    <nav style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+      <a href="/" style="color: inherit; text-decoration: none;">Beranda</a>
+      <span>/</span>
+      <a href={`/${article.category}`} style="color: var(--brand-cyan, #00f2fe); text-transform: uppercase; font-weight: 600; text-decoration: none;">
+        {article.category}
+      </a>
+      {article.subCategory && (
+        <>
+          <span>/</span>
+          <span style="color: inherit;">{article.subCategory}</span>
+        </>
+      )}
+    </nav>
+
+    <!-- Header Artikel -->
+    <header style="margin-bottom: 28px;">
+      <h1 style="font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif); font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; line-height: 1.25; color: var(--text-primary, #ffffff); letter-spacing: -0.5px; margin-bottom: 14px;">
+        {article.title}
+      </h1>
+
+      {article.subtitle && (
+        <p style="font-size: 1.15rem; line-height: 1.6; color: var(--text-secondary, #94a3b8); margin-bottom: 20px; font-weight: 400;">
+          {article.subtitle}
+        </p>
+      )}
+
+      <!-- Meta Bar (Author, Tanggal, Tombol Aksi) -->
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.1));">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img 
+            src={article.author?.avatar || '/premium_3d_avatar.png'} 
+            alt={article.author?.name} 
+            width="42" 
+            height="42" 
+            style="border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color, rgba(255,255,255,0.2));" 
+          />
+          <div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary, #ffffff);">
+              {article.author?.name}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+              {article.author?.role || 'Jurnalis Teknologi'} &bull; {formattedDate} &bull; {article.readTimeMinutes} menit baca
+            </div>
+          </div>
+        </div>
+
+        <!-- React Islands: Bookmark & ShareBar -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <BookmarkButton client:idle articleId={article.id} articleTitle={article.title} />
+          <ShareBar client:idle title={article.title} />
+        </div>
+      </div>
+    </header>
+
+    <!-- Cover Image -->
+    {article.imageUrl && (
+      <figure style="margin: 0 0 32px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color, rgba(255,255,255,0.08));">
+        <img 
+          src={article.imageUrl} 
+          alt={article.imageCaption || article.title} 
+          style="width: 100%; height: auto; max-height: 520px; object-fit: cover; display: block;" 
+          loading="eager"
+        />
+        {article.imageCaption && (
+          <figcaption style="padding: 10px 14px; font-size: 0.8rem; color: var(--text-muted, #64748b); background: var(--bg-surface, rgba(0,0,0,0.2));">
+            Foto: {article.imageCaption}
+          </figcaption>
+        )}
+      </figure>
+    )}
+
+    <!-- AI Summary Box -->
+    {article.aiSummary && article.aiSummary.length > 0 && (
+      <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 10px; padding: 18px 22px; margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--brand-cyan, #00f2fe); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">
+          <span>⚡</span> Ringkasan Inti Berita (AI Key Points)
+        </div>
+        <ul style="margin: 0; padding-left: 20px; color: var(--text-primary, #ffffff); font-size: 0.95rem; line-height: 1.6;">
+          {article.aiSummary.map((item) => (
+            <li style="margin-bottom: 6px;">{item}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    <!-- Konten Berita Semantik (HTML Server-Rendered - Ramah SEO 100%) -->
+    <article 
+      class="article-body-prose" 
+      style="font-family: var(--font-reading, 'Newsreader', Georgia, serif); font-size: 1.22rem; line-height: 1.85; color: var(--text-primary, #f1f5f9);"
+      set:html={article.content}
+    />
+
+    <!-- Tags Strip -->
+    {article.tags && article.tags.length > 0 && (
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.1)); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted, #64748b);">Topik Terkait:</span>
+        {article.tags.map((tag) => (
+          <span style="background: var(--bg-secondary, rgba(255,255,255,0.06)); border: 1px solid var(--border-color, rgba(255,255,255,0.12)); color: var(--text-secondary, #cbd5e1); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
+            #{tag}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Standalone Footer -->
+  <footer style="background: var(--bg-surface, #0b1120); border-top: 1px solid var(--border-color, rgba(255,255,255,0.08)); padding: 40px 24px; text-align: center; color: var(--text-muted, #64748b); font-size: 0.85rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <p style="margin-bottom: 8px; color: var(--text-secondary, #94a3b8);">
+        QUERYINDO &bull; Portal Berita Jurnalisme Teknologi Independen Indonesia
+      </p>
+      <p style="font-size: 0.8rem; margin: 0;">
+        &copy; {new Date().getFullYear()} QUERYINDO Media Nusantara. Hak cipta dilindungi undang-undang.
+      </p>
+    </div>
+  </footer>
+</BaseLayout>

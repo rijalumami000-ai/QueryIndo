@@ -1,0 +1,37 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { ApiService } from '../../services/api';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/');
+}
+
+const article = await ApiService.getArticleBySlug(slug);
+
+if (!article) {
+  Astro.response.status = 404;
+}
+---
+
+{article ? (
+  <ArticleLayout article={article} />
+) : (
+  <BaseLayout title="404 — Artikel Tidak Ditemukan | QUERYINDO">
+    <div style="max-width: 600px; margin: 80px auto; text-align: center; padding: 0 20px;">
+      <h1 style="font-size: 4rem; font-weight: 900; color: var(--brand-cyan, #00f2fe); margin: 0 0 16px;">404</h1>
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary, #ffffff); margin: 0 0 12px;">Artikel Tidak Ditemukan</h2>
+      <p style="color: var(--text-secondary, #94a3b8); margin-bottom: 24px; line-height: 1.6;">
+        Maaf, artikel dengan rute <code>{slug}</code> mungkin telah dipindahkan, diarsipkan, atau tautan yang Anda tuju salah.
+      </p>
+      <a 
+        href="/" 
+        style="display: inline-block; background: var(--brand-cyan, #00f2fe); color: #000000; padding: 10px 24px; border-radius: 8px; font-weight: 700; text-decoration: none;"
+      >
+        Kembali ke Beranda
+      </a>
+    </div>
+  </BaseLayout>
+)}

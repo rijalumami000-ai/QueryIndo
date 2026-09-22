@@ -82,7 +82,14 @@ func DeleteAuthor(c *fiber.Ctx) error {
 	}
 
 	id := c.Params("id")
-	if err := database.DB.Where("id = ?", id).Delete(&models.Author{}).Error; err != nil {
+	nameQuery := c.Query("name")
+
+	query := database.DB.Where("id = ?", id)
+	if nameQuery != "" {
+		query = database.DB.Where("id = ? OR LOWER(name) = LOWER(?)", id, nameQuery)
+	}
+
+	if err := query.Delete(&models.Author{}).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
 	}
 
