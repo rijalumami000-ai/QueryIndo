@@ -151,6 +151,8 @@ func CreateArticle(c *fiber.Ctx) error {
 	// Trigger automated instant indexing ping (IndexNow & PubSubHubbub)
 	if article.Status == "published" {
 		utils.PingSearchEngines(article.Slug)
+		// Trigger Cloudflare CDN cache purge for published article
+		utils.PurgeArticleCache(article.Slug, article.CategoryID)
 	}
 
 	return c.Status(201).JSON(fiber.Map{
@@ -195,6 +197,8 @@ func UpdateArticle(c *fiber.Ctx) error {
 	// Trigger automated instant indexing ping on update if published
 	if article.Status == "published" {
 		utils.PingSearchEngines(article.Slug)
+		// Trigger Cloudflare CDN cache purge for updated article
+		utils.PurgeArticleCache(article.Slug, article.CategoryID)
 	}
 
 	return c.JSON(fiber.Map{
@@ -208,9 +212,23 @@ func UpdateArticle(c *fiber.Ctx) error {
 func DeleteArticle(c *fiber.Ctx) error {
 	id := c.Params("id")
 
+	// Look up the article first so we can purge its cached URLs after deletion
+	var articleForPurge models.Article
+	var hasArticleData bool
+	if database.DB != nil {
+		if err := database.DB.Select("slug", "category_id").First(&articleForPurge, "id = ?", id).Error; err == nil {
+			hasArticleData = true
+		}
+	}
+
 	if database.DB != nil {
 		database.DB.Unscoped().Where("article_id = ?", id).Delete(&models.Comment{})
 		database.DB.Unscoped().Delete(&models.Article{}, "id = ?", id)
+	}
+
+	// Purge Cloudflare cache for the deleted article
+	if hasArticleData {
+		utils.PurgeArticleCache(articleForPurge.Slug, articleForPurge.CategoryID)
 	}
 
 	return c.JSON(fiber.Map{

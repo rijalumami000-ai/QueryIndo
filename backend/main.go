@@ -59,7 +59,7 @@ func main() {
 
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
 	if allowedOrigins == "" {
-		allowedOrigins = "https://www.queryindo.com,https://queryindo.com,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+		allowedOrigins = "https://www.queryindo.com,https://queryindo.com,https://studio.queryindo.com,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 	}
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
@@ -200,6 +200,10 @@ func main() {
 	api.Post("/social-links", middleware.Protected(), middleware.RequireRole("superuser"), handlers.CreateSocialLink)
 	api.Put("/social-links/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.UpdateSocialLink)
 	api.Delete("/social-links/:id", middleware.Protected(), middleware.RequireRole("superuser"), handlers.DeleteSocialLink)
+
+	// CDN & Cloudflare Edge Cache Management Endpoints
+	api.Get("/cdn/status", handlers.GetCDNStatus)
+	api.Post("/cdn/purge", middleware.Protected(), middleware.RequireRole("superuser"), handlers.PurgeCDNCache)
 
 	// SEO & Search Engine Indexing Endpoints (Protected)
 	api.Post("/seo/ping", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.TriggerSEOPing)
