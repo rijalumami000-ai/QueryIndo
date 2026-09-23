@@ -273,11 +273,15 @@ func ServeResizedMedia(c *fiber.Ctx) error {
 	}
 
 	// Check if source is external URL
-	isExternal := strings.HasPrefix(sourcePath, "http://") || strings.HasPrefix(sourcePath, "https://") || strings.HasPrefix(sourcePath, "ext/")
 	if strings.HasPrefix(sourcePath, "ext/") {
-		isExternal = true
 		sourcePath = strings.TrimPrefix(sourcePath, "ext/")
 	}
+	if strings.HasPrefix(sourcePath, "https:/") && !strings.HasPrefix(sourcePath, "https://") {
+		sourcePath = "https://" + strings.TrimPrefix(sourcePath, "https:/")
+	} else if strings.HasPrefix(sourcePath, "http:/") && !strings.HasPrefix(sourcePath, "http://") {
+		sourcePath = "http://" + strings.TrimPrefix(sourcePath, "http:/")
+	}
+	isExternal := strings.HasPrefix(sourcePath, "http://") || strings.HasPrefix(sourcePath, "https://")
 
 	// Compute unique cache key (MD5 of source + transformation parameters)
 	cacheKeyStr := fmt.Sprintf("%s|w=%d|h=%d|q=%d|c=%s|f=%s", sourcePath, opts.Width, opts.Height, opts.Quality, opts.Crop, opts.Format)
