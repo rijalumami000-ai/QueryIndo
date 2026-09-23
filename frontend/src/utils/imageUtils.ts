@@ -51,6 +51,47 @@ export class ImageUtils {
   }
 
   /**
+   * Transforms any image URL (local upload or external) to QueryIndo CDN Resizer format.
+   * e.g. /uploads/articles/... -> /media/w_800,q_80/articles/...
+   * or https://unsplash.com/... -> /media/resizer?w=800&q=80&url=...
+   */
+  public static toCDNUrl(url: string, width: number = 800, quality: number = 80, crop: string = 'fit'): string {
+    if (!url) return '';
+    const trimmed = url.trim();
+
+    // Already a CDN media URL
+    if (trimmed.includes('/media/w_') || trimmed.includes('/media/resizer')) {
+      return trimmed;
+    }
+
+    // Local uploads URL
+    if (trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+      const relPath = trimmed.replace(/^\/?uploads\//, '');
+      const cropDirective = crop && crop !== 'fit' ? `,c_${crop}` : '';
+      return `/media/w_${width},q_${quality}${cropDirective}/${relPath}`;
+    }
+
+    // Full domain uploads URL (https://queryindo.com/uploads/...)
+    if (trimmed.includes('queryindo.com/uploads/')) {
+      const parts = trimmed.split('/uploads/');
+      if (parts[1]) {
+        const cropDirective = crop && crop !== 'fit' ? `,c_${crop}` : '';
+        return `/media/w_${width},q_${quality}${cropDirective}/${parts[1]}`;
+      }
+    }
+
+    // External URL (Unsplash, external websites, etc.) -> use resizer query
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      if (trimmed.startsWith('data:') || trimmed.endsWith('.svg')) {
+        return trimmed;
+      }
+      return `/media/resizer?w=${width}&q=${quality}&url=${encodeURIComponent(trimmed)}`;
+    }
+
+    return trimmed;
+  }
+
+  /**
    * Premium Scalloped Verified Seal (Similar to Meta Verified / Twitter X / Telegram Star)
    */
   public static getVerifiedBadgeHTML(size: number = 16, title: string = 'Dewan Redaksi Terverifikasi'): string {

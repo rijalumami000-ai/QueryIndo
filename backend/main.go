@@ -205,6 +205,13 @@ func main() {
 	api.Get("/cdn/status", handlers.GetCDNStatus)
 	api.Post("/cdn/purge", middleware.Protected(), middleware.RequireRole("superuser"), handlers.PurgeCDNCache)
 
+	// Media Management & Dynamic Image Resizer CDN Endpoints
+	_ = handlers.EnsureUploadDirs()
+	api.Post("/media/upload", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.UploadMedia)
+	app.Get("/media/resizer", handlers.ServeResizedMedia)
+	app.Get("/media/:params/*", handlers.ServeResizedMedia)
+	app.Static("/uploads", handlers.GetUploadBaseDir())
+
 	// SEO & Search Engine Indexing Endpoints (Protected)
 	api.Post("/seo/ping", middleware.Protected(), middleware.RequireRole("superuser", "editor"), handlers.TriggerSEOPing)
 	app.Get("/queryindo7a9f8b1c2d3e4f5a6b7c8d9e0.txt", handlers.GetIndexNowKey)
