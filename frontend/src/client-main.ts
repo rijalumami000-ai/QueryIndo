@@ -6,7 +6,6 @@ import { ShoppingCarousel } from './components/ShoppingCarousel';
 import { AdBanner } from './components/AdBanner';
 import { ApiService } from './services/apiService';
 import { InstitutionalPages, type InstitutionalPageId } from './components/InstitutionalPages';
-import { ByteShorts } from './components/ByteShorts';
 import { Toast } from './utils/toast';
 import { SeoService } from './utils/seoService';
 import { SocialMediaService } from './services/socialMediaService';
@@ -17,34 +16,12 @@ import { HeroSection } from './sections/HeroSection';
 import { BentoSection } from './sections/BentoSection';
 import { DeepTechSection } from './sections/DeepTechSection';
 import { FeedSection } from './sections/FeedSection';
-import { ArticleReaderModal } from './sections/ArticleReaderModal';
-import { BookmarksModal } from './sections/BookmarksModal';
 import { SearchPreview } from './sections/SearchPreview';
-import { UserAuthModal } from './components/UserAuthModal';
 import { CookieConsent } from './components/CookieConsent';
 import { GoogleTranslateService } from './utils/googleTranslateService';
 import { CATEGORIES, MASTER_TAXONOMY } from './data/mockNews';
 import { escapeHtml, formatDate, getSafeImageUrl, IMG_ONERROR } from './utils/helpers';
 import { ReaderAuthService } from './services/authService';
-
-// Admin CMS & Modal (Code-split: Loaded dynamically on-demand)
-const adminCmsModal = document.getElementById('admin-cms-modal');
-const adminCmsContainer = document.getElementById('admin-cms-container');
-let adminCMSInstance: any = null;
-
-async function getAdminCMS() {
-  if (!adminCMSInstance) {
-    const { AdminCMS } = await import('./components/AdminCMS');
-    adminCMSInstance = new AdminCMS(() => {
-      HeroSection.renderBreakingBanner();
-      HeroSection.render();
-      BentoSection.render();
-      DeepTechSection.render();
-      FeedSection.render();
-    });
-  }
-  return adminCMSInstance;
-}
 
 // Modal Scroll Lock Handling (Native 120fps)
 window.addEventListener('modal-opened', () => document.body.classList.add('modal-open'));
@@ -131,7 +108,6 @@ async function init() {
   try {
     store.updateCurrentDateBadge();
     store.updateBookmarkBadge();
-    UserAuthModal.updateUserNavbarState();
   } catch (err) {
     console.warn('Store badges warning:', err);
   }
@@ -167,17 +143,7 @@ async function init() {
     try { FeedSection.render(); } catch (e) {}
   }).catch(() => {});
 
-  // 6. ByteShorts (Handled by React Island: ByteShortsReel.tsx)
-  try {
-    const byteShortsContainer = document.getElementById('byteshorts-bar-container');
-    if (byteShortsContainer && !byteShortsContainer.querySelector('.byteshorts-wrapper')) {
-      byteShortsContainer.innerHTML = ByteShorts.renderBarHTML(store.preferences.language);
-      ByteShorts.bindBarEvents(byteShortsContainer, store.preferences.language, (id) => {
-        const art = ArticleService.getArticleById(id);
-        if (art) Router.navigateToArticle(art.slug || art.id, art.title);
-      });
-    }
-  } catch (e) {}
+  // 6. ByteShorts is rendered seamlessly by React Island: ByteShortsReel.tsx
 
   try {
     const socialContainer = document.getElementById('footer-social-list');
@@ -210,9 +176,7 @@ async function init() {
 function setupRouting() {
   Router.subscribe((route) => {
     if (route.type === 'home') {
-      ArticleReaderModal.close(false);
       InstitutionalPages.close();
-      closeAdminCMSModal();
       store.currentCategory = 'all';
       store.currentSubCategory = null;
       FeedSection.renderCategories();
@@ -220,25 +184,19 @@ function setupRouting() {
       FeedSection.render();
       SeoService.setHomeSEO();
     } else if (route.type === 'admin') {
-      ArticleReaderModal.close(false);
       InstitutionalPages.close();
       window.location.href = '/admin';
     } else if (route.type === 'article' && route.param) {
       InstitutionalPages.close();
-      closeAdminCMSModal();
       window.location.href = `/berita/${route.param}`;
     } else if (route.type === 'page' && route.param) {
-      ArticleReaderModal.close(false);
-      closeAdminCMSModal();
       const pageId = route.param as InstitutionalPageId;
       InstitutionalPages.open(pageId, store.preferences.language);
       const title = InstitutionalPages.getPageTitle(pageId, store.preferences.language);
       const lead = InstitutionalPages.getPageLead(pageId, store.preferences.language);
       SeoService.setPageSEO(pageId, title, lead);
     } else if (route.type === 'category' && (route.category || route.param)) {
-      ArticleReaderModal.close(false);
       InstitutionalPages.close();
-      closeAdminCMSModal();
       const cat = (route.category || route.param) as CategoryId;
       store.currentCategory = cat;
       store.currentSubCategory = null;
@@ -247,9 +205,7 @@ function setupRouting() {
       FeedSection.render();
       SeoService.setCategorySEO(cat.toUpperCase(), cat);
     } else if (route.type === 'subcategory') {
-      ArticleReaderModal.close(false);
       InstitutionalPages.close();
-      closeAdminCMSModal();
       const cat = (route.category || route.param) as CategoryId;
       const sub = route.subCategory || route.subParam || null;
       store.currentCategory = cat;
@@ -265,8 +221,6 @@ function setupRouting() {
 function openAdminCMSModal() {
   window.location.href = '/admin';
 }
-
-function closeAdminCMSModal() {}
 
 // --------------------------------------------------------------------------
 // Footer & Filter Localization Sync
@@ -976,28 +930,7 @@ function setupEventListeners() {
       closeUserAvatarDropdown();
       hideMegaMenu();
       SearchPreview.close();
-      ArticleReaderModal.close(true);
-      UserAuthModal.close();
-      BookmarksModal.close();
-      closeAdminCMSModal();
     }
-  });
-
-  // Modals close triggers
-  document.getElementById('modal-close-btn')?.addEventListener('click', () => ArticleReaderModal.close(true));
-  document.getElementById('bookmarks-btn')?.addEventListener('click', () => BookmarksModal.open());
-  document.getElementById('bookmarks-close-btn')?.addEventListener('click', () => BookmarksModal.close());
-  document.getElementById('user-auth-modal')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('user-auth-modal')) UserAuthModal.close();
-  });
-  document.getElementById('reader-modal')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('reader-modal')) ArticleReaderModal.close(true);
-  });
-  document.getElementById('bookmarks-modal')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('bookmarks-modal')) BookmarksModal.close();
-  });
-  adminCmsModal?.addEventListener('click', (e) => {
-    if (e.target === adminCmsModal) { closeAdminCMSModal(); Router.navigateHome(); }
   });
 
   // Logo Button

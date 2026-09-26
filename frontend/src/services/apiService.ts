@@ -1,8 +1,6 @@
 import type { Article, TechIndexItem, AuthorProfile } from '../types/news';
 import type { AdCampaign } from '../components/AdBanner';
 import type { ShoppingProduct, ShoppingWidgetConfig } from '../components/ShoppingCarousel';
-import type { PollData } from '../components/ReaderPoll';
-import type { CommentItem } from '../components/ReaderComments';
 import type { SocialLink } from './socialMediaService';
 import { TECH_INDEXES } from '../data/mockNews';
 import { AuthService } from './authService';

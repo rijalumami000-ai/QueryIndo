@@ -620,45 +620,6 @@ const categories14 = CATEGORIES.filter(c => c.id !== 'all');
     <!-- Reader User Authentication & Profile Modal (React Island) -->
     <UserAuthModal client:load />
 
-    <!-- Article Reader Modal Overlay (DOM Fallback Container) -->
-    <div class="modal-overlay" id="reader-modal" style="display: none;">
-      <div class="modal-container" id="reader-modal-container">
-        <div class="modal-header-bar">
-          <div class="modal-controls">
-            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Ukuran Teks:</span>
-            <div class="font-size-toggle">
-              <button class="btn-size active" data-size="normal">A</button>
-              <button class="btn-size" data-size="large" style="font-size:0.85rem;">A+</button>
-              <button class="btn-size" data-size="xlarge" style="font-size:0.95rem;">A++</button>
-            </div>
-          </div>
-          <button class="btn-close" id="modal-close-btn" aria-label="Close Reader">✕</button>
-        </div>
-        <div class="article-reader-body" id="modal-reader-content"></div>
-      </div>
-    </div>
-
-    <!-- Saved Articles (Bookmarks) Drawer Modal (DOM Fallback Container) -->
-    <div class="modal-overlay" id="bookmarks-modal" data-lenis-prevent style="display: none;">
-      <div class="modal-container" style="max-width: 600px;">
-        <div class="modal-header-bar">
-          <h3 style="font-weight:800;">Artikel Tersimpan</h3>
-          <button class="btn-close" id="bookmarks-close-btn" aria-label="Close Bookmarks">✕</button>
-        </div>
-        <div style="padding: 1.5rem;" id="bookmarks-list-container"></div>
-      </div>
-    </div>
-
-    <!-- Reader User Authentication & Profile Modal (DOM Fallback Container) -->
-    <div class="modal-overlay" id="user-auth-modal" data-lenis-prevent style="display: none;">
-      <div class="modal-container" id="user-auth-container" style="max-width: 440px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-xl); background: var(--bg-secondary);"></div>
-    </div>
-
-    <!-- Admin CMS Modal (DOM Fallback Container) -->
-    <div class="modal-overlay" id="admin-cms-modal" data-lenis-prevent style="display: none;">
-      <div class="modal-container" id="admin-cms-container" style="max-width: 1040px; display: flex; flex-direction: column;"></div>
-    </div>
-
     <!-- Cookie Consent Banner -->
     <div class="cookie-consent-banner" id="cookie-consent-banner">
       <div class="cookie-consent-inner">
