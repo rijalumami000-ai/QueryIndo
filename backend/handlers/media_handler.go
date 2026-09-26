@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"byteindonesia/backend/utils"
 	"github.com/disintegration/imaging"
 	"github.com/gofiber/fiber/v2"
 	_ "golang.org/x/image/webp"
@@ -95,18 +97,8 @@ func UploadMedia(c *fiber.Ctx) error {
 		}
 	}
 
-	baseDir := GetUploadBaseDir()
 	now := time.Now()
 	yearMonth := now.Format("2006/01")
-	targetFolder := filepath.Join(baseDir, "articles", filepath.FromSlash(yearMonth))
-
-	if err := os.MkdirAll(targetFolder, 0755); err != nil {
-		log.Printf("⚠️ [Media Upload] Gagal membuat direktori upload: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"message": "Gagal mempersiapkan direktori penyimpanan di server.",
-		})
-	}
 
 	// Create clean, unique file name
 	rawName := strings.TrimSuffix(filepath.Base(file.Filename), filepath.Ext(file.Filename))
@@ -125,37 +117,91 @@ func UploadMedia(c *fiber.Ctx) error {
 	}
 
 	uniqueFilename := fmt.Sprintf("%s-%d%s", cleanSlug, now.UnixNano()%1000000, ext)
-	targetFilePath := filepath.Join(targetFolder, uniqueFilename)
+	relativePath := fmt.Sprintf("articles/%s/%s", yearMonth, uniqueFilename)
 
-	// Save original file to disk
-	if err := c.SaveFile(file, targetFilePath); err != nil {
-		log.Printf("⚠️ [Media Upload] Gagal menyimpan file: %v", err)
+	// Open uploaded file in memory
+	srcFile, err := file.Open()
+	if err != nil {
+		log.Printf("⚠️ [Media Upload] Gagal membaca file multipart: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Gagal membaca berkas gambar yang diunggah.",
+		})
+	}
+	defer srcFile.Close()
+
+	// Read image bytes into memory buffer for dimension inspection and upload
+	buf := new(bytes.Buffer)
+	if _, err := io.Copy(buf, srcFile); err != nil {
+		log.Printf("⚠️ [Media Upload] Gagal menyalin buffer gambar: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Gagal memproses data gambar.",
+		})
+	}
+
+	// Read image dimensions in memory (zero disk write)
+	width := 0
+	height := 0
+	if imgCfg, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes())); err == nil {
+		width = imgCfg.Width
+		height = imgCfg.Height
+	}
+
+	// ─── CLOUD-FIRST PATH: Direct Stream to Cloudflare R2 CDN (Zero VPS Disk) ───
+	if utils.IsR2Configured() {
+		r2URL, err := utils.UploadToR2(c.Context(), relativePath, bytes.NewReader(buf.Bytes()), contentType)
+		if err == nil {
+			log.Printf("☁️ [Media Upload -> R2 CDN] Berhasil diunggah ke Cloudflare R2: %s (%dx%d, %d KB)", r2URL, width, height, file.Size/1024)
+			return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+				"success": true,
+				"message": "Gambar berhasil diunggah ke Cloudflare R2 CDN.",
+				"data": fiber.Map{
+					"path":      relativePath,
+					"url":       r2URL,
+					"full_url":  r2URL,
+					"cdn_url":   r2URL,
+					"filename":  uniqueFilename,
+					"width":     width,
+					"height":    height,
+					"size_kb":   file.Size / 1024,
+					"mime_type": contentType,
+					"storage":   "cloudflare_r2",
+				},
+			})
+		}
+		log.Printf("⚠️ [Media Upload -> R2 CDN] Gagal upload ke R2, beralih ke penyimpanan lokal VPS: %v", err)
+	}
+
+	// ─── LOCAL FALLBACK PATH: If R2 is not configured or network failed ───
+	baseDir := GetUploadBaseDir()
+	targetFolder := filepath.Join(baseDir, "articles", filepath.FromSlash(yearMonth))
+	if err := os.MkdirAll(targetFolder, 0755); err != nil {
+		log.Printf("⚠️ [Media Upload] Gagal membuat direktori upload: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Gagal mempersiapkan direktori penyimpanan di server.",
+		})
+	}
+
+	targetFilePath := filepath.Join(targetFolder, uniqueFilename)
+	if err := os.WriteFile(targetFilePath, buf.Bytes(), 0644); err != nil {
+		log.Printf("⚠️ [Media Upload] Gagal menyimpan file ke lokal: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"message": "Gagal menyimpan berkas gambar ke server.",
 		})
 	}
 
-	// Read image dimensions if readable
-	width := 0
-	height := 0
-	if img, err := imaging.Open(targetFilePath, imaging.AutoOrientation(true)); err == nil {
-		bounds := img.Bounds()
-		width = bounds.Dx()
-		height = bounds.Dy()
-	}
-
-	// Build public and CDN URLs
-	relativePath := fmt.Sprintf("articles/%s/%s", yearMonth, uniqueFilename)
 	publicURL := fmt.Sprintf("/uploads/%s", relativePath)
 	fullURL := fmt.Sprintf("https://queryindo.com/uploads/%s", relativePath)
 	cdnURL := fmt.Sprintf("https://queryindo.com/media/w_1200,q_80/%s", relativePath)
 
-	log.Printf("📸 [Media Upload] Berhasil diunggah: %s (%dx%d, %d KB)", relativePath, width, height, file.Size/1024)
+	log.Printf("📸 [Media Upload -> Local Fallback] Berhasil disimpan lokal: %s (%dx%d, %d KB)", relativePath, width, height, file.Size/1024)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"success": true,
-		"message": "Gambar berhasil diunggah.",
+		"message": "Gambar berhasil disimpan di penyimpanan server lokal.",
 		"data": fiber.Map{
 			"path":      relativePath,
 			"url":       publicURL,
@@ -166,6 +212,7 @@ func UploadMedia(c *fiber.Ctx) error {
 			"height":    height,
 			"size_kb":   file.Size / 1024,
 			"mime_type": contentType,
+			"storage":   "local",
 		},
 	})
 }

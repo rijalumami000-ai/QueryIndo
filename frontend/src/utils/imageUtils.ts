@@ -59,8 +59,8 @@ export class ImageUtils {
     if (!url) return '';
     const trimmed = url.trim();
 
-    // Already a CDN media URL
-    if (trimmed.includes('/media/w_') || trimmed.includes('/media/resizer')) {
+    // Already a CDN media URL or Cloudflare R2 CDN URL
+    if (trimmed.includes('/media/w_') || trimmed.includes('/media/resizer') || trimmed.includes('cdn.queryindo.com')) {
       return trimmed;
     }
 
