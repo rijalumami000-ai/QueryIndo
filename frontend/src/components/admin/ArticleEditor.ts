@@ -13,12 +13,34 @@ export class ArticleEditor {
     const isEdit = article !== null;
     const user = AuthService.getCurrentUser();
 
-    const initialContent = article ? article.content : `
-      <p class="article-lead">Tulis paragraf pembuka naskah berita di sini dengan bahasa lugas dan berbobot.</p>
-      <h2>Sub-Bab Analisis & Fakta Lapangan</h2>
-      <p>Paparkan fakta teknis, kutipan narasumber, atau temuan investigasi di paragraf ini.</p>
-      <blockquote>"Kedaulatan digital dan komputasi cerdas menjadi pilar masa depan pertumbuhan ekonomi nasional."</blockquote>
-    `;
+    const draftKey = `queryindo_draft_${article ? (article.id || article.slug) : 'new'}`;
+    let initialContent = (article && article.content && article.content.trim().length > 0) ? article.content : '';
+
+    if (!initialContent && typeof localStorage !== 'undefined') {
+      try {
+        const savedDraft = localStorage.getItem(draftKey);
+        if (savedDraft && savedDraft.trim().length > 0) {
+          initialContent = savedDraft;
+        }
+      } catch {}
+    }
+
+    if (!initialContent) {
+      if (article && article.subtitle && article.subtitle.trim().length > 0) {
+        initialContent = `
+          <p class="article-lead">${escapeHtml(article.subtitle)}</p>
+          <h2>Analisis &amp; Fakta Investigasi</h2>
+          <p>Laporan analisis mendalam mengenai perkembangan teknologi dan dampak ekosistem terkini.</p>
+        `;
+      } else {
+        initialContent = `
+          <p class="article-lead">Tulis paragraf pembuka naskah berita di sini dengan bahasa lugas dan berbobot.</p>
+          <h2>Sub-Bab Analisis &amp; Fakta Lapangan</h2>
+          <p>Paparkan fakta teknis, kutipan narasumber, atau temuan investigasi di paragraf ini.</p>
+          <blockquote>"Kedaulatan digital dan komputasi cerdas menjadi pilar masa depan pertumbuhan ekonomi nasional."</blockquote>
+        `;
+      }
+    }
 
     const authorsList = AuthorService.getAuthors();
     const currentAuthorName = article ? article.author.name : (user?.fullName || 'Rijal Umami');
@@ -324,7 +346,13 @@ export class ArticleEditor {
 
     // Unified sync function for content, analytics, and live preview
     const syncAll = () => {
-      rawTextarea.value = ArticleEditor.getCleanArticleHtml(wysiwygCanvas);
+      const cleanHtml = ArticleEditor.getCleanArticleHtml(wysiwygCanvas);
+      rawTextarea.value = cleanHtml;
+      try {
+        if (typeof localStorage !== 'undefined' && cleanHtml && cleanHtml.trim().length > 0) {
+          localStorage.setItem(draftKey, cleanHtml);
+        }
+      } catch {}
       updateAnalytics();
     };
 
@@ -345,6 +373,22 @@ export class ArticleEditor {
     // Initial hydration of existing figures in canvas
     ArticleEditor.hydrateCanvasFigures(wysiwygCanvas, syncAll);
     updateAnalytics();
+
+    // Asynchronously fetch complete content from server if editing and content seems incomplete or empty
+    if (article) {
+      ArticleService.fetchArticleDetail(article.slug || article.id, true).then(full => {
+        if (full && full.content && full.content.trim().length > 0 && full.content !== initialContent) {
+          article.content = full.content;
+          wysiwygCanvas.innerHTML = full.content;
+          rawTextarea.value = full.content;
+          if (previewBody) previewBody.innerHTML = full.content;
+          ArticleEditor.hydrateCanvasFigures(wysiwygCanvas, syncAll);
+          updateAnalytics();
+        }
+      }).catch(err => {
+        console.warn('Gagal memuat konten artikel lengkap:', err);
+      });
+    }
 
     // Listeners for Live Metadata Changes
     editTitle?.addEventListener('input', syncLivePreview);
@@ -727,6 +771,12 @@ export class ArticleEditor {
           await ArticleService.createArticle(newArt);
           Toast.show('Berita baru berhasil diterbitkan dan disimpan ke database PostgreSQL!');
         }
+
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(draftKey);
+          }
+        } catch {}
 
         onSave();
         closeEditor();

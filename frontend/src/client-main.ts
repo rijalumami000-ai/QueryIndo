@@ -226,7 +226,7 @@ function setupRouting() {
     } else if (route.type === 'article' && route.param) {
       InstitutionalPages.close();
       closeAdminCMSModal();
-      window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: route.param } }));
+      window.location.href = `/berita/${route.param}`;
     } else if (route.type === 'page' && route.param) {
       ArticleReaderModal.close(false);
       closeAdminCMSModal();

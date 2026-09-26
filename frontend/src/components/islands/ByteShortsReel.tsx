@@ -154,9 +154,7 @@ export default function ByteShortsReel() {
 
   const handleReadFullStory = (articleIdOrSlug: string) => {
     closeViewer();
-    window.dispatchEvent(new CustomEvent('open-article-reader', {
-      detail: { slugOrId: articleIdOrSlug }
-    }));
+    window.location.href = `/berita/${articleIdOrSlug}`;
   };
 
   if (stories.length === 0) return null;

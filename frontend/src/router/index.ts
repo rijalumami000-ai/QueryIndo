@@ -49,6 +49,8 @@ export class Router {
       // Handle data-route or internal paths
       if (
         href.startsWith('/') && 
+        !href.startsWith('/berita/') &&
+        !href.startsWith('/article/') &&
         !href.startsWith('/api') && 
         !href.startsWith('/health') &&
         !href.endsWith('.xml') &&
@@ -69,7 +71,7 @@ export class Router {
           this.navigateTo(href.replace('#page/', '/page/'));
         } else if (href.startsWith('#article/')) {
           e.preventDefault();
-          this.navigateTo(href.replace('#article/', '/berita/'));
+          window.location.href = href.replace('#article/', '/berita/');
         } else if (href.startsWith('#subcategory/')) {
           e.preventDefault();
           const parts = href.replace('#subcategory/', '').split('/');
@@ -112,11 +114,7 @@ export class Router {
       target = slugifyTitle(target);
     }
 
-    if (category && subCategory) {
-      this.navigateTo(`/${category}/${subCategory}/${target}`);
-    } else {
-      this.navigateTo(`/berita/${target}`);
-    }
+    window.location.href = `/berita/${target}`;
   }
 
   public static navigateToPage(pageId: string): void {

@@ -148,7 +148,17 @@ export default function AdminCMSModal({ initialOpen = false }: Props) {
       art.aiSummary?.[1] || '',
       art.aiSummary?.[2] || ''
     ]);
-    setContentHtml(art.content || '');
+    let resolvedContent = (art.content && art.content.trim().length > 0) ? art.content : '';
+    if (!resolvedContent) {
+      try {
+        const draft = localStorage.getItem(`queryindo_draft_${art.id}`) || localStorage.getItem(`manuscript_draft_${art.id}`);
+        if (draft && draft.trim()) resolvedContent = draft;
+      } catch {}
+    }
+    if (!resolvedContent && art.subtitle) {
+      resolvedContent = `<p class="article-lead">${art.subtitle}</p>`;
+    }
+    setContentHtml(resolvedContent || '<p>Tuliskan naskah laporan berita investigatif di sini...</p>');
     setActiveTab('editor');
     setEditorSuccess(false);
   };

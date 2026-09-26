@@ -28,7 +28,7 @@ export class ApiService {
   }
 
   // Fetch Articles from Go Backend (Optionally includes full content, defaults to lightweight metadata)
-  public static async getArticles(category?: string, search?: string, includeContent: boolean = false): Promise<Article[]> {
+  public static async getArticles(category?: string, search?: string, includeContent: boolean = true): Promise<Article[]> {
     try {
       const url = new URL(`${API_BASE_URL}/articles`, window.location.origin);
       if (category && category !== 'all') url.searchParams.append('category', category);

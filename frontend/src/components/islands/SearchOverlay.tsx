@@ -178,7 +178,7 @@ export default function SearchOverlay() {
   const handleSelect = (slugOrId: string) => {
     if (query.trim()) saveRecent(query);
     closeSearch();
-    window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId } }));
+    window.location.href = `/berita/${slugOrId}`;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

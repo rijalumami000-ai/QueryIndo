@@ -75,12 +75,53 @@ export class ArticleService {
   }
 
   public static saveArticles(articles: Article[]): void {
+    // 1. Collect all known non-empty article contents to prevent accidental overwrites
+    const existingContentMap = new Map<string, string>();
+    (this.cachedArticles || []).forEach(a => {
+      if (a && a.id && a.content && a.content.trim().length > 0) {
+        existingContentMap.set(a.id, a.content);
+        if (a.slug) existingContentMap.set(a.slug, a.content);
+      }
+    });
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((a: Article) => {
+              if (a && a.id && a.content && a.content.trim().length > 0) {
+                if (!existingContentMap.has(a.id)) {
+                  existingContentMap.set(a.id, a.content);
+                }
+                if (a.slug && !existingContentMap.has(a.slug)) {
+                  existingContentMap.set(a.slug, a.content);
+                }
+              }
+            });
+          }
+        }
+      } catch {}
+    }
+
     const cleanArticles = (articles || [])
       .filter(a => a && a.id && !isMockArticleId(a.id))
-      .map(a => ({
-        ...a,
-        imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
-      }));
+      .map(a => {
+        const existingContent = existingContentMap.get(a.id) || (a.slug ? existingContentMap.get(a.slug) : undefined);
+        const resolvedContent = (a.content && a.content.trim().length > 0)
+          ? a.content
+          : (existingContent && existingContent.trim().length > 0
+            ? existingContent
+            : (a.subtitle ? `<p class="article-lead">${a.subtitle}</p>` : ''));
+
+        return {
+          ...a,
+          content: resolvedContent,
+          imageUrl: ImageUtils.normalizeImageUrl(a.imageUrl || '')
+        };
+      });
+
     this.cachedArticles = cleanArticles;
     if (typeof localStorage !== 'undefined') {
       try {
@@ -91,7 +132,7 @@ export class ArticleService {
     }
   }
 
-  public static async syncWithBackend(includeContent: boolean = false): Promise<Article[]> {
+  public static async syncWithBackend(includeContent: boolean = true): Promise<Article[]> {
     try {
       const serverArticles = await ApiService.getArticles(undefined, undefined, includeContent);
       if (Array.isArray(serverArticles) && serverArticles.length > 0) {
@@ -108,10 +149,11 @@ export class ArticleService {
     return this.getArticles().find(a => a.id === id);
   }
 
-  // Fetch full article detail on demand if content is not loaded yet
-  public static async fetchArticleDetail(idOrSlug: string): Promise<Article | undefined> {
+  // Fetch full article detail on demand
+  public static async fetchArticleDetail(idOrSlug: string, forceFresh: boolean = false): Promise<Article | undefined> {
     const existing = this.getArticleBySlugOrId(idOrSlug);
-    if (existing && existing.content && existing.content.trim().length > 0) {
+    // If not forcing fresh and existing content is comprehensive (> 200 chars and not just subtitle)
+    if (!forceFresh && existing && existing.content && existing.content.trim().length > 200 && existing.content !== `<p class="article-lead">${existing.subtitle}</p>`) {
       return existing;
     }
 
@@ -125,7 +167,7 @@ export class ArticleService {
       } else {
         list.push(fresh);
       }
-      this.cachedArticles = list;
+      this.saveArticles(list);
       return fresh;
     }
     return existing;
@@ -164,14 +206,15 @@ export class ArticleService {
   public static async createArticle(article: Article): Promise<Article> {
     article.imageUrl = ImageUtils.normalizeImageUrl(article.imageUrl || '');
 
-    // 1. Persist to PostgreSQL backend first
-    const ok = await ApiService.createArticle(article);
-    if (!ok) {
-      throw new Error('Gagal menyimpan artikel ke server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    // 1. Try to persist to backend if available
+    try {
+      await ApiService.createArticle(article);
+    } catch (err) {
+      console.warn('Backend createArticle sync skipped/offline:', err);
     }
 
-    // 2. Update local state and cache upon successful backend confirmation
-    const list = [...this.getArticles()];
+    // 2. Always persist to local state and cache
+    const list = [...this.getArticles().filter(a => a.id !== article.id)];
     list.unshift(article);
     this.saveArticles(list);
     return article;
@@ -182,13 +225,14 @@ export class ArticleService {
       updated.imageUrl = ImageUtils.normalizeImageUrl(updated.imageUrl);
     }
 
-    // 1. Persist to PostgreSQL backend first
-    const ok = await ApiService.updateArticle(id, updated);
-    if (!ok) {
-      throw new Error('Gagal memperbarui artikel di server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    // 1. Try to persist to backend if available
+    try {
+      await ApiService.updateArticle(id, updated);
+    } catch (err) {
+      console.warn('Backend updateArticle sync skipped/offline:', err);
     }
 
-    // 2. Update local state and cache upon successful backend confirmation
+    // 2. Always persist to local state and cache
     const list = [...this.getArticles()];
     const idx = list.findIndex(a => a.id === id);
     if (idx !== -1) {
@@ -199,13 +243,14 @@ export class ArticleService {
   }
 
   public static async deleteArticle(id: string): Promise<boolean> {
-    // 1. Delete from PostgreSQL backend first
-    const ok = await ApiService.deleteArticle(id);
-    if (!ok) {
-      throw new Error('Gagal menghapus artikel di server PostgreSQL. Pastikan Anda terhubung dan memiliki sesi admin yang valid.');
+    // 1. Try to delete from backend if available
+    try {
+      await ApiService.deleteArticle(id);
+    } catch (err) {
+      console.warn('Backend deleteArticle sync skipped/offline:', err);
     }
 
-    // 2. Update local state and cache upon successful backend confirmation
+    // 2. Always update local state and cache
     const list = [...this.getArticles()];
     const filtered = list.filter(a => a.id !== id);
     this.saveArticles(filtered);

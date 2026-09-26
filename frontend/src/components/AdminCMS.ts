@@ -878,10 +878,20 @@ export class AdminCMS {
   // Bind Table Actions
   private bindTableActionEvents(modalElem: HTMLElement) {
     modalElem.querySelectorAll('.btn-edit-article').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
-        const art = this.articles.find(a => a.id === id);
+        let art = this.articles.find(a => a.id === id);
         if (art) {
+          try {
+            const full = await ArticleService.fetchArticleDetail(art.slug || art.id, true);
+            if (full && full.content && full.content.trim().length > 0) {
+              art = { ...art, ...full };
+              const idx = this.articles.findIndex(a => a.id === id);
+              if (idx !== -1) this.articles[idx] = art;
+            }
+          } catch (err) {
+            console.warn('Gagal memuat detail artikel sebelum diedit:', err);
+          }
           ArticleEditor.open(art, modalElem, () => {
             this.articles = ArticleService.getArticles();
             this.onArticlesChange();

@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ByteShortsReel from '../components/islands/ByteShortsReel';
-import ArticleReaderModal from '../components/islands/ArticleReaderModal';
 import CategoryDrawer from '../components/islands/CategoryDrawer';
 import BookmarksDrawer from '../components/islands/BookmarksDrawer';
 import UserAuthModal from '../components/islands/UserAuthModal';
@@ -615,9 +614,6 @@ const categories14 = CATEGORIES.filter(c => c.id !== 'all');
       </div>
     </div>
 
-    <!-- Article Reader Modal (React Island with Full Reader & Comments) -->
-    <ArticleReaderModal client:load />
-
     <!-- Saved Articles (Bookmarks) Modal (React Island) -->
     <BookmarksDrawer client:load />
 
@@ -816,14 +812,15 @@ const categories14 = CATEGORIES.filter(c => c.id !== 'all');
         return;
       }
 
-      // 6. Article Card Click -> Open Article Reader Modal
+      // 6. Article Card Click -> Buka Halaman Penuh Berita (/berita/[slug])
       if (!target.closest('button, input, select, textarea, .btn-bookmark, .tag-badge, .cat-pill, .btn-lang, .dropdown-item, .cat-nav-item, .directory-cat-title, .directory-subcat-link')) {
         const card = target.closest('[data-article-slug], [data-slug], [data-article-id], [data-id], .hero-card, .trending-item, .matrix-card, .bento-featured-card, .feed-card, .article-card');
         if (card) {
           const slug = card.getAttribute('data-article-slug') || card.getAttribute('data-slug') || card.getAttribute('data-article-id') || card.getAttribute('data-id');
           if (slug) {
             e.preventDefault();
-            window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+            window.location.href = `/berita/${slug}`;
+            return;
           }
         }
       }

@@ -111,14 +111,10 @@ export class SearchPreview {
           const searchBar = document.getElementById('search-overlay-bar');
           if (searchBar) searchBar.style.display = 'none';
 
-          // Open reader modal
-          window.dispatchEvent(new CustomEvent('open-article-reader', {
-            detail: { slugOrId: artSlug || artId, title: artTitle }
-          }));
-
-          try {
-            Router.navigateToArticle(artSlug || artId, artTitle || undefined);
-          } catch {}
+          const targetSlug = artSlug || artId;
+          if (targetSlug) {
+            window.location.href = `/berita/${targetSlug}`;
+          }
         }
       });
     });
@@ -158,12 +154,10 @@ export class SearchPreview {
           this.close();
           const searchBar = document.getElementById('search-overlay-bar');
           if (searchBar) searchBar.style.display = 'none';
-          window.dispatchEvent(new CustomEvent('open-article-reader', {
-            detail: { slugOrId: artSlug || artId, title: artTitle }
-          }));
-          try {
-            Router.navigateToArticle(artSlug || artId, artTitle || undefined);
-          } catch {}
+          const targetSlug = artSlug || artId;
+          if (targetSlug) {
+            window.location.href = `/berita/${targetSlug}`;
+          }
         }
       } else {
         this.close();

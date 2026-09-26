@@ -5,7 +5,6 @@ import { CATEGORIES, MASTER_TAXONOMY } from '../../data/mockNews';
 import CategoryDrawer from '../../components/islands/CategoryDrawer';
 import BookmarksDrawer from '../../components/islands/BookmarksDrawer';
 import UserAuthModal from '../../components/islands/UserAuthModal';
-import ArticleReaderModal from '../../components/islands/ArticleReaderModal';
 
 const { category } = Astro.params;
 
@@ -310,7 +309,6 @@ const articles = await ApiService.getArticles(categoryId);
 
     <!-- React Islands -->
     <CategoryDrawer client:load />
-    <ArticleReaderModal client:load />
     <BookmarksDrawer client:load />
     <UserAuthModal client:load />
   </div>
@@ -429,7 +427,7 @@ const articles = await ApiService.getArticles(categoryId);
         const slug = item.getAttribute('data-search-slug');
         if (slug) {
           closeSearchOverlay();
-          window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+          window.location.href = `/berita/${slug}`;
         }
       }
       const searchBox = document.getElementById('navbar-search-box');
@@ -439,13 +437,13 @@ const articles = await ApiService.getArticles(categoryId);
       }
     });
 
-    // Bind article card click to open ArticleReaderModal
+    // Bind article card click to navigate to /berita/[slug]
     document.querySelectorAll('.article-card[data-slug]').forEach(card => {
       card.addEventListener('click', (e) => {
         e.preventDefault();
         const slug = card.getAttribute('data-slug');
         if (slug) {
-          window.dispatchEvent(new CustomEvent('open-article-reader', { detail: { slugOrId: slug } }));
+          window.location.href = `/berita/${slug}`;
         }
       });
     });

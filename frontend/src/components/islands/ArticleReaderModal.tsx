@@ -41,6 +41,19 @@ export default function ArticleReaderModal() {
     }
 
     if (found) {
+      if (!found.content || found.content.trim().length === 0) {
+        try {
+          const draft = localStorage.getItem(`queryindo_draft_${found.id}`) || localStorage.getItem(`manuscript_draft_${found.id}`);
+          if (draft && draft.trim().length > 0) {
+            found.content = draft;
+          }
+        } catch {}
+
+        if ((!found.content || found.content.trim().length === 0) && found.subtitle) {
+          found.content = `<p class="article-lead">${found.subtitle}</p><p>Laporan investigasi mendalam sedang diperbarui oleh dewan redaksi QueryIndo.</p>`;
+        }
+      }
+
       setArticle(found);
       setLikesCount(found.likesCount || 0);
 
@@ -74,46 +87,21 @@ export default function ArticleReaderModal() {
     }
   }, []);
 
-  // Listen to custom open event and global article clicks
+  // Listen to custom open event
   useEffect(() => {
     const handleCustomOpen = (e: any) => {
-      if (e.detail && (e.detail.slugOrId || e.detail.slug || e.detail.id)) {
-        openArticle(e.detail.slugOrId || e.detail.slug || e.detail.id);
+      const slug = e.detail?.slugOrId || e.detail?.slug || e.detail?.id;
+      if (slug) {
+        window.location.href = `/berita/${slug}`;
       }
     };
 
     window.addEventListener('open-article-reader', handleCustomOpen);
 
-    // Intercept clicks on article cards throughout the page
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.btn-bookmark, .tag-badge, .btn-action, .cat-pill, .btn-lang, .btn-social-nav, button, input, select, textarea')) return;
-
-      const card = target.closest('[data-article-id], [data-article-slug], [data-slug], [data-id], [data-rel-id], [data-rel-slug], .article-card, .hero-card, .trending-item, .matrix-card, .bento-featured-card, .feed-card') as HTMLElement | null;
-      if (card) {
-        const slug = card.getAttribute('data-article-slug') || card.getAttribute('data-slug') || card.getAttribute('data-rel-slug');
-        const id = card.getAttribute('data-article-id') || card.getAttribute('data-id') || card.getAttribute('data-rel-id');
-        if (slug || id) {
-          e.preventDefault();
-          e.stopPropagation();
-          openArticle(slug || id!);
-        }
-      }
-    };
-
-    document.addEventListener('click', handleGlobalClick, true);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) closeReader();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       window.removeEventListener('open-article-reader', handleCustomOpen);
-      document.removeEventListener('click', handleGlobalClick, true);
-      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [openArticle, closeReader, isOpen]);
+  }, []);
 
   // Handle scroll progress
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -430,7 +418,13 @@ export default function ArticleReaderModal() {
             lineHeight: 1.85,
             color: 'var(--text-primary, #f1f5f9)'
           }}
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          dangerouslySetInnerHTML={{ 
+            __html: (article.content && article.content.trim().length > 0)
+              ? article.content
+              : (article.subtitle 
+                ? `<p class="article-lead">${article.subtitle}</p><p>Laporan analisis dan investigasi mendalam sedang diperbarui oleh dewan redaksi QueryIndo.</p>` 
+                : '<p>Konten naskah berita sedang disiapkan oleh redaksi...</p>')
+          }}
         />
 
         {/* Action Bar: Like, Bookmark, Share */}

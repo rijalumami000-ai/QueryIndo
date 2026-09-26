@@ -111,9 +111,7 @@ export default function BookmarksDrawer() {
 
   const handleOpenArticle = (slugOrId: string) => {
     closeModal();
-    window.dispatchEvent(new CustomEvent('open-article-reader', {
-      detail: { slugOrId }
-    }));
+    window.location.href = `/berita/${slugOrId}`;
   };
 
   if (!isOpen) return null;
