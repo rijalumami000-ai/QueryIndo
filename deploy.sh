@@ -48,6 +48,7 @@ echo "=========================================================="
 echo "🔨 [4/5] Mengompilasi Go Backend & Restart PM2..."
 echo "=========================================================="
 cd "$APP_DIR/backend"
+export GOTOOLCHAIN=local
 go mod tidy
 go build -ldflags='-s -w' -o queryindo-backend .
 chmod +x queryindo-backend
