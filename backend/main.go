@@ -8,6 +8,7 @@ import (
 	"byteindonesia/backend/database"
 	"byteindonesia/backend/handlers"
 	"byteindonesia/backend/middleware"
+	"byteindonesia/backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -19,9 +20,21 @@ import (
 
 func main() {
 	// Load .env file with multi-path fallback
-	if err := godotenv.Load(".env", "/var/www/queryindo/backend/.env", "../.env"); err != nil {
+	loadedEnv := false
+	for _, envFile := range []string{".env", "/var/www/queryindo/backend/.env", "../.env"} {
+		if _, err := os.Stat(envFile); err == nil {
+			if err := godotenv.Load(envFile); err == nil {
+				loadedEnv = true
+				break
+			}
+		}
+	}
+	if !loadedEnv {
 		log.Println("ℹ️ Info: Menggunakan environment sistem / default.")
 	}
+
+	// Initialize Cloudflare R2 Storage at startup
+	utils.InitR2Storage()
 
 	// Fail-closed validation: JWT_SECRET is mandatory for production security
 	if os.Getenv("JWT_SECRET") == "" {
